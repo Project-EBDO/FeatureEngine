@@ -1,25 +1,25 @@
 package org.ebdo.engine.example
 
-import java.time.temporal.ChronoUnit
 import java.time._
+import java.time.temporal.ChronoUnit
 
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
-import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
+import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
 
 /**
   * Tests for Timeserie generator
   * Copyright (C) 2017  Project-EBDO
-  * Author: Joseph Allemandou
+  * Author: Paul NHD
   */
 class TestTimeserieGenerator
   extends FlatSpec
-  with Matchers
-  with SharedSparkContext
-  with BeforeAndAfterEach
-  with RDDComparisons {
+    with Matchers
+    with SharedSparkContext
+    with BeforeAndAfterEach
+    with RDDComparisons {
 
   // Global variable to clean execution context for every test
   var timeserieGenerator = null.asInstanceOf[TimeserieGenerator]
@@ -41,18 +41,19 @@ class TestTimeserieGenerator
 
     val expectedSchema = StructType(Seq(
       StructField("ts", TimestampType, nullable = true),
-      StructField("val", DoubleType, nullable = false)
+      StructField("values", ArrayType(DoubleType,false), nullable = true)
     ))
 
     resultDf.schema shouldEqual expectedSchema
 
-    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getDouble(1)))
+    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getAs[Array[Double]](1)))
 
     val expectedResult = sc.parallelize((0 to 3599)
       .map(idx => {
         val ts = timeserieGenerator.dt2ts(now.plus(idx, ChronoUnit.SECONDS))
-        (ts, idx.toDouble)
+        (ts, Array(idx.toDouble))
       }))
+
 
     assertRDDEquals(expectedResult, result)
   }
@@ -68,17 +69,17 @@ class TestTimeserieGenerator
 
     val expectedSchema = StructType(Seq(
       StructField("ts", TimestampType, nullable = true),
-      StructField("val", DoubleType, nullable = false)
+      StructField("values", ArrayType(DoubleType,false), nullable = true)
     ))
 
     resultDf.schema shouldEqual expectedSchema
 
-    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getDouble(1)))
+    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getAs[Array[Double]](1)))
     val expectedResult = sc.parallelize((0 to 1799)
       .flatMap(idx => {
         val ts1 = timeserieGenerator.dt2ts(now.plus(idx, ChronoUnit.SECONDS))
         val ts2 = timeserieGenerator.dt2ts(now.plus(1800 + idx, ChronoUnit.SECONDS))
-        Seq((ts1, idx.toDouble), (ts2, idx.toDouble))
+        Seq((ts1, Array(idx.toDouble)), (ts2, Array(idx.toDouble)))
       }).sortBy(_._1.getTime))
 
     assertRDDEquals(expectedResult, result)
@@ -95,24 +96,24 @@ class TestTimeserieGenerator
 
     val expectedSchema = StructType(Seq(
       StructField("ts", TimestampType, nullable = true),
-      StructField("val", DoubleType, nullable = false)
+      StructField("values", ArrayType(DoubleType,false), nullable = true)
     ))
 
     resultDf.schema shouldEqual expectedSchema
 
-    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getDouble(1)))
+    val result = resultDf.rdd.map(row => (row.getTimestamp(0), row.getAs[Array[Double]](1)))
 
     // 3600 = 514 * 7 + 2
     val expectedResult = sc.parallelize((0 to 513)
       .flatMap(idx => {
         (0 to 6).map(ii => {
           val ts = timeserieGenerator.dt2ts(now.plus(idx + 514 * ii, ChronoUnit.SECONDS))
-          (ts, idx.toDouble)
+          (ts, Array(idx.toDouble))
         })
       }) ++ Seq(
-        (timeserieGenerator.dt2ts(now.plus(3598, ChronoUnit.SECONDS)), 514.0),
-        (timeserieGenerator.dt2ts(now.plus(3599, ChronoUnit.SECONDS)), 515.0)
-      ).sortBy(_._1.getTime))
+      (timeserieGenerator.dt2ts(now.plus(3598, ChronoUnit.SECONDS)), Array(514.0)),
+      (timeserieGenerator.dt2ts(now.plus(3599, ChronoUnit.SECONDS)), Array(515.0))
+    ).sortBy(_._1.getTime))
 
     assertRDDEquals(expectedResult, result)
   }
@@ -137,7 +138,7 @@ class TestTimeserieGenerator
 
     val expectedSchema = StructType(Seq(
       StructField("test_ts", TimestampType, nullable = true),
-      StructField("test_val", DoubleType, nullable = false)
+      StructField("test_val", ArrayType(DoubleType,false), nullable = true)
     ))
 
     resultDf.schema shouldEqual expectedSchema

@@ -6,7 +6,7 @@ This section explains the use of the resources' folder.
 Overview
 --------
 
-This folder will contain WAV files.
+This folder will contain WAV and text files. WAV files are for audio data and text files will include the expected results of the Scala functions.
 
 File naming
 -----------
@@ -17,7 +17,21 @@ i) Specify the type of signal generated in the file (sin, noise, ...)
 ii) Indicate the sampling rate of the signal
 iii) Provide the duration
 
+
+
+To add a text file, please follow this nomenclature:
+
+i) Specify the type of signal generated in the file (sin, noise, ...)
+ii) Indicate the sampling rate of the signal
+iii) Provide the duration
+iv) Define which function was used
+v) List parameters of the function
+
+
 Example of file name:
 ---------------------
-
+WAV file:
 sin_48kHz_10s  -> type of signal: sinus; sampling rate: 48 kHz; duration: 10 seconds
+
+Text file:
+sin_48kHz_10s_{function}_{parameter1}_{parameter2}

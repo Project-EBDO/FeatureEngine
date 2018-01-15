@@ -28,7 +28,7 @@ iv) Define which function was used
 v) List parameters of the function
 
 
-Example of file name:
+Example of file name
 ---------------------
 WAV file:
 sin_48kHz_10s  -> type of signal: sinus; sampling rate: 48 kHz; duration: 10 seconds

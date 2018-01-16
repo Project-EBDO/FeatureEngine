@@ -1,7 +1,7 @@
 Description
 ===========
 
-Put the audio files in this repository.
+Put the text files in this repository.
 
 Overview
 --------

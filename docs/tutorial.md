@@ -1,7 +1,7 @@
 Description
 ===========
 
-This section explains briefly what to put in the scripts folder.
+This section explains briefly what to put in the docs folder.
 
 
 Overview

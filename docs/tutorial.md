@@ -2,7 +2,6 @@
 
 This section explains briefly what to put in the docs folder.
 
-
 ## Overview
 
 In this folder, it could be considered to create new folders corresponding to programming language used for the docs, e.g

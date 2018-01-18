@@ -28,7 +28,7 @@ To add a text file, please follow this nomenclature:
 ## Example of file name
 
 WAV file:
-sin_48kHz_10s  -> type of signal: sinus; sampling rate: 48 kHz; duration: 10 seconds
+`sin_48kHz_10s`  -> type of signal: sinus; sampling rate: 48 kHz; duration: 10 seconds
 
 Text file:
-sin_48kHz_10s_{function}_{parameter1}_{parameter2}
+`sin_48kHz_10s_{function}_{parameter1}_{parameter2}`

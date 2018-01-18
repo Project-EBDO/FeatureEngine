@@ -6,11 +6,11 @@ Put the text files in this repository.
 
 As said earlier, to add a text file, please follow this nomenclature:
 
-i) Specify the type of signal generated in the file (sin, noise, ...)
-ii) Indicate the sampling rate of the signal
-iii) Provide the duration
-iv) Define which function was used
-v) List parameters of the function
+1. Specify the type of signal generated in the file (sin, noise, ...)
+2. Indicate the sampling rate of the signal
+3. Provide the duration
+4. Define which function was used
+5. List parameters of the function
 
 ## Example of file name
 

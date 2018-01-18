@@ -15,4 +15,4 @@ As said earlier, to add a text file, please follow this nomenclature:
 ## Example of file name
 
 Text file:
-sin_48kHz_10s_{function}_{parameter1}_{parameter2}
+`sin_48kHz_10s_{function}_{parameter1}_{parameter2}`

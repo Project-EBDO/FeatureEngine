@@ -24,7 +24,12 @@ scalaVersion := "2.11.8"
 // Configuration for tests to run with Spark
 fork in Test := true
 parallelExecution in Test := false
-javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSClassUnloadingEnabled")
+javaOptions ++= Seq(
+  "-Xms512M",
+  "-Xmx2048M",
+  "-XX:MaxPermSize=2048M",
+  "-XX:+CMSClassUnloadingEnabled"
+)
 
 // Explicitly get scala version and don't show warnings
 // https://mvnrepository.com/artifact/org.scala-lang/scala-library
@@ -33,9 +38,9 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 // Spark provided dependencies
 // https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11
-libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.2.0" % "provided"
+libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.2.1" % "provided"
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql_2.11
-libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.2.0" % "provided"
+libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.2.1" % "provided"
 
 // solving spark-jackson dependency issue
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.7"
@@ -46,7 +51,7 @@ dependencyOverrides += "com.fasterxml.jackson.module" % "jackson-module-scala_2.
 // https://mvnrepository.com/artifact/org.scalatest/scalatest_2.11
 libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
 // https://mvnrepository.com/artifact/com.holdenkarau/spark-testing-base_2.11
-libraryDependencies += "com.holdenkarau" % "spark-testing-base_2.11" % "2.2.0_0.7.4" % "test"
+libraryDependencies += "com.holdenkarau" % "spark-testing-base_2.11" % "2.2.0_0.8.0" % "test"
 
 
 // Project dependencies
@@ -54,3 +59,6 @@ libraryDependencies += "com.holdenkarau" % "spark-testing-base_2.11" % "2.2.0_0.
 libraryDependencies += "com.github.scopt" % "scopt_2.11" % "3.7.0"
 // https://mvnrepository.com/artifact/org.json4s/json4s-jackson_2.11
 libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.5.3"
+// https://mvnrepository.com/artifact/edu.emory.mathcs/JTransforms
+libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
+

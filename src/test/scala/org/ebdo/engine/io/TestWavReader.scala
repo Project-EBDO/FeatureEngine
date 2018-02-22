@@ -1,5 +1,7 @@
 package org.ebdo.engine.io
 
+import org.ebdo.utils.test.ErrorMetrics.rmse
+
 import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import javax.sound.sampled.{AudioFileFormat, AudioFormat, AudioInputStream, AudioSystem}
@@ -11,12 +13,6 @@ import scala.io.Source
 
 class TestWavReader extends FlatSpec with Matchers {
 
-  def rmse(s1: Seq[Double],s2: Seq[Double]): Double = {
-    assert(s1.length == s2.length)
-    val errs = s1.zip(s2).map { case (v1, v2) => math.pow(v1-v2, 2) }
-    val mse = errs.sum / errs.length
-    math.sqrt(mse)
-  }
 
   val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
   val maxRMSEDiff = 0.001

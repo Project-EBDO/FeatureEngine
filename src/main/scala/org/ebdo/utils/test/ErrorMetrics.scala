@@ -46,7 +46,9 @@ object ErrorMetrics {
   * @return the root-mean-square deviation of the sequences
   */
   def rmse(expected: Seq[Double], actual: Seq[Double]): Double = {
-    assert(expected.length == actual.length)
+    if (!(expected.length == actual.length))
+      throw new IllegalArgumentException("The given sequences' sizes don't match")
+
     val errs = expected.zip(actual).map { case (v1, v2) => pow(v1-v2, 2) }
     val mse = errs.sum / errs.length
     return sqrt(mse)

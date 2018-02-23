@@ -60,12 +60,7 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     val seqA = Seq(0.1221174368357885, 0.8030612655311997, 0.8732426284336273)
     val seqB = Seq(0.7363374103655478, 0.352353350406777)
 
-    try{
-      ErrorMetrics.rmse(seqA,seqB)
-    } catch {
-      case e: Exception => e.isInstanceOf[IllegalArgumentException] should be (true)
-    }
-
+    an [IllegalArgumentException] should be thrownBy ErrorMetrics.rmse(seqA,seqB)
   }
 
 }

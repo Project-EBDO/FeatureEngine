@@ -63,7 +63,7 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     try{
       ErrorMetrics.rmse(seqA,seqB)
     } catch {
-      case e: IllegalArgumentException => 1 should be (1);
+      case e: Exception => e.isInstanceOf[IllegalArgumentException] should be (true)
     }
 
   }

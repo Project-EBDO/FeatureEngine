@@ -72,11 +72,11 @@ class SpectrogramWindows(windowsToCompute: Seq[(String, Int)]) {
   }
 
   // getter that return the list of windows that are stored in the Map windows
-  def listOfWindows = windows.keys
+  def listOfWindows: Seq[(String, Int)] = windows.keys.toSeq
 
   def getWindow(winType: String, size: Int): Seq[Double] = {
     if (!windows.contains((winType, size)))
-      throw new IllegalArgumentException("Window not found !")
+      generateWindow(winType, size)
 
     return windows((winType, size)).window
   }
@@ -134,10 +134,9 @@ class HammingWindow(size: Int) extends Window(size) with Hamming {
 
 object Window {
   def apply(name: String, size: Int) : Window = {
-    val win : Window = if(name == "hamming"){
-      new HammingWindow(size)
-    } else {
-      throw new IllegalArgumentException("Specified window type not found !")
+    val win : Window = name match {
+      case "hamming" => new HammingWindow(size)
+      case _ => throw new IllegalArgumentException("Specified window type not found !")
     }
 
     return win

@@ -60,11 +60,11 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
       0.6497952681786117,  1.115376086125921 ,  1.7800593314975834,
       2.6616770858396794,  3.7627457787831586,  5.069687558992271 ,
       6.553001648390115 ,  8.168394406881632 ,  9.858825023663101 ,
-      11.557373573702892 , 13.19079220797111  , 14.683560869160337 ,
-      15.962238220164348 , 16.95987810892462  , 17.620273042992405 ,
-      17.90178942510365  , 17.78057472877368  , 17.25294379141042  ,
-      16.336788813763256 , 15.071903791297263 , 13.519166823979386 ,
-      11.758580558697368 ,  9.886229175975949 ,  8.010266991739126 ,
+      11.557373573702892 , 13.19079220797111  , 14.683560869160337,
+      15.962238220164348 , 16.95987810892462  , 17.620273042992405,
+      17.90178942510365  , 17.78057472877368  , 17.25294379141042 ,
+      16.336788813763256 , 15.071903791297263 , 13.519166823979386,
+      11.758580558697368 ,  9.886229175975949 ,  8.010266991739126,
       6.2461060823051575,  4.711015694294934 ,  3.5183821996408184,
       2.771903037739429 ,  2.5600000000000005)
 
@@ -110,5 +110,31 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
     val windowedSignal = sw.applyWindow(signal, "hamming")
 
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
+  }
+
+  "SpectrogramWindows" should "fail when asked a window type that doesn't exit" in {
+    val sw = new SpectrogramWindows(("hamming",32))
+
+    an [IllegalArgumentException] should be thrownBy sw.getWindow("wrongWindow",20)
+  }
+
+  "SpectrogramWindows" should "store computed windows" in {
+    val windowsPrecomputed = Seq(("hamming",32),("hamming",64),("hamming",128))
+    val sw = new SpectrogramWindows(windowsPrecomputed)
+
+    val storedWindows = sw.listOfWindows
+
+    windowsPrecomputed.map(win =>
+      storedWindows.contains(win) should be (true)
+    )
+
+    val newWin = sw.getWindow("hamming",256)
+    val computedWins = windowsPrecomputed ++ Seq(("hamming",256))
+
+    val newStoredWindows = sw.listOfWindows
+
+    computedWins.map(win =>
+      newStoredWindows.contains(win) should be (true)
+    )
   }
 }

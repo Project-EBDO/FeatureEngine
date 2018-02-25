@@ -32,7 +32,7 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
   //    - "np.set_printoptions(precision=16)" for numpy
   //    - "format long" for Matlab
 
-  "Hamming function" should "generate the same hamming window as numpy/scipy" in {
+  "SpectrogramWindows" should "generate the same hamming window as numpy/scipy" in {
     // numpy.hamming(32) or scipy.signal.hamming(32)
     val expectedWindow = Seq(
       0.08              , 0.0894162270238525, 0.1172794066546939,
@@ -47,12 +47,13 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
       0.2230752172251842, 0.1624488170446529, 0.1172794066546939,
       0.0894162270238525, 0.08 )
 
-    val window = (0 to 31).map(i => SpectrogramWindows.hamming(i,32)).toSeq
+    val sw = new SpectrogramWindows(("hamming",32))
+    val window = sw.getWindow("hamming",32)
 
     rmse(expectedWindow,window) should be < (maxRMSE)
   }
 
-  "applyHamming" should "generate the same windowed signal as numpy/scipy" in {
+  "SpectrogramWindows" should "generate the same windowed signal as numpy/scipy" in {
     // numpy.hamming(32) * np.arange(1,33) or scipy.signal.hamming(32) * np.arange(1,33)
     val expectedWindowedSignal = Seq(
       0.08              ,  0.1788324540477051,  0.3518382199640818,
@@ -67,12 +68,14 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
       6.2461060823051575,  4.711015694294934 ,  3.5183821996408184,
       2.771903037739429 ,  2.5600000000000005)
 
-    val windowedSignal = SpectrogramWindows.applyHamming((1.0 to 32.0 by 1.0).toSeq)
+    val sw = new SpectrogramWindows(("hamming",32))
+    val signal = (1.0 to 32.0 by 1.0).toSeq
+    val windowedSignal = sw.applyWindow(signal, "hamming")
 
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
   }
 
-  "Hamming function" should "generate the same hamming window as Matlab" in {
+  "SpectrogramWindows" should "generate the same hamming window as Matlab" in {
     // hamming(32)
     val expectedWindow = Seq(
       0.0800000000000000, 0.0894162270238525, 0.1172794066546939, 0.1624488170446529,
@@ -84,12 +87,13 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
       0.4703432223478947, 0.3802395836913827, 0.2966765552495974, 0.2230752172251842,
       0.1624488170446529, 0.1172794066546939, 0.0894162270238525, 0.0800000000000000)
 
-    val window = (0 to 31).map(i => SpectrogramWindows.hamming(i,32)).toSeq
+    val sw = new SpectrogramWindows(("hamming",32))
+    val window = sw.getWindow("hamming",32)
 
     rmse(expectedWindow,window) should be < (maxRMSE)
   }
 
-  "applyHamming" should "generate the same windowed signal as Matlab" in {
+  "SpectrogramWindows" should "generate the same windowed signal as Matlab" in {
     // diag(hamming(32) .* [1:32])
     val expectedWindowedSignal = Seq(
       0.0800000000000000, 0.1788324540477051, 0.3518382199640818, 0.6497952681786117,
@@ -101,7 +105,9 @@ class TestSpectrogramWindows extends FlatSpec with Matchers {
       11.7585805586973677, 9.8862291759759486, 8.0102669917391278, 6.2461060823051575,
       4.7110156942949342, 3.5183821996408184, 2.7719030377394289, 2.5600000000000005)
 
-    val windowedSignal = SpectrogramWindows.applyHamming((1.0 to 32.0 by 1.0).toSeq)
+    val sw = new SpectrogramWindows(("hamming",32))
+    val signal = (1.0 to 32.0 by 1.0).toSeq
+    val windowedSignal = sw.applyWindow(signal, "hamming")
 
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
   }

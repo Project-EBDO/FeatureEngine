@@ -25,11 +25,6 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
   * 
   * Author: Paul Nguyen HD, Alexandre Degurse
   *
-  * Computes FFT or PSD on a dataset of wav portions
-  * Relies on several part of open source codes rearranged to fit Matlab / Python one-sided PSD:
-  * https://github.com/lancelet/scalasignal/blob/master/src/main/scala/signal/PSD.scala
-  * https://gist.github.com/awekuit/7496127
-  *
   */
 
 
@@ -41,9 +36,9 @@ class FFT(nfft: Int) {
   /**
   * Function that computes FFT for an Array
   * The segmentation of the signal ensures that signal.length == nfft
-  * @param signal the data to analyze in an Array[Double]
-  * @param nfft number of points of spectrum
-  * @return the FFT of the input Array
+  * An IllegalArgumentException is thrown if signal.length != nfft
+  * @param signal The signal to process as an Array[Double]
+  * @return The FFT over the input signal
   */
   def compute(signal: Array[Double]) : Array[Double] = {
     if (signal.length != nfft) {
@@ -54,8 +49,8 @@ class FFT(nfft: Int) {
     // because the size doubles due to complex values
     val fft: Array[Double] = signal ++ Array.fill(nfft)(0.0);
 
-    // Fill temp with all FFT values
-    lowLevelFtt.realForwardFull(fft) // Side Effect !
+    // // In place computation
+    lowLevelFtt.realForwardFull(fft)
 
     return fft
   }

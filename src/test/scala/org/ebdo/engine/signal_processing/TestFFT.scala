@@ -23,16 +23,16 @@ import org.scalatest.{FlatSpec, Matchers};
 import scala.math.cos;
 
 /**
-  * Tests for SignalProcessing
+  * Tests for FFT wrap class
   * Author: Alexandre Degurse
   */
 
 
-class TestSignalProcessing extends FlatSpec with Matchers {
+class TestFFT extends FlatSpec with Matchers {
 
   val maxRMSE = 1E-13
 
-  "SignalProcessing" should "compute the same fft as numpy on a fake signal" in {
+  "FFT" should "compute the same fft as numpy on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
     val fftClass: FFT = new FFT(signal.length)
@@ -147,7 +147,7 @@ class TestSignalProcessing extends FlatSpec with Matchers {
   }
 
     // The expected fft is computed with numpy
-  "SignalProcessing" should "compute the same fft as Matlab on a fake signal" in {
+  "FFT" should "compute the same fft as Matlab on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
     val fftClass: FFT = new FFT(signal.length)
@@ -226,6 +226,13 @@ class TestSignalProcessing extends FlatSpec with Matchers {
 
     rmse(fft, expectedFFT) should be < maxRMSE
 
+  }
+
+  "FFT" should "raise IllegalArgumentException when given a signal of the wrong length" in {
+    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val fftClass: FFT = new FFT(10 * signal.length)
+
+    an [IllegalArgumentException] should be thrownBy fftClass.compute(signal)
   }
 
 }

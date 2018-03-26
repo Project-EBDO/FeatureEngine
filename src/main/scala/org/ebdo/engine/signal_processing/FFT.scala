@@ -47,7 +47,7 @@ class FFT(nfft: Int) {
   */
   def compute(signal: Array[Double]) : Array[Double] = {
     if (signal.length != nfft) {
-      throw new IllegalArgumentException("Input signal size ${signal.length} does not match nfft ${nfft}")
+      throw new IllegalArgumentException("Input signal length is doesn't match the expected value (${nfft})")
     }
 
     // new value that contains the signal and padded with nfft zeros

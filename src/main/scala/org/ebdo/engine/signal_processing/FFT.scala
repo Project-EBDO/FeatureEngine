@@ -40,7 +40,7 @@ class FFT(nfft: Int) {
 
   /**
   * Function that computes FFT for an Array
-  * The segmentation of the signal ensures that signal.length >= nfft
+  * The segmentation of the signal ensures that signal.length == nfft
   * @param signal the data to analyze in an Array[Double]
   * @param nfft number of points of spectrum
   * @return the FFT of the input Array

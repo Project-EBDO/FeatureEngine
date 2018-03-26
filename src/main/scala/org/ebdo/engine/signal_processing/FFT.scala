@@ -20,7 +20,9 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 /**
-  * Generic functions for signal processing
+  * Wrapper class over "original fft class" that 
+  * computes FFT of nfft size over the signal of length nfft.
+  * 
   * Author: Paul Nguyen HD, Alexandre Degurse
   *
   * Computes FFT or PSD on a dataset of wav portions
@@ -31,26 +33,30 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
   */
 
 
-object SignalProcessing {
+class FFT(nfft: Int) {
+
+  // instanciate the class low level class that computes the fft
+  val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
 
   /**
-  * Function that computes FFT for an Seq
+  * Function that computes FFT for an Array
   * The segmentation of the signal ensures that signal.length >= nfft
-  * @param signal the data to analyze in an Seq[Double]
+  * @param signal the data to analyze in an Array[Double]
   * @param nfft number of points of spectrum
-  * @return the FFT of the input Seq
+  * @return the FFT of the input Array
   */
-  def fft(signal: Seq[Double], nfft : Int) : Seq[Double] = {
-    // Compute FFT for Seq double
-    val fftClass = new DoubleFFT_1D(nfft);
+  def compute(signal: Array[Double]) : Array[Double] = {
+    if (signal.length != nfft) {
+      throw new IllegalArgumentException("Input signal is not of the right size")
+    }
 
-    // Create an Seq of length 2*signal.length. Indeed, the length doubles
-    // because of the FFT imaginary part
-    val fft = signal.toArray ++ Array.fill(2*nfft - signal.length)(0.0);
+    // new value that contains the signal and padded with nfft zeros
+    // because the size doubles due to complex values
+    val fft: Array[Double] = signal ++ Array.fill(nfft)(0.0);
 
     // Fill temp with all FFT values
-    fftClass.realForwardFull(fft) // Side Effect !
+    lowLevelFtt.realForwardFull(fft) // Side Effect !
 
-    return fft.toSeq
+    return fft
   }
 }

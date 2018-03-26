@@ -34,10 +34,11 @@ class TestSignalProcessing extends FlatSpec with Matchers {
 
   "SignalProcessing" should "compute the same fft as numpy on a fake signal" in {
 
-    val signal: Seq[Double] = (0.0 to 10.0 by 0.1).map(cos).toSeq
-    val fft: Seq[Double] = SignalProcessing.fft(signal, signal.length)
+    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val fftClass: FFT = new FFT(signal.length)
+    val fft: Array[Double] = fftClass.compute(signal)
 
-    val expectedFFT: Seq[Double] = Seq(
+    val expectedFFT: Array[Double] = Array(
       -5.3552126084096887e+00,  0.0000000000000000e+00,
        -9.3015054823533401e+00,  1.8079330752013401e+01,
         1.2301449694913190e+01, -4.0406477468073383e+01,
@@ -148,10 +149,11 @@ class TestSignalProcessing extends FlatSpec with Matchers {
     // The expected fft is computed with numpy
   "SignalProcessing" should "compute the same fft as Matlab on a fake signal" in {
 
-    val signal: Seq[Double] = (0.0 to 10.0 by 0.1).map(cos).toSeq
-    val fft: Seq[Double] = SignalProcessing.fft(signal, signal.length)
+    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val fftClass: FFT = new FFT(signal.length)
+    val fft: Array[Double] = fftClass.compute(signal)
 
-    val expectedFFT: Seq[Double] = Seq(
+    val expectedFFT: Array[Double] = Array(
       -5.355212608409691377,0.000000000000000000,-9.301505482353340071,
       18.079330752013444084,12.301449694913165089,-40.406477468073362047,
       3.412854911899418475,-13.355268892224975374,2.099401255522210352,

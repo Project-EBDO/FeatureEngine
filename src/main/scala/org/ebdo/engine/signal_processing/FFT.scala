@@ -35,7 +35,7 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 class FFT(nfft: Int) {
 
-  // instanciate the class low level class that computes the fft
+  // Instantiate the low level class that computes the fft
   val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
 
   /**

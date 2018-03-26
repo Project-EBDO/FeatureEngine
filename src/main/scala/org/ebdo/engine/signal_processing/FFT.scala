@@ -35,7 +35,6 @@ class FFT(nfft: Int) {
 
   /**
   * Function that computes FFT for an Array
-  * The segmentation of the signal ensures that signal.length == nfft
   * An IllegalArgumentException is thrown if signal.length != nfft
   * @param signal The signal to process as an Array[Double]
   * @return The FFT over the input signal

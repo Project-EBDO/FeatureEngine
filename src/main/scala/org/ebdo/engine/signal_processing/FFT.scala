@@ -20,7 +20,7 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 /**
-  * Wrapper class over "original fft class" that 
+  * Wrapper class over edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D that 
   * computes FFT of nfft size over the signal of length nfft.
   * 
   * Author: Paul Nguyen HD, Alexandre Degurse

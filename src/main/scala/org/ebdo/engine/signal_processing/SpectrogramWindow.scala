@@ -37,7 +37,7 @@ trait SpectrogramWindow {
   */
   def applyToSignal(signal: Array[Double]): Array[Double] = {
     if (signal.length != windowSize) {
-      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for SpectrogramWindow (${nfft})")
+      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for SpectrogramWindow (${windowSize})")
     }
     // Use mutables for performance
     var i: Int = 0

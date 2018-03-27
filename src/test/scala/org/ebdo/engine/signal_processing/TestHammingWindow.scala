@@ -32,7 +32,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
   //    - "np.set_printoptions(precision=16)" for numpy
   //    - "format long" for Matlab
 
-  "SpectrogramWindows" should "generate the same hamming window as numpy/scipy" in {
+  it should "rmse-match numpy/scipy hamming window" in {
     // numpy.hamming(32) or scipy.signal.hamming(32)
     val expectedWindow = Array(
       0.08              , 0.0894162270238525, 0.1172794066546939,
@@ -54,7 +54,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     rmse(expectedWindow,window) should be < (maxRMSE)
   }
 
-  "SpectrogramWindows" should "generate the same windowed signal as numpy/scipy" in {
+  it should "rmse-match a transformed signal as in scipy/numpy" in {
     // numpy.hamming(32) * np.arange(1,33) or scipy.signal.hamming(32) * np.arange(1,33)
     val expectedWindowedSignal = Array(
       0.08              ,  0.1788324540477051,  0.3518382199640818,
@@ -76,7 +76,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
   }
 
-  "SpectrogramWindows" should "generate the same hamming window as matlab" in {
+  it should "rmse-match matlab hamming window" in {
     // hamming(32)
     val expectedWindow = Array(
       0.080000000000000016,0.089416227023852546,0.117279406654693941,
@@ -98,7 +98,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     rmse(expectedWindow,window) should be < (maxRMSE)
   }
 
-  "SpectrogramWindows" should "generate the same windowed signal as matlab" in {
+  it should "rmse-match a transformed signal as in matlab" in {
     // hamming(32) .* [1:32](:)
     val expectedWindowedSignal = Array(
       0.080000000000000016,0.178832454047705092,0.351838219964081822,

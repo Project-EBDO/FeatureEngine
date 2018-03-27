@@ -29,9 +29,15 @@ trait SpectrogramWindow {
   val windowSize: Int
   val windowCoefficients: Array[Double]
 
+/**
+  * Function that aplies a window to a signal
+    // An IllegalArgumentException is thrown if signal.length != windowSize
+  * @param signal The signal to process as an Array[Double]
+  * @return The windowed signal
+  */
   def applyToSignal(signal: Array[Double]): Array[Double] = {
     if (signal.length != windowSize) {
-      throw new IllegalArgumentException(s"Signal window length (${signal.length}) doesn't match the spectrogram one ($windowSize}.")
+      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for SpectrogramWindow (${nfft})")
     }
     // Use mutables for performance
     var i: Int = 0

@@ -23,7 +23,7 @@ class TestSpectrogramWindow extends FlatSpec with Matchers {
   val testWindow = new TestWindow(testWindowSize)
   val testSignal = (1 to testWindowSize).map(1.0 / _.toDouble).toArray
 
-  "SpectrogramWindow" should "fail applying with mutables when signal doesn't match window size" in {
+  it should "fail applying with mutables when signal doesn't match window size" in {
     an [IllegalArgumentException] should be thrownBy testWindow.applyToSignal(testSignal.take(10))
   }
 

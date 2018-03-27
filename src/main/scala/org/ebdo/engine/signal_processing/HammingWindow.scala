@@ -22,9 +22,8 @@ import scala.math.{cos, Pi}
  * HammingWindow, extending the [[SpectrogramWindow]] trait
  * Author: Joseph Allemandou, Paul NGuyenhongduc
  *
- * Uses the companion to define a static Hamming coefficients
- * computation function, and uses it to precompute the windowCoefficients.
- *
+ * Hamming coefficients function defined in companion object 
+ * and used to precompute coefficients for a given instance of window.
  */
 
 class HammingWindow(val windowSize: Int) extends SpectrogramWindow {

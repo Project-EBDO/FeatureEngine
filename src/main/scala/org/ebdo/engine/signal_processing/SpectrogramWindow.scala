@@ -22,6 +22,7 @@ package org.ebdo.engine.signal_processing
  *
  * Provides a function to apply a spectrogram window to a signal,
  * leaving the actual coefficients computation to the implementations.
+ * An IllegalArgumentException is thrown if signal.length != windowSize
  *
  */
 trait SpectrogramWindow {
@@ -29,12 +30,6 @@ trait SpectrogramWindow {
   val windowSize: Int
   val windowCoefficients: Array[Double]
 
-/**
-  * Function that aplies a window to a signal
-    // An IllegalArgumentException is thrown if signal.length != windowSize
-  * @param signal The signal to process as an Array[Double]
-  * @return The windowed signal
-  */
   def applyToSignal(signal: Array[Double]): Array[Double] = {
     if (signal.length != windowSize) {
       throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for SpectrogramWindow (${windowSize})")

@@ -32,7 +32,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
   //    - "np.set_printoptions(precision=16)" for numpy
   //    - "format long" for Matlab
 
-  "HammingWindow" should "rmse-match numpy/scipy hamming window" in {
+  it should "rmse-match numpy/scipy hamming window" in {
     // numpy.hamming(32) or scipy.signal.hamming(32)
     val expectedWindow = Array(
       0.08              , 0.0894162270238525, 0.1172794066546939,

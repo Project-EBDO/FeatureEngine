@@ -37,12 +37,12 @@ class FFT(nfft: Int) {
   * Function that computes FFT for an Array
   * An IllegalArgumentException is thrown if signal.length != nfft
   * 
-  * A complex values is represented by to consecutive Double, thus
+  * Returns complex values represented by two consecutive Double, thus
   * r(2*i) = Re(v_i) and r(2*i + 1) = Im(v_i) where r is the FFT over
   * the signal and v_i the i'th complex value of the transformation
   * 
-  * @param signal The signal to process as an Array[Double]
-  * @return The FFT over the input signal of size 2*signal.length
+  * @param signal The signal to process as an Array[Double] of length nfft
+  * @return The FFT over the input signal as an Array[Double] of length 2*nfft
   */
   def compute(signal: Array[Double]) : Array[Double] = {
     if (signal.length != nfft) {

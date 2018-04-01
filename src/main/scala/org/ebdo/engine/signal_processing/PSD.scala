@@ -16,37 +16,35 @@
 
 package org.ebdo.engine.signal_processing;
 
-import scala.math.{cos,Pi,pow,abs,sqrt}
-
 /**
-  * Generic functions for signal processing
-  * Author: Paul Nguyen HD, Alexandre Degurse
-  *
-  * Computes FFT or PSD on a dataset of wav portions
+  * Class that computes FFT of nfft size over the signal of length nfft.
   * Relies on several part of open source codes rearranged to fit Matlab / Python one-sided PSD:
   * https://github.com/lancelet/scalasignal/blob/master/src/main/scala/signal/PSD.scala
   * https://gist.github.com/awekuit/7496127
-  *
+  * 
+  * Author: Paul Nguyen HD, Alexandre Degurse
   */
 
+class PSD(val nfft: Int, val normalisationFactor: Double) {
 
-object PSD {
+
+    val isEven: Boolean = nfft % 2 == 0
+    // compute number of unique samples in the transformed FFT
+    val nUnique: Int = if (isEven) nfft / 2 + 1 else (nfft+ 1) / 2
 
   /**
   * Function that computes the one-sided Power Spectral Density (PSD)
   * like in Matlab and Python (mode 'psd')
+  * An IllegalArgumentException is thrown if spectrum.length != 2*nfft
   *
   * @param spectrum 
   * @return the PSD of the given spectrum
   */
-  def compute(spectrum: Array[Double], normalisationFactor: Double) : Array[Double] = {
-    val isEven: Boolean = spectrum.length % 2 == 0
-    // compute number of unique samples in the transformed FFT
-    val nUnique: Int = if (isEven) {
-        spectrum.length / 2 + 1
-      } else {
-        (spectrum.length + 1) / 2
-      }
+  def compute(spectrum: Array[Double]) : Array[Double] = {
+    if (spectrum.length != (2*nfft)) {
+      throw new IllegalArgumentException(s"Incorrect spectrum length (${spectrum.length}) for PSD (${2*nfft})")
+    }
+
 
     var i: Int = 0
     val oneSidedPSD: Array[Double] = new Array[Double](nUnique)

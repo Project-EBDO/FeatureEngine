@@ -1,7 +1,7 @@
-package org.ebdo.engine.signal_processing
+package org.ode.engine.signal_processing
 
-import org.ebdo.utils.test.ErrorMetrics
-import org.ebdo.utils.test.ErrorMetrics.rmse
+import org.ode.utils.test.ErrorMetrics
+import org.ode.utils.test.ErrorMetrics.rmse
 
 import java.io.{File, FileInputStream, InputStream}
 import java.net.URL

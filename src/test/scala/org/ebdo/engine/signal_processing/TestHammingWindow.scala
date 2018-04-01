@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-EBDO
+/** Copyright (C) 2017 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package org.ebdo.engine.signal_processing
+package org.ode.engine.signal_processing
 
-import org.ebdo.utils.test.ErrorMetrics.rmse
+import org.ode.utils.test.ErrorMetrics.rmse
 import org.scalatest.{FlatSpec, Matchers}
 
 /**

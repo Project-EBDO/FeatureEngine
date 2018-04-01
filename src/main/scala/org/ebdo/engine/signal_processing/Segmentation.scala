@@ -18,21 +18,21 @@ package org.ebdo.engine.signal_processing;
 
 
 /**
-  * Generic functions for signal processing
+  * Class that provides segmentation functions
   * Author: Alexandre Degurse
+  * 
+  * @param winAgg The size of segment
+  * @param overlap The distance between two consecutive segments
+  * @param partial Bool that tells whether to keep the last buffer or not
   *
   */
 
 
-object Segmentation {
-
+class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean = false) {
 
   /**
    * Funtion that segmentates a signal in the most common way
    * @param signal The signal to be segmentated
-   * @param winAgg The size of segment
-   * @param overlap The distance between two consecutive segments
-   * @param partial Bool that tells whether to keep the last buffer or not
    * @return The segmentated signal
    */
   def segmentation(
@@ -44,10 +44,10 @@ object Segmentation {
 
     // if overlap > winAgg, it means that data will be lost in the process
     if (overlap > winAgg){
-      throw new IllegalArgumentException(s"Incorrect overlap for segmentation")
+      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmentation (${winAgg} max)")
     }
 
-    val segmentedSignal = if (partial){
+    val segmentedSignal = if (partial) {
       signal.iterator
         .sliding(winAgg, winAgg - overlap)
         .withPadding(0.0)

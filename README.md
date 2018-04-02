@@ -1,4 +1,4 @@
-# ODE Feature Engine [![Build Status](https://travis-ci.org/Project-EBDO/FeatureEngine.svg?branch=master)](https://travis-ci.org/Project-EBDO/FeatureEngine)
+# ODE Feature Engine [![Build Status](https://travis-ci.org/Project-ODE/FeatureEngine.svg?branch=master)](https://travis-ci.org/Project-ODE/FeatureEngine)
 
 Spark jobs computing features from raw data and loading them into ES.
 

@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-EBDO
+/** Copyright (C) 2017 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -14,11 +14,11 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package org.ebdo.engine.signal_processing;
+package org.ode.engine.signal_processing;
 
 
 /**
-  * Class that provides segmentation functions
+  * Class that provides segmention functions
   * Author: Alexandre Degurse
   * 
   * @param winAgg The size of segment
@@ -31,20 +31,15 @@ package org.ebdo.engine.signal_processing;
 class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean = false) {
 
   /**
-   * Funtion that segmentates a signal in the most common way
-   * @param signal The signal to be segmentated
-   * @return The segmentated signal
+   * Funtion that segmentes a signal in the most common way
+   * @param signal The signal to be segmented
+   * @return The segmented signal
    */
-  def segmentation(
-    signal: Array[Double],
-    winAgg: Int,
-    overlap: Int = 0,
-    partial: Boolean = false
-  ) : Array[Array[Double]] = {
+  def segmention(signal: Array[Double]) : Array[Array[Double]] = {
 
     // if overlap > winAgg, it means that data will be lost in the process
     if (overlap > winAgg){
-      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmentation (${winAgg} max)")
+      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention (${winAgg} max)")
     }
 
     val segmentedSignal = if (partial) {
@@ -63,23 +58,23 @@ class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean =
   }
 
   /**
-   * Funtion that segmentates a signal using matlab method
-   * @param signal The signal to be segmentated
-   * @param winAgg The size of segment
-   * @param segmentatedSize The size of a segment
-   * @param overlap The distance between two consecutive segments
-   * @return The segmentated signal
+   * Funtion that segmentes a signal using matlab method
+   * @param signal The signal to be segmented
+   * @param segmentedSize The size of a segment after data wrap
+   *   segmentedSize < winAgg for the matlab data wrap to work
+   * @return The segmented signal
    */
   def matlabSegmentation(
     signal: Array[Double],
-    winAgg: Int,
-    segmentedSize: Int,
-    overlap: Int = 0
+    segmentedSize: Int
   ) : Array[Array[Double]] = {
-    return segmentation(signal, winAgg, overlap, false)
+
+    val matlabSeg = new Segmentation(segmentedSize, 0, false)
+
+    return segmention(signal)
       // apply matlab data wrap
       .map(
-        segmentation(_, segmentedSize, 0, true)
+        matlabSeg.segmention(_)
         .iterator
         .map(_.toArray)
         .toArray

@@ -1,4 +1,4 @@
-package org.ebdo.engine.example
+package org.ode.engine.example
 
 import java.time.temporal.ChronoUnit
 import java.time._

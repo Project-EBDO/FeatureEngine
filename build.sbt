@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-EBDO
+/** Copyright (C) 2017 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -61,4 +61,3 @@ libraryDependencies += "com.github.scopt" % "scopt_2.11" % "3.7.0"
 libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.5.3"
 // https://mvnrepository.com/artifact/edu.emory.mathcs/JTransforms
 libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
-

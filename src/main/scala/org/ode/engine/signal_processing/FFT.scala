@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-EBDO
+/** Copyright (C) 2017 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package org.ebdo.engine.signal_processing;
+package org.ode.engine.signal_processing;
 
 import scala.math.{cos,Pi,pow,abs,sqrt}
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
@@ -36,8 +36,13 @@ class FFT(nfft: Int) {
   /**
   * Function that computes FFT for an Array
   * An IllegalArgumentException is thrown if signal.length != nfft
-  * @param signal The signal to process as an Array[Double]
-  * @return The FFT over the input signal
+  * 
+  * Returns complex values represented by two consecutive Double, thus
+  * r(2*i) = Re(v_i) and r(2*i + 1) = Im(v_i) where r is the FFT over
+  * the signal and v_i the i'th complex value of the transformation
+  * 
+  * @param signal The signal to process as an Array[Double] of length nfft
+  * @return The FFT over the input signal as an Array[Double] of length 2*nfft
   */
   def compute(signal: Array[Double]) : Array[Double] = {
     if (signal.length != nfft) {

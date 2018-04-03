@@ -1,11 +1,23 @@
+# Run using docker, not a VM
+sudo: false
+
+# Cache sbt downloaded packages
+cache:
+  directories:
+    - $HOME/.sbt
+
+# Now the actual core of the script
 language: scala
+
 scala:
   - 2.11.8
-sudo: false
+
 script:
   - sbt compile
-  - sbt scalastyle
   - sbt test
+  - sbt scalastyle
+
+# Send notifs to slack
 notifications:
   slack:
     secure: IIlQsjkEvPTcP0i1lwQTihljSY/OftH3b2DG0k50+evNP4qydDdN1g18yKrlh6zSBDkhj6FJWM+vresMtQwyR2k4AmOkJj064+fCHZFR9VhOXoKiR9QAqCnUePbE4nZpzg1xIE3SWdh6Ycgk4WMnMzM6Ak0xrUYU7MunQA4YAXSuIgFRcOCM1clSskh1Q5h+uYDX/ARleFpO83JavfWcQ3mpVaiBPcRtEf+UST9wCJAGtETU1V+pSWko5w3W1QNi4tgSASMhGKpkaobq8UycU+0qhEIUNFYhKexmqGh1K2GXGdWG2wY0KfBqKdhYTo8jwmR+23ZABvVycOziJd6+tAErRGVNNjbaQdIl3OGdJDU79V1KbA5x/yqS8OTks7Hb3n98a6xVMRRKLDyusGn4rqznXoHkK6TXrU2D7WbCtE5KWZjVlcMSBmAwDC7QxCqt5tkFPrbG+WFmDasNjFyBWootGO8oPwoEKC9v2p+LJpckasFTbURLW1AcD1V2xolD4I67Y7ZwI5/LVRh4ZY/0/TVOJxMj4z63IcPfOr5U+392Vi7tfcfuhjRWYRtQwMwp5gvESwI33jzWr0nIRET8O15aRWtvngZ6CjH7QNlu8f6Kg28i3EglfwJ1CiVBqIX423s4alJgAmtlLBy+3Vj6PEYzDU2jKyTiDLjAUGlnXUI=

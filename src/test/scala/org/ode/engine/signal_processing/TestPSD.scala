@@ -32,9 +32,6 @@ class TestPSD extends FlatSpec with Matchers {
 
   val maxRMSE = 1.1E-15
 
-  val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(x => 2*cos(x) + 3*sin(x)).toArray
-  val fs: Double = 1000.0
-  val nfft: Int = signal.length
 
   /** fft values are generated with Matlab
    * s = [0:0.1:10]; s = s(:);
@@ -112,6 +109,9 @@ class TestPSD extends FlatSpec with Matchers {
     -71.9765916749999946,123.3671857233852478,69.4311955791687581,
     -55.1989753722152585
   )
+
+  val fs: Double = 1000.0
+  val nfft: Int = fft.length / 2
 
   "PSD" should "compute the same psd as matlab periodogram on a fake signal" in {
     /** Matlab code
@@ -193,7 +193,7 @@ class TestPSD extends FlatSpec with Matchers {
 
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
-    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val signal: Array[Double] = new Array[Double](42)
     val psdClass: PSD = new PSD(50, 1.0)
 
     an [IllegalArgumentException] should be thrownBy psdClass.periodogram(signal)

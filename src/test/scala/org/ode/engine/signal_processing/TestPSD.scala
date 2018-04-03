@@ -36,6 +36,11 @@ class TestPSD extends FlatSpec with Matchers {
   val fs: Double = 1000.0
   val nfft: Int = signal.length
 
+  /** fft values are generated with Matlab
+   * s = [0:0.1:10]; s = s(:);
+   * sig = 2 * cos(s) + 3 * sin(s);
+   * fft = fft(sig)
+   */
 
   val fft: Array[Double] = Array(
     43.5997045362902398,0.0000000000000000,69.4311955791687581,

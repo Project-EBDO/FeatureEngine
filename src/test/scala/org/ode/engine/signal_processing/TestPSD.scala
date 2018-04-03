@@ -20,7 +20,7 @@ package org.ode.engine.signal_processing;
 
 import org.ode.utils.test.ErrorMetrics.rmse;
 import org.scalatest.{FlatSpec, Matchers};
-import scala.math.{cos,sin};
+import scala.math.{cos,sin,pow};
 
 /**
   * Tests for PSD class
@@ -127,5 +127,91 @@ class TestPSD extends FlatSpec with Matchers {
     val psdClass: PSD = new PSD(50, 1.0)
 
     an [IllegalArgumentException] should be thrownBy psdClass.periodogram(signal)
+  }
+
+
+  // open a new scope for Misc tests
+  {
+    def periodogramWithPow(fft: Array[Double], nfft: Int, normalizationFactor: Double) : Array[Double] = {
+      val isEven: Boolean = nfft % 2 == 0
+      // compute number of unique samples in the transformed FFT
+      val nUnique: Int = if (isEven) nfft / 2 + 1 else (nfft+ 1) / 2
+      val oneSidedPSD: Array[Double] = new Array[Double](nUnique)
+      
+      oneSidedPSD(0) = normalizationFactor * (pow(fft(0),2) + pow(fft(1),2))
+
+      var i: Int = 1
+      val last: Int = nUnique - 1
+
+      while (i < last) {
+        oneSidedPSD(i) = 2.0 * normalizationFactor * (pow(fft(2*i),2) + pow(fft(2*i + 1),2))
+        i += 1
+      }
+
+      oneSidedPSD(last) = normalizationFactor * (pow(fft(2*last),2) + pow(fft(2*last + 1),2))
+      if (!isEven) {
+        oneSidedPSD(last) *= 2.0
+      }
+      return oneSidedPSD
+    }
+
+    def periodogramWithI2(fft: Array[Double], nfft: Int, normalizationFactor: Double) : Array[Double] = {
+      val isEven: Boolean = nfft % 2 == 0
+      // compute number of unique samples in the transformed FFT
+      val nUnique: Int = if (isEven) nfft / 2 + 1 else (nfft+ 1) / 2
+      val oneSidedPSD: Array[Double] = new Array[Double](nUnique)
+
+      oneSidedPSD(0) = normalizationFactor * (fft(0)*fft(0) + fft(1)*fft(1))
+
+      var i: Int = 1
+      var i2: Int = 2*i
+      val last: Int = nUnique - 1
+
+      while (i < last) {
+        oneSidedPSD(i) = 2.0 * normalizationFactor * (fft(i2)*fft(i2) + fft(i2+1)*fft(i2+1))
+        i += 1
+        i2 = 2*i
+      }
+      oneSidedPSD(last) = normalizationFactor * (fft(2*last)*fft(2*last) + fft(2*last + 1)*fft(2*last + 1))
+      
+      if (!isEven) {
+        oneSidedPSD(last) *= 2.0
+      }
+      return oneSidedPSD
+    }
+
+    val fft: Array[Double] = (0.1 to 100.0 by 0.1).toArray
+
+    val nfft: Int = fft.length / 2
+    val normalizationFactor = 1.0
+
+    val psdClass: PSD = new PSD(nfft, normalizationFactor)
+
+    val tBefore1 = System.nanoTime()
+    val psd1: Array[Double] = periodogramWithPow(fft, nfft, normalizationFactor)
+    val tAfter1 = System.nanoTime()
+    val d1 = (tAfter1 - tBefore1).toDouble
+
+    val tBefore2 = System.nanoTime()
+    val psd2: Array[Double] = psdClass.periodogram(fft)
+    val tAfter2 = System.nanoTime()
+    val d2 = (tAfter2 - tBefore2).toDouble
+      
+    val tBefore3 = System.nanoTime()
+    val psd3: Array[Double] = periodogramWithI2(fft, nfft, normalizationFactor)
+    val tAfter3 = System.nanoTime()
+    val d3 = (tAfter3 - tBefore3).toDouble
+
+    println("Using a*a is : " + (d1/d2).toString + " than pow")
+
+    "TestMisc" should "show that pow is slower than _*_" in {
+      d2 * 1.5 should be < d1
+    }
+
+    println("Using i2 is : " + (d2/d3).toString + " than 2*i")
+
+    "TestMisc" should "show that using i2 is faster" in {
+      d3*1.6 should be < d2
+    }
   }
 }

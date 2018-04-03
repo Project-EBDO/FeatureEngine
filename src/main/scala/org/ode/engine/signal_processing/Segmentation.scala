@@ -56,30 +56,4 @@ class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean =
       .map(_.toArray)
       .toArray
   }
-
-  /**
-   * Funtion that segmentes a signal using matlab method
-   * @param signal The signal to be segmented
-   * @param segmentedSize The size of a segment after data wrap
-   *   segmentedSize < winAgg for the matlab data wrap to work
-   * @return The segmented signal
-   */
-  def matlabSegmentation(
-    signal: Array[Double],
-    segmentedSize: Int
-  ) : Array[Array[Double]] = {
-
-    val matlabSeg = new Segmentation(segmentedSize, 0, false)
-
-    return segmention(signal)
-      // apply matlab data wrap
-      .map(
-        matlabSeg.segmention(_)
-        .iterator
-        .map(_.toArray)
-        .toArray
-        .transpose
-        .map(_.sum)
-      )
-  }
 }

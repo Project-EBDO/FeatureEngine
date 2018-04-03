@@ -48,7 +48,7 @@ class TestPSD extends FlatSpec with Matchers {
     val fftClass: FFT = new FFT(nfft)
     val fft: Array[Double] = fftClass.compute(signal)
     val psdClass: PSD = new PSD(nfft, normalizationFactor)
-    val psd: Array[Double] = psdClass.compute(fft)
+    val psd: Array[Double] = psdClass.periodogram(fft)
 
     val expectedPSD: Array[Double] = Array(
       0.018821131046057503,0.155794411914756625,0.403962223018968447,
@@ -89,7 +89,7 @@ class TestPSD extends FlatSpec with Matchers {
     val fftClass: FFT = new FFT(nfft)
     val fft: Array[Double] = fftClass.compute(signal)
     val psdClass: PSD = new PSD(nfft, normalizationFactor)
-    val psd: Array[Double] = psdClass.compute(fft)
+    val psd: Array[Double] = psdClass.periodogram(fft)
 
     val expectedPSD: Array[Double] = Array(
       2.5055478216999097e-32, 1.5425189298490691e+00,
@@ -126,6 +126,6 @@ class TestPSD extends FlatSpec with Matchers {
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
     val psdClass: PSD = new PSD(50, 1.0)
 
-    an [IllegalArgumentException] should be thrownBy psdClass.compute(signal)
+    an [IllegalArgumentException] should be thrownBy psdClass.periodogram(signal)
   }
 }

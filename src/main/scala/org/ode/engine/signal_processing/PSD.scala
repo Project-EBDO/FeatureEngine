@@ -56,7 +56,7 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
     var i: Int = 1
     var i2: Int = 2
     var i2p1: Int = 3
-    val last: Int = nUnique - 1
+    val last = nUnique - 1
 
     while (i < last) {
       oneSidedPSD(i) = 2.0 * normalizationFactor * (fft(i2)*fft(i2) + fft(i2p1)*fft(i2p1))
@@ -66,7 +66,10 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
     }
 
     // manually compute last value, depending on even or not numbers of values (presence or not of nyquist frequency)
-    oneSidedPSD(last) = normalizationFactor * (fft(2*last)*fft(2*last) + fft(2*last + 1)*fft(2*last + 1))
+    /** at the end of the while, i = nUnique-1 = oneSidedPSD.length - 1, 
+     * Therefore, i2 and i2p1 are equal to what they should be to compute the last value 
+     */
+    oneSidedPSD(last) = normalizationFactor * (fft(i2)*fft(i2) + fft(i2p1)*fft(i2p1))
 
     if (!isEven) {
       oneSidedPSD(last) *= 2.0

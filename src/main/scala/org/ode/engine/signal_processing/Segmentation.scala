@@ -21,14 +21,14 @@ package org.ode.engine.signal_processing;
   * Class that provides segmention functions
   * Author: Alexandre Degurse
   * 
-  * @param winAgg The size of segment
-  * @param overlap The distance between two consecutive segments
+  * @param winSize The size of segment
+  * @param offset The distance between two consecutive segments
   * @param partial Bool that tells whether to keep the last buffer or not
   *
   */
 
 
-class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean = false) {
+class Segmentation(val winSize: Int, val offset: Int = 0) {
 
   /**
    * Funtion that segmentes a signal in the most common way
@@ -37,23 +37,30 @@ class Segmentation(val winAgg: Int, val overlap: Int = 0, val partial: Boolean =
    */
   def segmention(signal: Array[Double]) : Array[Array[Double]] = {
 
-    // if overlap > winAgg, it means that data will be lost in the process
-    if (overlap > winAgg){
-      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention (${winAgg} max)")
+    // if offset > winSize, it means that data will be lost in the process
+    if (offset > winSize){
+      throw new IllegalArgumentException(s"Incorrect offset (${offset}) for segmention (${winSize} max)")
     }
+    
+    var nWindows: Int = (signal.length - winSize) / (winSize - offset)
+    val step: Int = nWindows - offset
 
-    val segmentedSignal = if (partial) {
-      signal.iterator
-        .sliding(winAgg, winAgg - overlap)
-        .withPadding(0.0)
-    } else {
-      signal.iterator
-        .sliding(winAgg, winAgg - overlap)
-        .withPartial(false)
+    println("nWIndows : " + nWindows.toString + " step : " + step.toString + " winSize : " + winSize.toString)
+
+    val segmentedSignal = Array.ofDim[Double](nWindows, winSize)
+    
+    var i: Int = 0
+    var j: Int = 0
+
+    while (i < nWindows) {
+      while (j < winSize) {
+        segmentedSignal(i)(j) = signal(i*step + j)
+        j += 1
+      }
+      j = 0
+      i += 1
     }
 
     return segmentedSignal
-      .map(_.toArray)
-      .toArray
   }
 }

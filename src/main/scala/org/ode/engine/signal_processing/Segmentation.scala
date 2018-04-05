@@ -21,7 +21,7 @@ package org.ode.engine.signal_processing;
   * Class that provides segmention functions
   * Author: Alexandre Degurse
   * 
-  * @param winSize The size of segment
+  * @param winSize The size of a window
   *
   */
 
@@ -30,8 +30,8 @@ class Segmentation(val winSize: Int) {
 
   /**
    * Funtion that segmentes a signal and drops incomplete windows
-   * @param signal The signal to be segmented
-   * @return The segmented signal
+   * @param signal The signal to be segmented as a Array[Double]
+   * @return The segmented signal as a Array[Array[Double]]
    */
   def compute(signal: Array[Double]) : Array[Array[Double]] = {
     

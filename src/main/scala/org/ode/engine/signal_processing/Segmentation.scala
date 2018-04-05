@@ -22,8 +22,8 @@ package org.ode.engine.signal_processing;
   * Author: Alexandre Degurse
   * 
   * @param winSize The size of segment
-  * @param overlap The distance between two consecutive segments
-  * @param partial Bool that tells whether to keep the last buffer or not
+  * @param overlap The distance between two consecutive segments in percentage of winSize
+  * @param partial Boolean that tells whether to keep the last buffer or not
   *
   */
 
@@ -36,13 +36,12 @@ class Segmentation(val winSize: Int, val overlap: Double = 1.0, val partial: Boo
    * @return The segmented signal
    */
   def compute(signal: Array[Double]) : Array[Array[Double]] = {
+    val step: Int = (winSize* overlap).toInt
 
-    // if overlap > winSize, it means that data will be lost in the process
-    if ((overlap < 0.0) || (overlap > 1.0)){
+    if ((step < 1) || (winSize < step)) {
       throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention")
     }
     
-    val step: Int = (winSize* overlap).toInt
     // nWindows is the number of complete windows that will be generated
     var nWindows: Int = 1 + (signal.length - winSize) / step
 

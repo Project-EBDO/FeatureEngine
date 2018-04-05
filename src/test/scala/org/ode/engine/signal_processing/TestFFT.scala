@@ -229,7 +229,7 @@ class TestFFT extends FlatSpec with Matchers {
   }
 
   "FFT" should "raise IllegalArgumentException when given a signal of the wrong length" in {
-    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val signal: Array[Double] = new Array[Double](100)
     val fftClass: FFT = new FFT(10)
 
     an [IllegalArgumentException] should be thrownBy fftClass.compute(signal)

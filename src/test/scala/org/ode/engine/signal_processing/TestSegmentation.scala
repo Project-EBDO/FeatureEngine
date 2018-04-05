@@ -42,33 +42,4 @@ class TestSegmentation extends FlatSpec with Matchers {
         wins => wins._1 should be(wins._2)
       )
   }
-
-  it should "compute a segmentated signal with overlap without partial chunck" in {
-    val signal: Array[Double] = (1.0 to 100.0 by 1.0).toArray
-    val segmentationClass: Segmentation = new Segmentation(10,0.5)
-
-    val expectedSegmentedSignal: Array[Array[Double]] = 
-      (1.0 to 100.0 by 5.0)
-        .map(x => (x to x + 9.0 by 1.0).toArray)
-        .toArray 
-
-    val segmentatedSignal = segmentationClass.compute(signal)
-
-    segmentatedSignal.zip(expectedSegmentedSignal)
-      .foreach(
-        wins => wins._1 should be(wins._2)
-      )
-  }
-
-  it should "fail applying an overlap higher than 1.0" in {
-    an [IllegalArgumentException] should be thrownBy new Segmentation(10, 1.5)
-  }
-
-  it should "fail applying an overlap lower than 0.0" in {
-    an [IllegalArgumentException] should be thrownBy new Segmentation(10, -1.0)
-  }
-
-  it should "fail applying an overlap that will produce a step of 0" in {
-    an [IllegalArgumentException] should be thrownBy new Segmentation(10, 0.01)
-  }
 }

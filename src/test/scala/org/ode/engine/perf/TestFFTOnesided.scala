@@ -63,8 +63,6 @@ class TestFFTOnesided extends FlatSpec with Matchers {
     val tAfter2 = System.nanoTime()
     val d2 = (tAfter2 - tBefore2).toDouble
 
-    println(d2/d1)
-
     d2 * 1.40 should be < d1
   }
 }

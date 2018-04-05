@@ -22,32 +22,36 @@ package org.ode.engine.signal_processing;
   * Author: Alexandre Degurse
   * 
   * @param winSize The size of segment
-  * @param offset The distance between two consecutive segments
+  * @param overlap The distance between two consecutive segments
   * @param partial Bool that tells whether to keep the last buffer or not
   *
   */
 
 
-class Segmentation(val winSize: Int, val offset: Int = 0) {
+class Segmentation(val winSize: Int, val overlap: Double = 1.0, val partial: Boolean = false) {
 
   /**
-   * Funtion that segmentes a signal in the most common way
+   * Funtion that segmentes a signal
    * @param signal The signal to be segmented
    * @return The segmented signal
    */
   def segmention(signal: Array[Double]) : Array[Array[Double]] = {
 
-    // if offset > winSize, it means that data will be lost in the process
-    if (offset > winSize){
-      throw new IllegalArgumentException(s"Incorrect offset (${offset}) for segmention (${winSize} max)")
+    // if overlap > winSize, it means that data will be lost in the process
+    if ((overlap < 0.0) || (overlap > 1.0)){
+      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention")
     }
     
-    var nWindows: Int = (signal.length - winSize) / (winSize - offset)
-    val step: Int = nWindows - offset
+    val step: Int = (winSize* overlap).toInt
+    // nWindows is the number of complete windows that will be generated
+    var nWindows: Int = 1 + (signal.length - winSize) / step
 
-    println("nWIndows : " + nWindows.toString + " step : " + step.toString + " winSize : " + winSize.toString)
-
-    val segmentedSignal = Array.ofDim[Double](nWindows, winSize)
+    val segmentedSignal = if(partial) {
+      // allocate an additionnal window if the partial chunck is kept
+      Array.ofDim[Double](nWindows + 1, winSize)
+      } else {
+      Array.ofDim[Double](nWindows, winSize)
+      }
     
     var i: Int = 0
     var j: Int = 0
@@ -59,6 +63,17 @@ class Segmentation(val winSize: Int, val offset: Int = 0) {
       }
       j = 0
       i += 1
+    }
+
+    // manually compute the incomplete chunck with zero-padding
+    if (partial) {
+      // i == nWindow now, the index of the incomplete chunck and j == 0
+      // add the last values in the incomplete chunk, the rest is already
+      // initialized to 0.0 
+      while (i*step + j  < signal.length) {
+        segmentedSignal(i)(j) = signal(i*step + j)
+        j += 1
+      }
     }
 
     return segmentedSignal

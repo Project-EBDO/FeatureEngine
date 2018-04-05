@@ -16,7 +16,7 @@
 
 package org.ode.perf
 
-import scala.math.{pow}
+import scala.math._
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -26,6 +26,10 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 class TestMiscTests extends FlatSpec with Matchers {
+
+  val dataStart = 0.0
+  val dataEnd = 100.0
+  val dataStep = 0.1
 
   "TestMiscTests" should "show that x*x is 2 times faster than pow(x,2)" in {
     val t: Array[Double] = (0.0 to 100.0 by 0.1).toArray
@@ -44,8 +48,8 @@ class TestMiscTests extends FlatSpec with Matchers {
   }
 
   it should "show that using mutables with map is as fast as using immutables with map" in {
-    val dataArray: Array[Double] = (0.0 to 100.0 by 0.1).toArray
-    val dataVector: Vector[Double] = (0.0 to 100.0 by 0.1).toVector
+    val dataArray: Array[Double] = (0.0 to dataEnd by dataStep).toArray
+    val dataVector: Vector[Double] = (0.0 to dataEnd by dataStep).toVector
 
     val tBefore1 = System.nanoTime()
     val result1 = dataArray.map(x => 2.7182*x + 3.14159265)
@@ -61,8 +65,8 @@ class TestMiscTests extends FlatSpec with Matchers {
   }
 
   it should "show that using mutables with while is as fast as using immutables with map" in {
-    val dataArray: Array[Double] = (0.0 to 100.0 by 0.1).toArray
-    val dataVector: Vector[Double] = (0.0 to 100.0 by 0.1).toVector
+    val dataArray: Array[Double] = (dataStart to dataEnd by dataStep).toArray
+    val dataVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
 
     val tBefore1 = System.nanoTime()
     var i: Int = 0
@@ -76,6 +80,56 @@ class TestMiscTests extends FlatSpec with Matchers {
 
     val tBefore2 = System.nanoTime()
     val result2 = dataVector.map(x => 2.7182*x + 3.14159265)
+    val tAfter2 = System.nanoTime()
+    val duration2 = (tAfter1 - tBefore1).toDouble
+
+    duration1 should be(duration2)
+  }
+
+  it should "show that using mutables with while as fast as using immutables when chaining maps" in {
+    val dataArray: Array[Double] = (dataStart to dataEnd by dataStep).toArray
+    val dataVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
+
+    val tBefore1 = System.nanoTime()
+    val result1 = new Array[Double](dataArray.length) 
+    var i: Int = 0
+    while (i < dataArray.length) {
+      result1(i) = 2.0 * cos(3.0*(2.7182*dataArray(i) + 3.14159265)) + 5.0*sin(0.5*(2.7182*dataArray(i) + 3.14159265))
+      i += 1
+    }
+    val tAfter1 = System.nanoTime()
+    val duration1 = (tAfter1 - tBefore1).toDouble
+
+    val tBefore2 = System.nanoTime()
+    val result2 = dataVector
+      .map(x => 2.7182*x + 3.14159265)
+      .map(x => 2.0*cos(x*3.0) + 5.0 * sin(0.5*x))
+    val tAfter2 = System.nanoTime()
+    val duration2 = (tAfter1 - tBefore1).toDouble
+
+    duration1 should be(duration2)
+  }
+
+  it should "show that using mutables with while is faster than using immutables when using zip" in {
+    val timeArray: Array[Double] = (dataStart to dataEnd by dataStep).toArray
+    val phaseArray: Array[Double] = (dataStart to dataEnd by dataStep).toArray
+    val timeVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
+    val phaseVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
+
+    val tBefore1 = System.nanoTime()
+    val result1 = new Array[Double](timeArray.length) 
+    var i: Int = 0
+    while (i < timeArray.length) {
+      result1(i) = cos(3.1415 * timeArray(i) + phaseArray(i))
+      i += 1
+    }
+    val tAfter1 = System.nanoTime()
+    val duration1 = (tAfter1 - tBefore1).toDouble
+
+    val tBefore2 = System.nanoTime()
+    val result2 = timeVector
+      .zip(phaseVector)
+      .map(c => cos(c._1*3.1415 + c._2))
     val tAfter2 = System.nanoTime()
     val duration2 = (tAfter1 - tBefore1).toDouble
 

@@ -30,17 +30,18 @@ package org.ode.engine.signal_processing;
 
 class Segmentation(val winSize: Int, val overlap: Double = 1.0, val partial: Boolean = false) {
 
+  val step: Int = (winSize* overlap).toInt
+
+  if ((step < 1) || (winSize < step)) {
+    throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention")
+  }
+
   /**
    * Funtion that segmentes a signal
    * @param signal The signal to be segmented
    * @return The segmented signal
    */
   def compute(signal: Array[Double]) : Array[Array[Double]] = {
-    val step: Int = (winSize* overlap).toInt
-
-    if ((step < 1) || (winSize < step)) {
-      throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmention")
-    }
     
     // nWindows is the number of complete windows that will be generated
     var nWindows: Int = 1 + (signal.length - winSize) / step

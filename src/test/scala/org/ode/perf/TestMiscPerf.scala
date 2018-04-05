@@ -25,13 +25,13 @@ import org.scalatest.{FlatSpec, Matchers}
   */
 
 
-class TestMiscTests extends FlatSpec with Matchers {
+class TestMiscPerf extends FlatSpec with Matchers {
 
   val dataStart = 0.0
-  val dataEnd = 100.0
+  val dataEnd = 10000.0
   val dataStep = 0.1
 
-  "TestMiscTests" should "show that x*x is 2 times faster than pow(x,2)" in {
+  "TestMiscPerf" should "show that x*x is 2 times faster than pow(x,2)" in {
     val t: Array[Double] = (0.0 to 100.0 by 0.1).toArray
 
     val tBeforePow = System.nanoTime()
@@ -130,6 +130,28 @@ class TestMiscTests extends FlatSpec with Matchers {
     val result2 = timeVector
       .zip(phaseVector)
       .map(c => cos(c._1*3.1415 + c._2))
+    val tAfter2 = System.nanoTime()
+    val duration2 = (tAfter1 - tBefore1).toDouble
+
+    duration1 should be(duration2)
+  }
+
+  it should "show that using Array.copy is as fast as manual copy" in {
+    val data: Array[Double] = (dataStart to dataEnd by dataStep).toArray
+
+    val tBefore1 = System.nanoTime()
+    val result1 = new Array[Double](data.length) 
+    var i: Int = 0
+    while (i < data.length) {
+      result1(i) = data(i)
+      i += 1
+    }
+    val tAfter1 = System.nanoTime()
+    val duration1 = (tAfter1 - tBefore1).toDouble
+
+    val tBefore2 = System.nanoTime()
+    val result2 = new Array[Double](data.length) 
+    Array.copy(data, 0, result2, 0, data.length)
     val tAfter2 = System.nanoTime()
     val duration2 = (tAfter1 - tBefore1).toDouble
 

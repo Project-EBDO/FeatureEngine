@@ -19,17 +19,21 @@ package org.ode.engine.signal_processing;
 
 /**
   * Class that provides segmention functions
+  * 
+  * For now, its feature are limited to a simple segmentation that drops
+  * incomple windows and doesn't support overlap.
+  * New features will come in the near future
+  *
   * Author: Alexandre Degurse
   * 
   * @param winSize The size of a window
   *
   */
 
-
 class Segmentation(val winSize: Int) {
 
   /**
-   * Funtion that segmentes a signal and drops incomplete windows
+   * Funtion that segmentates a signal and drops incomplete windows
    * @param signal The signal to be segmented as a Array[Double]
    * @return The segmented signal as a Array[Array[Double]]
    */

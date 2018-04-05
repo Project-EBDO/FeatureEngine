@@ -52,7 +52,7 @@ class FFT(nfft: Int) {
 
     // new value that contains the signal and padded with nfft zeros
     // because the size doubles due to complex values
-    val fft: Array[Double] = signal ++ Array.fill(2*nfft - signal.length)(0.0);
+    val fft: Array[Double] = signal ++ Array.fill(2*nfft - signal.length)(0.0)
 
     // // In place computation
     lowLevelFtt.realForwardFull(fft)

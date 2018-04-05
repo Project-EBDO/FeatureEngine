@@ -35,7 +35,7 @@ class Segmentation(val winSize: Int, val overlap: Double = 1.0, val partial: Boo
    * @param signal The signal to be segmented
    * @return The segmented signal
    */
-  def segmention(signal: Array[Double]) : Array[Array[Double]] = {
+  def compute(signal: Array[Double]) : Array[Array[Double]] = {
 
     // if overlap > winSize, it means that data will be lost in the process
     if ((overlap < 0.0) || (overlap > 1.0)){

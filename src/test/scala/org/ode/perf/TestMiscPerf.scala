@@ -44,7 +44,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     val tAfterMult = System.nanoTime()
     val durationMult = (tAfterMult - tBeforeMult).toDouble
 
-    durationMult * 2.0 should be < durationPow
+    durationMult * 1.5 should be < durationPow
   }
 
   it should "show that using mutables with map is as fast as using immutables with map" in {

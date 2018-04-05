@@ -31,20 +31,36 @@ class TestMiscPerf extends FlatSpec with Matchers {
   val dataEnd = 10000.0
   val dataStep = 0.1
 
-  "TestMiscPerf" should "show that x*x is 2 times faster than pow(x,2)" in {
+  "TestMiscPerf" should "show that x*x is faster than pow(x,2)" in {
+    var tBeforeMult = 0L
+    var tBeforePow = 0L
+    var tAfterMult = 0L
+    var tAfterPow = 0L
+    var durationMult = 0.0
+    var durationPow = 0.0
+    var ratio = 0.0
+    
     val t: Array[Double] = (0.0 to 100.0 by 0.1).toArray
 
-    val tBeforePow = System.nanoTime()
-    val sigPow: Array[Double] = t.map(x => pow(x, 2))
-    val tAfterPow = System.nanoTime()
-    val durationPow = (tAfterPow - tBeforePow).toDouble
+    for (i <- (1 to 500)) {
 
-    val tBeforeMult = System.nanoTime()
-    val sigMult: Array[Double] = t.map(x => x*x)
-    val tAfterMult = System.nanoTime()
-    val durationMult = (tAfterMult - tBeforeMult).toDouble
+      tBeforePow = System.nanoTime()
+      val sigPow: Array[Double] = t.map(x => pow(x, 2))
+      tAfterPow = System.nanoTime()
+      durationPow = (tAfterPow - tBeforePow).toDouble
 
-    durationMult * 1.5 should be < durationPow
+      tBeforeMult = System.nanoTime()
+      val sigMult: Array[Double] = t.map(x => x*x)
+      tAfterMult = System.nanoTime()
+      durationMult = (tAfterMult - tBeforeMult).toDouble
+
+      ratio += (durationPow / durationMult)
+
+
+    }
+    ratio /= 500
+
+    ratio should be > (1.0)
   }
 
   it should "show that using mutables with map is as fast as using immutables with map" in {

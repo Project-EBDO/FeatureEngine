@@ -46,7 +46,7 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     abs(rmseComputed - expectedRMSE) should be < (1e-10)
   }
 
-  "ErrorMetrics" should "compute the rmse for two doubles" in {
+  it should "compute the rmse for two doubles" in {
     val a = 0.9458845231585757
     val b = 0.323284190497698
 
@@ -56,7 +56,7 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     abs(rmseComputed - expectedRMSE) should be < (1e-10)
   }
 
-  "ErrorMetrics" should "fail when sequences size don't match" in {
+  it should "fail when sequences size don't match" in {
     val seqA = Seq(0.1221174368357885, 0.8030612655311997, 0.8732426284336273)
     val seqB = Seq(0.7363374103655478, 0.352353350406777)
 

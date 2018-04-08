@@ -147,7 +147,7 @@ class TestFFT extends FlatSpec with Matchers {
   }
 
     // The expected fft is computed with numpy
-  "FFT" should "compute the same fft as Matlab on a fake signal" in {
+  it should "compute the same fft as Matlab on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
     val fftClass: FFT = new FFT(signal.length)
@@ -228,7 +228,7 @@ class TestFFT extends FlatSpec with Matchers {
 
   }
 
-  "FFT" should "raise IllegalArgumentException when given a signal of the wrong length" in {
+  it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](100)
     val fftClass: FFT = new FFT(10)
 

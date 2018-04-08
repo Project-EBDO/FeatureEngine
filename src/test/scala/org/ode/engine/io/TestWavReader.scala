@@ -57,7 +57,7 @@ class TestWavReader extends FlatSpec with Matchers {
 
   }
 
-  "TestWavReader" should "Correctly read an example file partially" in {
+  it should "Correctly read an example file partially" in {
     val file: File = new File(getClass.getResource(soundFilePath1).toURI)
     val wavReader = new WavReader(file)
 
@@ -79,7 +79,7 @@ class TestWavReader extends FlatSpec with Matchers {
 
   }
 
-  "TestWavReader" should "Correctly read an example file partially not from begining" in {
+  it should "Correctly read an example file partially not from begining" in {
     val file: File = new File(getClass.getResource(soundFilePath1).toURI)
     val wavReader = new WavReader(file)
 

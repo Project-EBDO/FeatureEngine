@@ -95,4 +95,10 @@ class TestScalatex extends FlatSpec with Matchers {
 
     outString should be(expectedString)
   }
+
+  it should "fail on insert of a new table when no table were declared" in {
+    val slt = new Scalatex("/tmp/fail.tex")
+
+    an [IllegalAccessException] should be thrownBy slt.addArrayItem(Array("test"))
+  }
 }

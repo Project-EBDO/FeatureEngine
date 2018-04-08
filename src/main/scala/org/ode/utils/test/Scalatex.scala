@@ -41,6 +41,7 @@ class Scalatex(
 
   val environmentStack = Stack[String]()
 
+  // write document essential elements
 
   write(s"\\documentclass{${documentClass}}\n")
 
@@ -61,7 +62,6 @@ class Scalatex(
   write(s"\\date{${date}}")
   write(s"\\author{${author}}")
 
-  // new line before begining document
   write("")
 
   write("\\begin{document}")
@@ -128,7 +128,10 @@ class Scalatex(
   }
 
   /**
-   * Environment functions used to deal with environment closure
+   * Environment functions used to manage LaTex environments
+   *
+   * Having all environments in the stack (and not just the ones that need closure) enables 
+   * the class to indent properly
    */
 
   def newEnvironment(toWrite:String, environment: String) {
@@ -161,7 +164,7 @@ class Scalatex(
   /**
    * Function used to compare environment, if the given environment is a environment of higher or equal
    * level than the first in the environmentStack, then the one in the stack needs to 
-   * be ended
+   * be ended, a closure might be needed (eg \end{array}).
    */
   def compareEnvironment(environment: String): Boolean = {
     return (environmentLevel(environmentStack.head) >= environmentLevel(environment))
@@ -180,21 +183,4 @@ class Scalatex(
       closeEnvironment()
     }
   }
-
 }
-/**
-
-import org.ode.utils.test.Scalatex
-val slt = new Scalatex("spark-warehouse/test.tex")
-
-val values = (1.0 to 3.0 by 1.0).map(_ + 0.7214578).toArray
-val formatedValues = values.map(v => f"$v%,.2f")
-
-slt.array("|l|l|l|")
-
-slt.addArrayItem(Array("x","y","z"))
-slt.addArrayItem(formatedValues)
-slt.addArrayItem(formatedValues)
-slt.end()
-
-*/

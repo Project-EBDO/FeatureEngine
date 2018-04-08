@@ -48,7 +48,7 @@ class FFTOnesided(nfft: Int) {
 class TestFFTOnesided extends FlatSpec with Matchers {
 
 
-  "FFTOnesided" should "compute a fft slower than the two-sided version" in {
+  "FFTOnesided" should "compute a fft faster than the two-sided version" in {
     val signal: Array[Double] = (1.0 to 1000.0 by 1.0).toArray
     val fftClass: FFT = new FFT(1000)
     val fftClassOnesided: FFTOnesided = new FFTOnesided(1000)
@@ -63,6 +63,6 @@ class TestFFTOnesided extends FlatSpec with Matchers {
     val tAfter2 = System.nanoTime()
     val d2 = (tAfter2 - tBefore2).toDouble
 
-    d2 * 1.40 should be < d1
+    d1 should be < d2
   }
 }

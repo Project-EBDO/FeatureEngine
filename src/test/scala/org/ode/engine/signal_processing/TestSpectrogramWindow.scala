@@ -15,6 +15,10 @@ import scala.io.Source
 class TestWindow(val windowSize: Int) extends SpectrogramWindow {
   val windowCoefficients: Array[Double] =
     (1 to windowSize).map(_.toDouble).toArray
+  
+  val scalingFactor: Double = windowCoefficients
+    .map(x => x*x)
+    .sum
 }
 
 class TestSpectrogramWindow extends FlatSpec with Matchers {

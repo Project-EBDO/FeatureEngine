@@ -41,6 +41,10 @@ class Scalatex(
 
   val environmentStack = Stack[String]()
 
+  // use US locale to format Double
+  val locale = new java.util.Locale("en", "US")
+  val formatter = java.text.NumberFormat.getInstance(locale)
+
   // write document essential elements
 
   write(s"\\documentclass{${documentClass}}\n")
@@ -103,7 +107,7 @@ class Scalatex(
     }
 
     val row: String = items
-      .map(value => f"$value%,.3f")
+      .map(value => formatter.format(value))
       .reduce((p,n) => p + " & " + n) 
 
     write(row + "\\\\")

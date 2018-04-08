@@ -56,7 +56,7 @@ class TestScalatex extends FlatSpec with Matchers {
     slt.array("|l|cc")
     slt.addArrayItem(Array("elem at 0,0","elem at 0,1","elem at 0,2"))
     slt.addArrayHline()
-    slt.addArrayItemFromDoubles((1.0 to 3.0 by 1.0).toArray)
+    slt.addArrayItemFromDoubles((1.0 to 3.0 by 1.0).map(1.0/_).toArray)
     slt.end()
 
     val outFile: File = new File("/tmp/example-without-indent.tex")
@@ -82,7 +82,7 @@ class TestScalatex extends FlatSpec with Matchers {
     slt.array("|l|cc")
     slt.addArrayItem(Array("elem at 0,0","elem at 0,1","elem at 0,2"))
     slt.addArrayHline()
-    slt.addArrayItemFromDoubles((1.0 to 3.0 by 1.0).toArray)
+    slt.addArrayItemFromDoubles((1.0 to 3.0 by 1.0).map(1.0/_).toArray)
     slt.end()
 
     val outFile: File = new File("/tmp/example.tex")

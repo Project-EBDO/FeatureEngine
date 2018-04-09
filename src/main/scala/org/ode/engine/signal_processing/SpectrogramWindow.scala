@@ -29,6 +29,7 @@ trait SpectrogramWindow {
 
   val windowSize: Int
   val windowCoefficients: Array[Double]
+  val scalingFactor: Double
 
   def applyToSignal(signal: Array[Double]): Array[Double] = {
     if (signal.length != windowSize) {

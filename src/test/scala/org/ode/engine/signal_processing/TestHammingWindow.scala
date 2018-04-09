@@ -120,4 +120,14 @@ class TestHammingWindow extends FlatSpec with Matchers {
 
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
   }
+
+  it should "compute the scaling factor of a sample window" in {
+    val windowLength = 1024
+    val hw = new HammingWindow(windowLength)
+
+    val scalingFactor: Double = hw.scalingFactor
+    val expectedScalingFactor: Double = 406.5466000000004
+
+    scalingFactor should be(expectedScalingFactor)
+  }
 }

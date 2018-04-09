@@ -29,6 +29,10 @@ import scala.math.{cos, Pi}
 class HammingWindow(val windowSize: Int) extends SpectrogramWindow {
   val windowCoefficients: Array[Double] =
     (0 until windowSize).map(idx => HammingWindow.coefficient(idx, windowSize)).toArray
+
+  val scalingFactor: Double = windowCoefficients
+    .map(x => x*x)
+    .sum
 }
 
 object HammingWindow {

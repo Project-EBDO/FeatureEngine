@@ -52,10 +52,23 @@ class FFT(nfft: Int) {
 
     // new value that contains the signal and padded with nfft zeros
     // because the size doubles due to complex values
-    val fft: Array[Double] = signal ++ Array.fill(2*nfft - signal.length)(0.0)
+    val fft: Array[Double] = signal ++ Array.fill(nfft - signal.length)(0.0)
 
-    // // In place computation
-    lowLevelFtt.realForwardFull(fft)
+    /** In place computation
+     * if nfft is even then
+     * fft[1] = Re[nfft/2]
+     * if n is odd then
+     * fft[1] = Im[(nfft-1)/2]
+     */
+    lowLevelFtt.realForward(fft)
+
+    val tmpValue: Double = fft(1)
+    fft(1) = 0.0
+    // if (nfft%2 == 0) {
+    //   fft(nfft-2) = tmpValue
+    // } else {
+    //   fft(nfft-1) = tmpValue
+    // }
 
     return fft
   }

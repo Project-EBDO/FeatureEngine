@@ -142,7 +142,7 @@ class TestFFT extends FlatSpec with Matchers {
        -9.3015054823533401e+00, -1.8079330752013401e+01
     )
 
-    rmse(fft, expectedFFT) should be < maxRMSE
+    rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
 
   }
 
@@ -224,7 +224,7 @@ class TestFFT extends FlatSpec with Matchers {
       -18.079330752013444084
     )
 
-    rmse(fft, expectedFFT) should be < maxRMSE
+    rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
 
   }
 

@@ -28,7 +28,7 @@ import org.scalatest.{FlatSpec, Matchers}
   * Author: Alexandre Degurse, Jospeh Allemandou&(
   */
 
-class FFTOnesided(nfft: Int) {
+class FFTTwoSided(nfft: Int) {
 
   val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
 
@@ -37,31 +37,34 @@ class FFTOnesided(nfft: Int) {
       throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for FFT (${nfft})")
     }
 
-    val fft: Array[Double] = signal ++ Array.fill(nfft - signal.length)(0.0)
+    // new value that contains the signal and padded with nfft zeros
+    // because the size doubles due to complex values
+    val fft: Array[Double] = signal ++ Array.fill(2*nfft - signal.length)(0.0)
 
-    lowLevelFtt.realForward(fft)
+    // // In place computation
+    lowLevelFtt.realForwardFull(fft)
 
     return fft
   }
 }
 
-class TestFFTOnesided extends FlatSpec with Matchers {
+class TestFFTTwoSided extends FlatSpec with Matchers {
 
 
 
-  "FFTOnesided" should "compute a fft faster than the two-sided version" in {
+  "FFTTwoSided" should "compute a fft faster than the two-sided version" in {
     val signal: Array[Double] = (1.0 to 1024.0 by 1.0).toArray
     val fftClass: FFT = new FFT(1024)
-    val fftClassOnesided: FFTOnesided = new FFTOnesided(1024)
+    val fftClassTwoSided: FFTTwoSided = new FFTTwoSided(1024)
 
 
     val tBefore1 = System.nanoTime()
-    val fft1 = fftClassOnesided.compute(signal)
+    val fft1 = fftClass.compute(signal)
     val tAfter1 = System.nanoTime()
     val d1 = (tAfter1 - tBefore1).toDouble
 
     val tBefore2 = System.nanoTime()
-    val fft2 = fftClass.compute(signal)
+    val fft2 = fftClassTwoSided.compute(signal)
     val tAfter2 = System.nanoTime()
     val d2 = (tAfter2 - tBefore2).toDouble
 
@@ -76,8 +79,6 @@ class TestFFTOnesided extends FlatSpec with Matchers {
     })
 
     // one-sided should be faster than 2-sided
-    println(d1)
-    println(d2)
     d1 * 1.5 should be < d2
   }
 }

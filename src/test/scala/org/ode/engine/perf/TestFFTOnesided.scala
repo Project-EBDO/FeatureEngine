@@ -25,7 +25,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
   * Tests for one-sided FFT
-  * Author: Alexandre Degurse
+  * Author: Alexandre Degurse, Jospeh Allemandou&(
   */
 
 class FFTOnesided(nfft: Int) {
@@ -48,10 +48,12 @@ class FFTOnesided(nfft: Int) {
 class TestFFTOnesided extends FlatSpec with Matchers {
 
 
+
   "FFTOnesided" should "compute a fft faster than the two-sided version" in {
-    val signal: Array[Double] = (1.0 to 1000.0 by 1.0).toArray
-    val fftClass: FFT = new FFT(1000)
-    val fftClassOnesided: FFTOnesided = new FFTOnesided(1000)
+    val signal: Array[Double] = (1.0 to 1024.0 by 1.0).toArray
+    val fftClass: FFT = new FFT(1024)
+    val fftClassOnesided: FFTOnesided = new FFTOnesided(1024)
+
 
     val tBefore1 = System.nanoTime()
     val fft1 = fftClassOnesided.compute(signal)
@@ -63,6 +65,19 @@ class TestFFTOnesided extends FlatSpec with Matchers {
     val tAfter2 = System.nanoTime()
     val d2 = (tAfter2 - tBefore2).toDouble
 
-    d1 should be < d2
+    // Checking values are the same - except for fft(1)
+    // From JTansform doc:
+    // if nfft is even, fft(1) = Re(n/2)
+    // if nfft is odd,  fft(1) = Im(n - 1 /2)
+    (0 until fft1.length).foreach(i => {
+      if (i != 1) {
+        fft1(i) should equal (fft2(i))
+      }
+    })
+
+    // one-sided should be faster than 2-sided
+    println(d1)
+    println(d2)
+    d1 * 1.5 should be < d2
   }
 }

@@ -33,6 +33,8 @@ class FFT(nfft: Int) {
   // Instantiate the low level class that computes the fft
   val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
 
+  val isEven: Boolean = (nfft%2 == 0)
+
   /**
   * Function that computes FFT for an Array
   * The signal is zero-padded if needed (i.e. signal.length < nfft)
@@ -52,7 +54,7 @@ class FFT(nfft: Int) {
 
     // new value that contains the signal and padded with nfft zeros
     // because the size doubles due to complex values
-    val fft: Array[Double] = signal ++ Array.fill(nfft - signal.length)(0.0)
+    val fft: Array[Double] = signal ++ Array.fill(if (isEven) nfft - signal.length +  2 else nfft - signal.length +  1)(0.0)
 
     /** In place computation
      * if nfft is even then
@@ -62,13 +64,13 @@ class FFT(nfft: Int) {
      */
     lowLevelFtt.realForward(fft)
 
-    val tmpValue: Double = fft(1)
+    if (isEven) {
+      fft(nfft) = fft(1)
+    } else {
+      fft(nfft) = fft(1)
+    }
+
     fft(1) = 0.0
-    // if (nfft%2 == 0) {
-    //   fft(nfft-2) = tmpValue
-    // } else {
-    //   fft(nfft-1) = tmpValue
-    // }
 
     return fft
   }

@@ -44,7 +44,7 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
    */
   def periodogram(fft: Array[Double]) : Array[Double] = {
     if ((fft.length != 2*nUnique) && (fft.length != 2*nfft)) {
-      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD onsided (${2*nUnique}) and twosided (${2*nfft})")
+      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD, it should be either a onesided (${2*nUnique}) or twosided (${2*nfft}) FFT")
     } 
 
     val oneSidedPSD: Array[Double] = new Array[Double](nUnique)

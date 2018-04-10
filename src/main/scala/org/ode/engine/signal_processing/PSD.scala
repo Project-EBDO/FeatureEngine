@@ -39,12 +39,12 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
    * like in Matlab and Python using the periodogram method (mode 'psd')
    * An IllegalArgumentException is thrown if fft.length != 2*nfft
    *
-   * @param fft The two-sided fft used to compute the PSD
+   * @param fft The one or two sided fft used to compute the PSD
    * @return the one-sided PSD of the given fft
    */
   def periodogram(fft: Array[Double]) : Array[Double] = {
-    if (fft.length != (2*nfft)) {
-      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD (${2*nfft})")
+    if ((fft.length != 2*nUnique) && (fft.length != 2*nfft)) {
+      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD (${2*nUnique})")
     }
 
     val oneSidedPSD: Array[Double] = new Array[Double](nUnique)

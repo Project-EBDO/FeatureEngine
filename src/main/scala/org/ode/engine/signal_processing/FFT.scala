@@ -22,7 +22,7 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
   * Wrapper class over edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D that 
   * computes FFT of nfft size over the signal of length nfft.
   * 
-  * Author: Paul Nguyen HD, Alexandre Degurse
+  * Author: Paul Nguyen HD, Alexandre Degurse, Joseph Allemandou
   *
   */
 

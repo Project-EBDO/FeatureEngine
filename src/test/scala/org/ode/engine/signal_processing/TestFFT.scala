@@ -14,25 +14,138 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package org.ode.engine.signal_processing;
+package org.ode.engine.signal_processing
 
-
-
-import org.ode.utils.test.ErrorMetrics.rmse;
-import org.scalatest.{FlatSpec, Matchers};
-import scala.math.cos;
+import org.ode.utils.test.ErrorMetrics.rmse
+import org.scalatest.{FlatSpec, Matchers}
+import scala.math.cos
 
 /**
   * Tests for FFT wrap class
-  * Author: Alexandre Degurse
+  * Author: Alexandre Degurse & Joseph Allemandou
   */
 
+class FFTTwoSided(nfft: Int) {
+
+  import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
+
+  val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
+
+  def compute(signal: Array[Double]) : Array[Double] = {
+    if (signal.length > nfft) {
+      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for FFT ($nfft)")
+    }
+
+    // new value that contains the signal and padded with nfft zeros
+    // because the size doubles due to complex values
+    val fft: Array[Double] = signal ++ Array.fill(2 * nfft - signal.length)(0.0)
+
+    // // In place computation
+    lowLevelFtt.realForwardFull(fft)
+
+    fft
+  }
+}
 
 class TestFFT extends FlatSpec with Matchers {
 
   val maxRMSE = 1E-13
+  val eventNfft: Int = 4
 
-  "FFT" should "compute the same fft as numpy on a fake signal" in {
+  "FFT" should "Return an expected layout (with 0 values in right places) for nfft even" in {
+
+    val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
+    val fftClass: FFT = new FFT(eventNfft)
+    val fft: Array[Double] = fftClass.compute(signal)
+
+    fft.length should equal(eventNfft + 2)
+    // No imaginary part for first value not last values
+    fft(1) should equal(0)
+    fft(5) should equal(0)
+
+  }
+
+  it should "Return an expected layout (with 0 values in right places) for nfft odd" in {
+
+    val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
+    val fftClass: FFT = new FFT(eventNfft + 1)
+    val fft: Array[Double] = fftClass.compute(signal)
+
+    fft.length should equal(eventNfft + 2)
+    // No imaginary part for first value
+    fft(1) should equal(0)
+
+  }
+
+  it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft even" in {
+
+    val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
+    val fftClass: FFT = new FFT(eventNfft)
+    val fft: Array[Double] = fftClass.compute(signal)
+
+    val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft)
+    val fft2: Array[Double] = fft2Class.compute(signal)
+
+    fft.length should equal(eventNfft + 2)
+    fft2.length should equal(eventNfft * 2)
+
+    // Check values as complex numbers (nfft / 2 + 1 values)
+    // with conjugate complex symetry:
+    //   Conjugate complex symetry starts at complex value 1
+    //   and symetry point is middle complex value
+    (0 until eventNfft / 2 + 1).foreach(i => {
+      // Real part
+      fft(2 * i) should equal (fft2(2 * i))
+      // Imaginary part
+      fft(2 * i + 1) should equal (fft2(2 * i + 1))
+
+      // Conjugate complex symetry (no dc, symetry over nyquist freq)
+      if (i > 0 && i < eventNfft / 2) {
+        val ci = eventNfft - i
+        // Real part
+        fft(2 * i) should equal (fft2(2 * ci))
+        // conjugate imaginary part
+        fft(2 * i + 1) should equal (- fft2(2 * ci + 1))
+      }
+    })
+  }
+
+  it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft odd" in {
+
+    val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
+    val fftClass: FFT = new FFT(eventNfft + 1)
+    val fft: Array[Double] = fftClass.compute(signal)
+
+    val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft + 1)
+    val fft2: Array[Double] = fft2Class.compute(signal)
+
+    fft.length should equal(eventNfft + 2)
+    fft2.length should equal((eventNfft + 1) * 2)
+
+    // Check values as complex numbers ((nfft + 1) / 2 values)
+    // with conjugate complex symetry:
+    //   Conjugate complex symetry starts at complex value 1
+    //   and symetry point is middle complex value
+    (0 until (eventNfft + 1) / 2).foreach(i => {
+      // Real part
+      fft(2 * i) should equal (fft2(2 * i))
+      // Imaginary part
+      fft(2 * i + 1) should equal (fft2(2 * i + 1))
+
+      // Conjugate complex symetry (no dc, symetry over nyquist freq)
+      if (i > 0 && i < eventNfft / 2) {
+        val ci = (eventNfft + 1) - i
+        // Real part
+        fft(2 * i) should equal (fft2(2 * ci))
+        // conjugate imaginary part
+        fft(2 * i + 1) should equal (- fft2(2 * ci + 1))
+      }
+    })
+  }
+
+
+
+  it should "compute the same fft as numpy on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
     val fftClass: FFT = new FFT(signal.length)

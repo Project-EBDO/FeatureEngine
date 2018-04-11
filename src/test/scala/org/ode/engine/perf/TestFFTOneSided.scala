@@ -14,13 +14,10 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package org.ode.perf
+package org.ode.engine.perf
 
 
-
-import org.ode.utils.test.ErrorMetrics.rmse
-import org.ode.engine.signal_processing.FFT
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
+import org.ode.engine.signal_processing.{FFTTwoSided, FFT}
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -28,29 +25,9 @@ import org.scalatest.{FlatSpec, Matchers}
   * Author: Alexandre Degurse, Jospeh Allemandou&(
   */
 
-class FFTTwoSided(nfft: Int) {
+class TestFFTOneSided extends FlatSpec with Matchers {
 
-  val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
-
-  def compute(signal: Array[Double]) : Array[Double] = {
-    if (signal.length > nfft) {
-      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for FFT (${nfft})")
-    }
-
-    // new value that contains the signal and padded with nfft zeros
-    // because the size doubles due to complex values
-    val fft: Array[Double] = signal ++ Array.fill(2*nfft - signal.length)(0.0)
-
-    // // In place computation
-    lowLevelFtt.realForwardFull(fft)
-
-    return fft
-  }
-}
-
-class TestFFTTwoSided extends FlatSpec with Matchers {
-
-  "FFTTwoSided" should "compute a fft faster than the two-sided version" in {
+  "FFTOneSided" should "compute a fft faster than the two-sided version" in {
     val signal: Array[Double] = (1.0 to 1024.0 by 1.0).toArray
     val fftClass: FFT = new FFT(1024)
     val fftClassTwoSided: FFTTwoSided = new FFTTwoSided(1024)
@@ -66,18 +43,8 @@ class TestFFTTwoSided extends FlatSpec with Matchers {
     val tAfter2 = System.nanoTime()
     val d2 = (tAfter2 - tBefore2).toDouble
 
-    // Checking values are the same - except for fft(1)
-    // From JTansform doc:
-    // if nfft is even, fft(1) = Re(n/2)
-    // if nfft is odd,  fft(1) = Im(n - 1 /2)
-    (0 until fft1.length).foreach(i => {
-      if (i != 1) {
-        fft1(i) should equal (fft2(i))
-      }
-    })
-
     // one-sided should be faster than 2-sided
-    // d1 * 1.5 should be < d2
+    // d1 should be < d2
 
     // For some reason, this test fails on a the author's computer
     // running Archlinux with i7-4700HQ

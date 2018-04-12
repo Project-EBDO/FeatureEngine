@@ -37,15 +37,15 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
   /**
    * Function that computes the one-sided Power Spectral Density (PSD)
    * like in Matlab and Python using the periodogram method (mode 'psd')
-   * An IllegalArgumentException is thrown if fft.length != 2*nfft (ie fft is not twosided)
-   * and if fft.length != 2*uniqueSamples (ie fft is not onesided)
+   * An IllegalArgumentException is thrown if fft.length != 2*nfft (ie fft is not two-sided)
+   * and if fft.length != 2*uniqueSamples (ie fft is not one-sided)
    *
-   * @param fft The one or two sided fft used to compute the PSD
+   * @param fft The one or two-sided fft used to compute the PSD
    * @return the one-sided PSD of the given fft
    */
   def periodogram(fft: Array[Double]) : Array[Double] = {
     if ((fft.length != 2*uniqueSamples) && (fft.length != 2*nfft)) {
-      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD, it should be either a onesided (${2*uniqueSamples}) - twosided (${2*nfft}) FFT")
+      throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD, it should be either a one-sided (${2*uniqueSamples}) or a two-sided (${2*nfft}) FFT")
     }
 
     val oneSidedPSD: Array[Double] = new Array[Double](uniqueSamples)

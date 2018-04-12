@@ -116,7 +116,7 @@ class TestPSD extends FlatSpec with Matchers {
   val uniqueSamples: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
   val fftOneSided: Array[Double] = fft.take(2*uniqueSamples)
 
-  "PSD" should "compute the same psd when given a onesided or a twosided version of the same FFT" in {
+  "PSD" should "compute the same psd when given a one-sided or a two-sided version of the same FFT" in {
     val psdClass = new PSD(nfft, 1.0)
     
     val psdFromOnesided: Array[Double] = psdClass.periodogram(fftOneSided)

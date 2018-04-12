@@ -113,7 +113,22 @@ class TestPSD extends FlatSpec with Matchers {
   val fs: Double = 1000.0
   val nfft: Int = fft.length / 2
 
-  "PSD" should "compute the same psd as matlab periodogram on a fake signal" in {
+  val uniqueSamples: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
+  val fftOneSided: Array[Double] = fft.take(2*uniqueSamples)
+
+  "PSD" should "compute the same psd when given a onesided or a twosided version of the same FFT" in {
+    val psdClass = new PSD(nfft, 1.0)
+    
+    val psdFromOnesided: Array[Double] = psdClass.periodogram(fftOneSided)
+    val psdFromTwosided: Array[Double] = psdClass.periodogram(fft)
+
+    psdFromOnesided.zip(psdFromTwosided).foreach(
+      values => values._1 should be(values._2)
+    )
+    
+  }
+
+  it should "compute the same psd as matlab periodogram on a fake signal" in {
     /** Matlab code
      * s = [0:0.1:10]; s = s(:);
      * sig = 2 * cos(s) + 3 * sin(s);

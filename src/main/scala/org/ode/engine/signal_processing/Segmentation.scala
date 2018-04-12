@@ -27,10 +27,15 @@ package org.ode.engine.signal_processing;
   * Author: Alexandre Degurse
   * 
   * @param winSize The size of a window
+  * @param overlap The overlap used to slide on the signal as a Double.
   *
   */
 
-class Segmentation(val winSize: Int) {
+class Segmentation(val winSize: Int, val overlap: Double = 0.0) {
+
+  // use a preOffset in case the overlap = 0.0
+  val preOffset: Int = (winSize * overlap).toInt
+  val offset: Int = if (preOffset > 0) (winSize * overlap).toInt else winSize
 
   /**
    * Funtion that segmentates a signal and drops incomplete windows
@@ -40,14 +45,14 @@ class Segmentation(val winSize: Int) {
   def compute(signal: Array[Double]) : Array[Array[Double]] = {
     
     // nWindows is the number of complete windows that will be generated
-    var nWindows: Int = signal.length / winSize
+    var nWindows: Int = 1 + (signal.length - winSize) / offset
 
     val segmentedSignal: Array[Array[Double]] = Array.ofDim[Double](nWindows, winSize)
     
     var i: Int = 0
 
     while (i < nWindows) {
-      Array.copy(signal, i*winSize, segmentedSignal(i), 0, winSize)
+      Array.copy(signal, i*offset, segmentedSignal(i), 0, winSize)
       i += 1
     }
 

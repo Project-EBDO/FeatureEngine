@@ -20,10 +20,19 @@ import scala.math.{cos, Pi}
 
 /**
  * HammingWindow, extending the [[SpectrogramWindow]] trait
+ * A hamming window can be compute in two ways:
+ *  - symmetric used for filter design,
+ *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where 0 <= n <= N and N = windowLength - 1
+ *  - periodic used for spectral analysis because it extends discrete Fourier transform periodicity,
+ *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where N/2 <= n <= N/2 - 1 and N = windowLength
+ *
  * Author: Joseph Allemandou, Paul NGuyenhongduc
  *
  * Hamming coefficients function defined in companion object 
  * and used to precompute coefficients for a given instance of window.
+ *
+ * @param windowSize The size of the window to be computed
+ * @param hammingType The type of hamming window to compute
  */
 
 class HammingWindow(val windowSize: Int, val hammingType: String) extends SpectrogramWindow {

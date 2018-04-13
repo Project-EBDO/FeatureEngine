@@ -26,12 +26,17 @@ import scala.math.{cos, Pi}
  * and used to precompute coefficients for a given instance of window.
  */
 
-class HammingWindow(val windowSize: Int) extends SpectrogramWindow {
-  val windowCoefficients: Array[Double] =
-    (0 until windowSize).map(idx => HammingWindow.coefficient(idx, windowSize)).toArray
+class HammingWindow(val windowSize: Int, val hammingType: String) extends SpectrogramWindow {
+  val windowCoefficients: Array[Double] = hammingType match {
+    case "periodic" => (0 until windowSize).map(idx => HammingWindow.coefficientPeriodic(idx, windowSize)).toArray
+    case "symmetric" => (0 until windowSize).map(idx => HammingWindow.coefficientSymmetric(idx, windowSize)).toArray
+  }
+    
 }
 
 object HammingWindow {
-  // Generate the i-th coefficient of a N-point Hamming window
-  def coefficient(idx: Int, windowSize: Int): Double = 0.54 - 0.46 * cos(2 * Pi * idx / (windowSize - 1))
+  // Generate the i-th coefficient of a N-point periodic Hamming window
+  def coefficientPeriodic(idx: Int, windowSize: Int): Double = 0.54 - 0.46 * cos(2 * Pi * idx / (windowSize - 1))
+  // Generate the i-th coefficient of a N-point symmetric Hamming window
+  def coefficientSymmetric(idx: Int, windowSize: Int): Double = 0.54 + 0.46 * cos(Pi * (2*idx - windowSize) / windowSize)
 }

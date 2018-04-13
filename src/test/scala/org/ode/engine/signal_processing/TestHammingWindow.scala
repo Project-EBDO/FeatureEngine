@@ -164,4 +164,8 @@ class TestHammingWindow extends FlatSpec with Matchers {
 
     rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
   }
+
+  it should "raise IllegalArgumentException when given a wrong hamming type" in {
+    an [IllegalArgumentException] should be thrownBy new HammingWindow(32,"wrongType")
+  }
 }

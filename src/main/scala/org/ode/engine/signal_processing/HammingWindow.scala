@@ -30,6 +30,7 @@ class HammingWindow(val windowSize: Int, val hammingType: String) extends Spectr
   val windowCoefficients: Array[Double] = hammingType match {
     case "periodic" => (0 until windowSize).map(idx => HammingWindow.coefficientPeriodic(idx, windowSize)).toArray
     case "symmetric" => (0 until windowSize).map(idx => HammingWindow.coefficientSymmetric(idx, windowSize)).toArray
+    case _ => throw new IllegalArgumentException(s"Unknown type (${hammingType}) for HammingWindow (periodic,symmetric)")
   }
     
 }

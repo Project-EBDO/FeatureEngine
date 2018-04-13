@@ -26,13 +26,13 @@ import scala.math.{cos, Pi}
  *  - periodic used for spectral analysis because it extends discrete Fourier transform periodicity,
  *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where N/2 <= n <= N/2 - 1 and N = windowLength
  *
- * Author: Joseph Allemandou, Paul NGuyenhongduc
+ * Author: Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
  * Hamming coefficients function defined in companion object 
  * and used to precompute coefficients for a given instance of window.
  *
  * @param windowSize The size of the window to be computed
- * @param hammingType The type of hamming window to compute
+ * @param hammingType The type of hamming window to compute, either periodic or symmetric
  */
 
 class HammingWindow(val windowSize: Int, val hammingType: String) extends SpectrogramWindow {

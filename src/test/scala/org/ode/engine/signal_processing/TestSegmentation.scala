@@ -62,7 +62,7 @@ class TestSegmentation extends FlatSpec with Matchers {
 
   it should "compute a segmentated signal with overlap and drop partial window" in {
     val signal: Array[Double] = (1.0 to 23.0 by 1.0).toArray
-    val segmentationClass: Segmentation = new Segmentation(10, 0.25)
+    val segmentationClass: Segmentation = new Segmentation(10, 2)
 
     val expectedSegmentedSignal: Array[Array[Double]] = 
       (1.0 to 13.0 by 2.0)

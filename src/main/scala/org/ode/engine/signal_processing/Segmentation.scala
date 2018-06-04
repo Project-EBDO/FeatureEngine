@@ -21,8 +21,7 @@ package org.ode.engine.signal_processing;
   * Class that provides segmention functions
   * 
   * For now, its feature are limited to a simple segmentation that drops
-  * incomple windows and doesn't support overlap.
-  * New features will come in the near future
+  * incomple windows and support only overlap in samples.
   *
   * Author: Alexandre Degurse
   * 
@@ -31,11 +30,13 @@ package org.ode.engine.signal_processing;
   *
   */
 
-class Segmentation(val winSize: Int, val overlap: Double = 0.0) {
+class Segmentation(val winSize: Int, val overlap: Int = 0) {
 
-  // use a preOffset in case the overlap = 0.0
-  val preOffset: Int = (winSize * overlap).toInt
-  val offset: Int = if (preOffset > 0) (winSize * overlap).toInt else winSize
+  if (overlap > winSize || overlap < 0) {
+    throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmentation with a winSize of ($winSize)")
+  }
+
+  val offset: Int = if (overlap > 0) overlap else winSize
 
   /**
    * Funtion that segmentates a signal and drops incomplete windows

@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     var durationMult = 0.0
     var durationPow = 0.0
     var ratio = 0.0
-    
+
     val t: Array[Double] = (0.0 to 100.0 by 0.1).toArray
 
     for (i <- (1 to 500)) {
@@ -87,7 +87,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
 
     val tBefore1 = System.nanoTime()
     var i: Int = 0
-    val result1 = new Array[Double](dataArray.length) 
+    val result1 = new Array[Double](dataArray.length)
     while (i < dataArray.length) {
       result1(i) = 2.7182*dataArray(i) + 3.14159265
       i += 1
@@ -108,7 +108,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     val dataVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
 
     val tBefore1 = System.nanoTime()
-    val result1 = new Array[Double](dataArray.length) 
+    val result1 = new Array[Double](dataArray.length)
     var i: Int = 0
     while (i < dataArray.length) {
       result1(i) = 2.0 * cos(3.0*(2.7182*dataArray(i) + 3.14159265)) + 5.0*sin(0.5*(2.7182*dataArray(i) + 3.14159265))
@@ -134,7 +134,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     val phaseVector: Vector[Double] = (dataStart to dataEnd by dataStep).toVector
 
     val tBefore1 = System.nanoTime()
-    val result1 = new Array[Double](timeArray.length) 
+    val result1 = new Array[Double](timeArray.length)
     var i: Int = 0
     while (i < timeArray.length) {
       result1(i) = cos(3.1415 * timeArray(i) + phaseArray(i))
@@ -157,7 +157,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     val data: Array[Double] = (dataStart to dataEnd by dataStep).toArray
 
     val tBefore1 = System.nanoTime()
-    val result1 = new Array[Double](data.length) 
+    val result1 = new Array[Double](data.length)
     var i: Int = 0
     while (i < data.length) {
       result1(i) = data(i)
@@ -167,7 +167,7 @@ class TestMiscPerf extends FlatSpec with Matchers {
     val duration1 = (tAfter1 - tBefore1).toDouble
 
     val tBefore2 = System.nanoTime()
-    val result2 = new Array[Double](data.length) 
+    val result2 = new Array[Double](data.length)
     Array.copy(data, 0, result2, 0, data.length)
     val tAfter2 = System.nanoTime()
     val duration2 = (tAfter1 - tBefore1).toDouble

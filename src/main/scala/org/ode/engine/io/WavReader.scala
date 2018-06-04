@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 package org.ode.engine.io
 
-import java.io.{FileInputStream, BufferedInputStream, File, InputStream}
+import java.io.{FileInputStream, BufferedInputStream, File}
 import javax.sound.sampled.{AudioInputStream, AudioFormat, AudioSystem, AudioFileFormat}
 
 
@@ -55,7 +55,6 @@ class WavReader(audioFile: File) {
   }
 
 
-
   /**
     *
     * @param chunkSize The number of frames to load in a chunk. The number of sound pressure values
@@ -79,7 +78,7 @@ class WavReader(audioFile: File) {
 
     // Indices
     val nbAvailableFrames: Long = audioFileFormat.getFrameLength - offsetFrame
-    val nbAvailableChunks: Long = (math.ceil(nbAvailableFrames.toDouble / chunkSize)).toLong
+    val nbAvailableChunks: Long = math.ceil(nbAvailableFrames.toDouble / chunkSize).toLong
 
     val chunksToRead: Long = scala.math.min(nbAvailableChunks, nbChunks)
     val nbBytesInChunk: Int = chunkSize * audioFormat.getFrameSize
@@ -96,7 +95,7 @@ class WavReader(audioFile: File) {
 
     // Read using vars for efficiency
     var res = Seq.empty[Array[Array[Double]]]
-    var readBuffer = new Array[Byte](nbBytesInChunk)
+    val readBuffer = new Array[Byte](nbBytesInChunk)
     Range.Long(0L, chunksToRead, 1L).foreach((chunkIdx: Long) => {
       val nbBytesRead: Int = audioIS.read(readBuffer)
       val nbFramesRead: Int = nbBytesRead /audioFormat.getFrameSize

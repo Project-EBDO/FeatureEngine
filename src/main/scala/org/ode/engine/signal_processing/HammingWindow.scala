@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import scala.math.{cos, Pi}
  *
  * Author: Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
- * Hamming coefficients function defined in companion object 
+ * Hamming coefficients function defined in companion object
  * and used to precompute coefficients for a given instance of window.
  *
  * @param windowSize The size of the window to be computed
@@ -41,7 +41,7 @@ class HammingWindow(val windowSize: Int, val hammingType: String) extends Spectr
     case "symmetric" => (0 until windowSize).map(idx => HammingWindow.coefficientSymmetric(idx, windowSize)).toArray
     case _ => throw new IllegalArgumentException(s"Unknown type (${hammingType}) for HammingWindow (periodic,symmetric)")
   }
-    
+
 }
 
 object HammingWindow {

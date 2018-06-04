@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@ package org.ode.engine.signal_processing
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
 
 /**
-  * Wrapper class over edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D that 
+  * Wrapper class over edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D that
   * computes FFT of nfft size over the signal of length nfft.
-  * 
+  *
   * Author: Paul Nguyen HD, Alexandre Degurse, Joseph Allemandou
   *
   */

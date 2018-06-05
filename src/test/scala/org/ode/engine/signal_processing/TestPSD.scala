@@ -172,7 +172,7 @@ class TestPSD extends FlatSpec with Matchers {
     /** Python code:
      * s = numpy.arange(0,10.1,0.1)
      * sig = 2 * numpy.cos(s) + 3 * numpy.sin(s)
-     * f, psdScipy = scipy.signal.periodogram(x=sig, fs=fs, window='boxcar', nfft=nfft, detrend=False, return_onesided=True, scaling='spectrum')
+     * f, psdScipy = scipy.signal.periodogram(x=sig, fs=fs, window='boxcar', nfft=nfft, detrend=False, return_onesided=True, scaling='density')
      */
 
     // normalizationFactor is specific to scipy

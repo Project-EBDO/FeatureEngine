@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -19,28 +19,47 @@ package org.ode.engine.signal_processing
 import scala.math.{cos,Pi,pow,abs,sqrt}
 
 /**
-  * Class that computes the energy of a signal when given the signal,
-  * the FFT (two-sided) over it or the PSD(one or two-sided).
+  * Class computing energy from signal information.
+  * Can be used over raw signal, FFT singled or two sided, or PSD.
   * 
   * Author: Alexandre Degurse
-  *
   */
 
 
 object Energy {
 
-  def computeFromSignal(signal: Array[Double]): Double = {
+  def fromRawSignal(signal: Array[Double]): Double = {
     signal.foldLeft(0.0)((acc, v) => acc + pow(v,2))
   }
 
-  def computeFromFFT(fft: Array[Double]): Double = {
+  def fromFFTTwoSided(fft: Array[Double]): Double = {
     val nonNormalizedEnergy = fft
       .foldLeft(0.0)((acc, v) => acc + pow(v,2))
       
     nonNormalizedEnergy / (fft.length / 2.0)
   }
 
-  def computeFromPSD(psd: Array[Double]): Double = {
+  def fromFFTOneSided(fft: Array[Double]): Double = {
+    
+    val nfft: Int = fft.length / 2
+    var energy = 0.0
+
+    var i = 1
+
+    while (i < nfft-1) {
+      energy += 2.0 * pow(fft(2*i), 2)
+      energy += 2.0 * pow(fft(2*i+1), 2)
+      i += 1
+    }
+
+    energy += pow(fft(0), 2)
+    energy += pow(fft(2*nfft - 2), 2)
+    energy += pow(fft(2*nfft - 1), 2)
+
+    energy / nfft
+  }
+
+  def fromPSD(psd: Array[Double]): Double = {
     psd.sum
   }
 }

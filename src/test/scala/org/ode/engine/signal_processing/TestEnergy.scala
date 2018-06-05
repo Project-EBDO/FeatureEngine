@@ -1,4 +1,4 @@
-/** Copyright (C) 2017 Project-ODE
+/** Copyright (C) 2017-2018 Project-ODE
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -68,11 +68,16 @@ class TestEnergy extends FlatSpec with Matchers {
     53.34986578975805, 47.045959745805675, 42.109471814827195, 38.196601125010474,
     35.068541320385705, 32.55575444018984, 30.53576856882006, 28.918974703763215,
     27.639320225002134, 26.648095714732058, 25.909736368761724, 25.398977796464525,
-    25.09895638389095, 12.5)
+    25.09895638389095, 12.5
+  )
 
-  val eSig = Energy.computeFromSignal(signal)
-  val eFFT = Energy.computeFromFFT(fft)
-  val ePSD = Energy.computeFromPSD(psd)
+
+  val eSig = Energy.fromRawSignal(signal)
+  val eFFTTwo = Energy.fromFFTTwoSided(fft)
+  val eFFTOne = Energy.fromFFTOneSided(fft.take(52))
+  val ePSD = Energy.fromPSD(psd)
+
+  print(s"length of fft two: ${fft.length} \n")
 
   // can be obtained with the following matlab code:
   // signal = 1:50;
@@ -82,7 +87,8 @@ class TestEnergy extends FlatSpec with Matchers {
 
   "Energy" should "compute the energy of the signal when given the signal or the FFT or the PSD" in {
     abs((eSig - eExpected) / eExpected) should be < maxError
-    abs((eFFT - eSig) / eSig) should be < maxError
+    abs((eFFTOne - eSig) / eSig) should be < maxError
+    abs((eFFTTwo - eSig) / eSig) should be < maxError
     abs((ePSD - eSig) / eSig) should be < maxError
   }
 }

@@ -19,8 +19,8 @@ package org.ode.engine.signal_processing
 import scala.math.{cos,Pi,pow,abs,sqrt}
 
 /**
-  * Wrapper class over edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D that 
-  * computes FFT of nfft size over the signal of length nfft.
+  * Class that computes the energy of a signal when given the signal,
+  * the FFT (two-sided) over it or the PSD(one or two-sided).
   * 
   * Author: Alexandre Degurse
   *

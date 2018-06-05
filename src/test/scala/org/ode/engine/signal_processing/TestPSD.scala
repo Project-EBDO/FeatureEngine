@@ -37,6 +37,11 @@ class TestPSD extends FlatSpec with Matchers {
    * s = [0:0.1:10]; s = s(:);
    * sig = 2 * cos(s) + 3 * sin(s);
    * fft = fft(sig)
+   *
+   * Or with python:
+   * s = numpy.arange(0, 10.1, 0.1)
+   * sig = 2 * np.cos(s) + 3 * np.sin(s)
+   * fft = numpy.fft.fft(sig)
    */
 
   val fft: Array[Double] = Array(
@@ -118,14 +123,14 @@ class TestPSD extends FlatSpec with Matchers {
 
   "PSD" should "compute the same psd when given a one-sided or a two-sided version of the same FFT" in {
     val psdClass = new PSD(nfft, 1.0)
-    
+
     val psdFromOnesided: Array[Double] = psdClass.periodogram(fftOneSided)
     val psdFromTwosided: Array[Double] = psdClass.periodogram(fft)
 
     psdFromOnesided.zip(psdFromTwosided).foreach(
       values => values._1 should be(values._2)
     )
-    
+
   }
 
   it should "compute the same psd as matlab periodogram on a fake signal" in {
@@ -138,7 +143,7 @@ class TestPSD extends FlatSpec with Matchers {
     val normalizationFactor = 1 / (nfft * fs)
 
     val psdClass: PSD = new PSD(nfft, normalizationFactor)
-    val psd: Array[Double] = psdClass.periodogram(fft)
+    val psd: Array[Double] = psdClass.periodogram(fftOneSided)
 
     val expectedPSD: Array[Double] = Array(
       0.018821131046057503,0.155794411914756625,0.403962223018968447,
@@ -167,43 +172,45 @@ class TestPSD extends FlatSpec with Matchers {
     /** Python code:
      * s = numpy.arange(0,10.1,0.1)
      * sig = 2 * numpy.cos(s) + 3 * numpy.sin(s)
-     * f,Pxx = scipy.signal.periodogram(sig,1000.0,scaling='spectrum')
+     * f, psdScipy = scipy.signal.periodogram(x=sig, fs=fs, window='boxcar', nfft=nfft, detrend=False, return_onesided=True, scaling='spectrum')
      */
 
     // normalizationFactor is specific to scipy
-    val normalizationFactor = 1 / fs
+    val normalizationFactor = 1 / (fs * nfft)
 
     val psdClass: PSD = new PSD(nfft, normalizationFactor)
     val psd: Array[Double] = psdClass.periodogram(fft)
 
     val expectedPSD: Array[Double] = Array(
-      2.5055478216999097e-32, 1.5425189298490691e+00,
-      3.9996259704848351e+00, 3.6328407818354924e-01,
-      1.3723609750526911e-01, 7.4225978335131199e-02,
-      4.7277427980329106e-02, 3.3068911550952318e-02,
-      2.4584470972126325e-02, 1.9081433389388645e-02,
-      1.5295201025884829e-02, 1.2572170530570076e-02,
-      1.0544972630683536e-02, 8.9934011459879021e-03,
-      7.7785596671356870e-03, 6.8091334165420033e-03,
-      6.0229908927678039e-03, 5.3766141948207802e-03,
-      4.8387577344351767e-03, 4.3865009150856130e-03,
-      4.0027117655787401e-03, 3.6743715293064273e-03,
-      3.3914407616970456e-03, 3.1460752267400138e-03,
-      2.9320731720711333e-03, 2.7444789297421924e-03,
-      2.5792941682405701e-03, 2.4332645673693378e-03,
-      2.3037201721963600e-03, 2.1884545030295124e-03,
-      2.0856320181063346e-03, 1.9937165717573264e-03,
-      1.9114155957262716e-03, 1.8376361790780648e-03,
-      1.7714502407494719e-03, 1.7120667144985850e-03,
-      1.6588091888890023e-03, 1.6110978258874614e-03,
-      1.5684346618930775e-03, 1.5303916032812712e-03,
-      1.4966005846134332e-03, 1.4667454757727860e-03,
-      1.4405554143087035e-03, 1.4177993085951900e-03,
-      1.3982813111250954e-03, 1.3818371033915762e-03,
-      1.3683308670394837e-03, 1.3576528426135809e-03,
-      1.3497173987292706e-03, 1.3444615522645175e-03,
-      1.3418438950030705e-03
+      1.8821131046057527e-02, 1.5579441191475596e-01,
+      4.0396222301896817e-01, 3.6691691896538488e-02,
+      1.3860845848032179e-02, 7.4968238118482532e-03,
+      4.7750202260132407e-03, 3.3399600666461841e-03,
+      2.4830315681847611e-03, 1.9272247723282536e-03,
+      1.5448153036143695e-03, 1.2697892235875754e-03,
+      1.0650422356990395e-03, 9.0833351574477631e-04,
+      7.8563452638070661e-04, 6.8772247507074065e-04,
+      6.0832208016954961e-04, 5.4303803367689680e-04,
+      4.8871453117795482e-04, 4.4303659242364503e-04,
+      4.0427388832345491e-04, 3.7111152445994691e-04,
+      3.4253551693140413e-04, 3.1775359790073971e-04,
+      2.9613939037918656e-04, 2.7719237190395918e-04,
+      2.6050871099229976e-04, 2.4575972130430059e-04,
+      2.3267573739183450e-04, 2.2103390480597828e-04,
+      2.1064883382874243e-04, 2.0136537374748750e-04,
+      1.9305297516835623e-04, 1.8560125408688174e-04,
+      1.7891647431569923e-04, 1.7291873816435425e-04,
+      1.6753972807779228e-04, 1.6272088041463075e-04,
+      1.5841190085120351e-04, 1.5456955193140565e-04,
+      1.5115665904595981e-04, 1.4814129305304848e-04,
+      1.4549609684518173e-04, 1.4319773016811157e-04,
+      1.4122641242363747e-04, 1.3956554744254634e-04,
+      1.3820141757099112e-04, 1.3712293710396855e-04,
+      1.3632145727165960e-04, 1.3579061677871304e-04,
+      1.3552623339531348e-04
     )
+
+    rmse(psd, expectedPSD) should be < maxRMSE
   }
 
 

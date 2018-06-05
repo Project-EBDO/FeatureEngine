@@ -30,15 +30,14 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 object Energy {
 
   def computeFromSignal(signal: Array[Double]): Double = {
-    signal.map(x => pow(abs(x),2)).reduce((a,b) => a+b)
+    signal.foldLeft(0.0)((acc, v) => acc + pow(v,2))
   }
 
   def computeFromFFT(fft: Array[Double]): Double = {
-    val nonNormalizedEnergy = fft.sliding(2).toSeq
-      .map( z => pow(z(0),2) + pow(z(1),2) )
-      .reduce((a,b) => a+b)
+    val nonNormalizedEnergy = fft
+      .foldLeft(0.0)((acc, v) => acc + pow(v,2))
       
-    nonNormalizedEnergy / (fft.length - 2)
+    nonNormalizedEnergy / (fft.length / 2.0)
   }
 
   def computeFromPSD(psd: Array[Double]): Double = {

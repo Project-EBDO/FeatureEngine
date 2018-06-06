@@ -26,6 +26,8 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class TestAggregation extends FlatSpec with Matchers {
 
+  val maxRMSE = 1.0E-16
+
   "Aggregation" should "compute the same Welch PSD as scipy when given normalized PSDs without overlap, windows and winSize equals nfft" in {
 
     val signal = (1.0 to 1024.0 by 1.0).toArray
@@ -268,6 +270,6 @@ class TestAggregation extends FlatSpec with Matchers {
       2.0012052696948959e+00, 2.0003012266657176e+00, 1.0000000000000000e+00
     )
 
-    rmse(expectedWelchPSD, psdAgg) should be < (1.0)
+    rmse(expectedWelchPSD, psdAgg) should be < (maxRMSE)
   }
 }

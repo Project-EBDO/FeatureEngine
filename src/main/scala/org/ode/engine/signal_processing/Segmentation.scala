@@ -26,7 +26,8 @@ package org.ode.engine.signal_processing;
   * Author: Alexandre Degurse
   * 
   * @param winSize The size of a window
-  * @param overlap The overlap used to slide on the signal as a Double.
+  * @param offset The offset used to slide on the signal as a Int.
+  * It represents the distance between two consecutive segments.
   *
   */
 

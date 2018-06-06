@@ -26,7 +26,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class TestSegmentation extends FlatSpec with Matchers {
 
-  "Segmentation" should "compute a segmentated signal without overlap nor partial window" in {
+  "Segmentation" should "compute a segmentated signal without offset nor partial window" in {
     val signal: Array[Double] = (1.0 to 100.0 by 1.0).toArray
     val segmentationClass: Segmentation = new Segmentation(10)
 
@@ -43,7 +43,7 @@ class TestSegmentation extends FlatSpec with Matchers {
       )
   }
 
-  it should "compute a segmentated signal without overlap and drop partial window" in {
+  it should "compute a segmentated signal without offset and drop partial window" in {
     val signal: Array[Double] = (1.0 to 110.0 by 1.0).toArray
     val segmentationClass: Segmentation = new Segmentation(25)
 
@@ -60,7 +60,7 @@ class TestSegmentation extends FlatSpec with Matchers {
       )
   }
 
-  it should "compute a segmentated signal with overlap and drop partial window" in {
+  it should "compute a segmentated signal with offset and drop partial window" in {
     val signal: Array[Double] = (1.0 to 23.0 by 1.0).toArray
     val segmentationClass: Segmentation = new Segmentation(10, 2)
 

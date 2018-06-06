@@ -20,11 +20,11 @@ import org.ode.utils.test.ErrorMetrics.rmse
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
-  * Tests for Aggregation Functions
+  * Tests for WelchSpectralDensity Functions
   * Author: Alexandre Degurse
   */
 
-class TestAggregation extends FlatSpec with Matchers {
+class TestWelchSpectralDensity extends FlatSpec with Matchers {
 
   val maxRMSE = 1.0E-16
 
@@ -36,7 +36,7 @@ class TestAggregation extends FlatSpec with Matchers {
     val winSize = 256
     val fs = 64
 
-    val aggClass = new Aggregation
+    val welchClass = new WelchSpectralDensity(nfft)
 
     /**
       These values have been generated with this python code:
@@ -251,7 +251,7 @@ class TestAggregation extends FlatSpec with Matchers {
       )
     )
 
-    val psdAgg = aggClass.welch(psds)
+    val psdAgg = welchClass.compute(psds)
 
     val expectedWelchPSD = Array(
       1.3783050000000000e+06, 1.3281036869115400e+04, 3.3207592925855174e+03,
@@ -302,10 +302,17 @@ class TestAggregation extends FlatSpec with Matchers {
     rmse(expectedWelchPSD, psdAgg) should be < (maxRMSE)
   }
 
-  it should "raise IllegalArgumentException when given mishaped PSDs" in {
-    val aggClass = new Aggregation
+  it should "raise IllegalArgumentException when given PSDs with inconsistent shape" in {
+    val welchClass = new WelchSpectralDensity(1)
     val wrongPDS = Array(Array(1.0), Array(2.0, 3.0))
 
-    an [IllegalArgumentException] should be thrownBy aggClass.welch(wrongPDS)
+    an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongPDS)
+  }
+
+    it should "raise IllegalArgumentException when given PSDs with incorrect shape" in {
+    val welchClass = new WelchSpectralDensity(100)
+    val wrongPDS = Array(Array(1.0), Array(2.0))
+
+    an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongPDS)
   }
 }

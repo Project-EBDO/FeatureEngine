@@ -17,12 +17,12 @@
 package org.ode.engine.signal_processing
 
 /**
- * Class that provides aggregation function for signal processing
+ * Class that provides Welch Power Spectral Density estimate function.
  *
  * Author: Alexandre Degurse
  */
 
-class Aggregation {
+class WelchSpectralDensity(val nfft: Int) {
 
 
   /**
@@ -34,10 +34,15 @@ class Aggregation {
    * @return The Welch Power Spectral Density estimate over all the PSDs
    *
    */
-  def welch(psds: Array[Array[Double]]): Array[Double] = {
+  def compute(psds: Array[Array[Double]]): Array[Double] = {
+    val oneSidedSizes = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
+
+    if ((psds(0).length != oneSidedSizes) && (psds(0).length != nfft)) {
+      throw new IllegalArgumentException(s"Incorrect psd length (${psds(0).length}) for Welch aggregation (${oneSidedSizes} or ${nfft})")
+    }
 
     if (!psds.foldLeft(true)((isSameSize, psd) => (psd.length == psds(0).length) && isSameSize)) {
-      throw new IllegalArgumentException("Incorrect psd length for Welch aggregation")
+      throw new IllegalArgumentException(s"Inconsistent psd lengths for Welch aggregation")
     }
 
     val psdAgg: Array[Double] = new Array[Double](psds(0).length)

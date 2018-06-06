@@ -30,13 +30,14 @@ package org.ode.engine.signal_processing;
   *
   */
 
-class Segmentation(val winSize: Int, val overlap: Int = 0) {
+class Segmentation(val winSize: Int, val preoffset: Int = 0) {
 
-  if (overlap > winSize || overlap < 0) {
-    throw new IllegalArgumentException(s"Incorrect overlap (${overlap}) for segmentation with a winSize of ($winSize)")
+  if (preoffset > winSize || preoffset < 0) {
+    throw new IllegalArgumentException(s"Incorrect offset for segmentation (${preoffset})")
   }
 
-  val offset: Int = if (overlap > 0) overlap else winSize
+  val offset = if (preoffset != 0) preoffset else winSize
+  
 
   /**
    * Funtion that segmentates a signal and drops incomplete windows

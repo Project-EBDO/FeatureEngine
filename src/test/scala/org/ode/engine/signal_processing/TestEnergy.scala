@@ -31,7 +31,7 @@ class TestEnergy extends FlatSpec with Matchers {
   val maxError = 1.0E-15
 
 
-  "Energy" should "compute the energy of the signal when given a raw even signal, its FFT or its PSD" in {
+  it should "compute the energy of the signal when given a raw even signal, its FFT or its PSD" in {
 
     val signal = (1.0 to 10.0 by 1.0).toArray
 
@@ -74,7 +74,7 @@ class TestEnergy extends FlatSpec with Matchers {
     abs((ePSD - eSig) / eSig) should be < maxError
   }
 
-  "Energy" should "compute the energy of the signal when given a raw odd signal, its FFT or its PSD" in {
+  it should "compute the energy of the signal when given a raw odd signal, its FFT or its PSD" in {
 
     val signal = (1.0 to 11.0 by 1.0).toArray
 
@@ -112,5 +112,24 @@ class TestEnergy extends FlatSpec with Matchers {
     abs((eFFTOne - eSig) / eSig) should be < maxError
     abs((eFFTTwo - eSig) / eSig) should be < maxError
     abs((ePSD - eSig) / eSig) should be < maxError
+  }
+
+  it should "raise an IllegalArgumentException when given a mishaped two-sided FFT" in {
+    val energyClass = new Energy(100)
+
+    an [IllegalArgumentException] should be thrownBy energyClass.fromFFTTwoSided(Array(1.0))
+  }
+
+  it should "raise an IllegalArgumentException when given a mishaped one-sided FFT" in {
+    val energyClass = new Energy(101)
+
+    an [IllegalArgumentException] should be thrownBy energyClass.fromFFTTwoSided(Array(1.0))
+  }
+
+  it should "raise an IllegalArgumentException when given a mishaped raw signal" in {
+    val energyClass = new Energy(5)
+    val signal = (1.0 to 10.0 by 1.0).toArray
+
+    an [IllegalArgumentException] should be thrownBy energyClass.fromRawSignal(signal)
   }
 }

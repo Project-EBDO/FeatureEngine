@@ -55,8 +55,8 @@ class TestEnergy extends FlatSpec with Matchers {
       7.639320225002109 ,   5.5278640450004275,   2.5 
     )
 
-    val nfft = fft.length
-    val oneSidedLength = nfft/2 + (if (nfft % 2 == 0) 2 else 1)
+    val nfft = fft.length / 2
+    val oneSidedLength = nfft + (if (nfft % 2 == 0) 2 else 1)
 
     val eSig = Energy.fromRawSignal(signal)
     val eFFTTwo = Energy.fromFFTTwoSided(fft)

@@ -39,12 +39,12 @@ object Energy {
     nonNormalizedEnergy / (fft.length / 2.0)
   }
 
-  def fromFFTOneSided(fft: Array[Double], nnfft: Int): Double = {
-    val isNfftEven = (nnfft % 2 == 0)
-    val nfft: Int = fft.length - (if (isNfftEven) 2 else 1)
+  def fromFFTOneSided(fft: Array[Double], nfft: Int): Double = {
+    val isNfftEven = (nfft % 2 == 0)
     var energy = 0.0
 
     var i = 1
+
     while (i < nfft/2) {
       energy += 2.0 * pow(fft(2*i), 2)
       energy += 2.0 * pow(fft(2*i+1), 2)

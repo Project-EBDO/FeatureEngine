@@ -21,12 +21,12 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 /**
   * Class computing energy from signal information.
   * Can be used over raw signal, FFT singled or two sided, or PSD.
-  * 
+  *
   * Author: Alexandre Degurse
   */
 
 
-object Energy {
+class Energy(val nfft: Int) {
 
   def fromRawSignal(signal: Array[Double]): Double = {
     signal.foldLeft(0.0)((acc, v) => acc + pow(v,2))
@@ -35,11 +35,11 @@ object Energy {
   def fromFFTTwoSided(fft: Array[Double]): Double = {
     val nonNormalizedEnergy = fft
       .foldLeft(0.0)((acc, v) => acc + pow(v,2))
-      
+
     nonNormalizedEnergy / (fft.length / 2.0)
   }
 
-  def fromFFTOneSided(fft: Array[Double], nfft: Int): Double = {
+  def fromFFTOneSided(fft: Array[Double]): Double = {
     val isNfftEven = (nfft % 2 == 0)
     var energy = 0.0
 

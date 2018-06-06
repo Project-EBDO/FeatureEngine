@@ -52,16 +52,18 @@ class TestEnergy extends FlatSpec with Matchers {
     // normalized PSD
     val psd = Array(
       302.5               ,  52.36067977499792  ,  14.472135954999573 ,
-      7.639320225002109 ,   5.5278640450004275,   2.5 
+      7.639320225002109 ,   5.5278640450004275,   2.5
     )
 
     val nfft = fft.length / 2
     val oneSidedLength = nfft + (if (nfft % 2 == 0) 2 else 1)
 
-    val eSig = Energy.fromRawSignal(signal)
-    val eFFTTwo = Energy.fromFFTTwoSided(fft)
-    val eFFTOne = Energy.fromFFTOneSided(fft.take(oneSidedLength), nfft)
-    val ePSD = Energy.fromPSD(psd)
+    val energyClass = new Energy(nfft)
+
+    val eSig = energyClass.fromRawSignal(signal)
+    val eFFTTwo = energyClass.fromFFTTwoSided(fft)
+    val eFFTOne = energyClass.fromFFTOneSided(fft.take(oneSidedLength))
+    val ePSD = energyClass.fromPSD(psd)
 
 
     val eExpected = 385.0
@@ -97,11 +99,12 @@ class TestEnergy extends FlatSpec with Matchers {
     val nfft = fft.length / 2
     val oneSidedLength = nfft + (if (nfft % 2 == 0) 2 else 1)
 
+    val energyClass = new Energy(nfft)
 
-    val eSig = Energy.fromRawSignal(signal)
-    val eFFTTwo = Energy.fromFFTTwoSided(fft)
-    val eFFTOne = Energy.fromFFTOneSided(fft.take(oneSidedLength), nfft)
-    val ePSD = Energy.fromPSD(psd)
+    val eSig = energyClass.fromRawSignal(signal)
+    val eFFTTwo = energyClass.fromFFTTwoSided(fft)
+    val eFFTOne = energyClass.fromFFTOneSided(fft.take(oneSidedLength))
+    val ePSD = energyClass.fromPSD(psd)
 
     val eExpected = 506.0
 

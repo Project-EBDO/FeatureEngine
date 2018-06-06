@@ -36,8 +36,37 @@ class TestAggregation extends FlatSpec with Matchers {
     val winSize = 256
     val fs = 64
 
-
     val aggClass = new Aggregation
+
+    /**
+      These values have been generated with this python code:
+      numpy.set_printoptions(precision=24, linewidth=100)
+
+      *************************************************************
+
+      signalLength = 1024; winSize = 256; nfft = 256; fs = 64
+
+      nOneSided = int(nfft/2 + 1)
+      nWindows = (signalLength // winSize)
+
+      signal = numpy.arange(1, signalLength + 1)
+      psds = numpy.zeros((nWindows, nOneSided))
+
+      for i in range(nWindows):
+          segment = signal[i*winSize:(i+1)*winSize]
+
+          psds[i] = scipy.signal.periodogram(
+              x=segment, fs=fs, window="boxcar", detrend=False,
+              nfft=nfft, return_onesided=True,
+              scaling='density', axis=-1)[1]
+
+
+      psdWelch = scipy.signal.welch(
+          x=signal, fs=fs, window='boxcar', detrend=False, noverlap=0,
+          nperseg=winSize, nfft=nfft, return_onesided=True,
+          scaling='density', axis=-1)[1]
+
+     *************************************************************/
 
     val psds = Array(
       Array(

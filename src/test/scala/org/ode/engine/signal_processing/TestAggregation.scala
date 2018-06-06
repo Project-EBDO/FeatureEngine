@@ -28,7 +28,7 @@ class TestAggregation extends FlatSpec with Matchers {
 
   val maxRMSE = 1.0E-16
 
-  "Aggregation" should "compute the same Welch PSD as scipy when given normalized PSDs without overlap, windows and winSize equals nfft" in {
+  it should "compute the same Welch PSD as scipy when given normalized PSDs without overlap, windows and winSize equals nfft" in {
 
     val signal = (1.0 to 1024.0 by 1.0).toArray
 
@@ -300,5 +300,12 @@ class TestAggregation extends FlatSpec with Matchers {
     )
 
     rmse(expectedWelchPSD, psdAgg) should be < (maxRMSE)
+  }
+
+  it should "raise IllegalArgumentException when given mishaped PSDs" in {
+    val aggClass = new Aggregation
+    val wrongPDS = Array(Array(1.0), Array(2.0, 3.0))
+
+    an [IllegalArgumentException] should be thrownBy aggClass.welch(wrongPDS)
   }
 }

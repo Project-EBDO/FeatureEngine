@@ -19,26 +19,31 @@ package org.ode.engine.signal_processing;
 
 /**
   * Class that provides segmention functions
-  * 
+  *
   * For now, its feature are limited to a simple segmentation that drops
   * incomple windows and support only overlap in samples.
   *
   * Author: Alexandre Degurse
-  * 
+  *
   * @param winSize The size of a window
-  * @param offset The offset used to slide on the signal as a Int.
-  * It represents the distance between two consecutive segments.
+  * @param offset The offset used to slide the window over the signal (in number of values).
   *
   */
 
-class Segmentation(val winSize: Int, val preoffset: Int = 0) {
+class Segmentation(val winSize: Int, var offset: Option[Int] = None) {
 
-  if (preoffset > winSize || preoffset < 0) {
-    throw new IllegalArgumentException(s"Incorrect offset for segmentation (${preoffset})")
+  if (winSize < 0) {
+    throw new IllegalArgumentException(s"Incorrect winSize for segmentation (${winSize})")
   }
 
-  val offset = if (preoffset != 0) preoffset else winSize
-  
+  if (!offset.isDefined) {
+    offset = Some(winSize)
+  }
+
+  if (offset.get > winSize || offset.get < 0) {
+    throw new IllegalArgumentException(s"Incorrect offset for segmentation (${offset.get})")
+  }
+
 
   /**
    * Funtion that segmentates a signal and drops incomplete windows
@@ -46,16 +51,20 @@ class Segmentation(val winSize: Int, val preoffset: Int = 0) {
    * @return The segmented signal as a Array[Array[Double]]
    */
   def compute(signal: Array[Double]) : Array[Array[Double]] = {
-    
+
+  if (signal.length < winSize) {
+    throw new IllegalArgumentException(s"Incorrect signal length for segmentation (${signal.length}), winSize is greater (${winSize})")
+  }
+
     // nWindows is the number of complete windows that will be generated
-    var nWindows: Int = 1 + (signal.length - winSize) / offset
+    var nWindows: Int = 1 + (signal.length - winSize) / offset.get
 
     val segmentedSignal: Array[Array[Double]] = Array.ofDim[Double](nWindows, winSize)
-    
+
     var i: Int = 0
 
     while (i < nWindows) {
-      Array.copy(signal, i*offset, segmentedSignal(i), 0, winSize)
+      Array.copy(signal, i*offset.get, segmentedSignal(i), 0, winSize)
       i += 1
     }
 

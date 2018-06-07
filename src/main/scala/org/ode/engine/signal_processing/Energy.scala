@@ -29,6 +29,7 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 class Energy(val nfft: Int) {
 
   val expectedFFTSize = nfft + (if (nfft % 2 == 0) 2 else 1)
+  val expectedPSDSize = expectedFFTSize / 2
 
   def fromRawSignal(signal: Array[Double]): Double = {
     if (signal.length > nfft) {
@@ -49,7 +50,12 @@ class Energy(val nfft: Int) {
     // start at 1 to not duplicate DC
     var i = 1
 
-    // add the energy of all the points between DC and Nyquist' freq
+    /**
+     * add the energy of all the points between DC and Nyquist' freq
+     * An interesting point to notice is that aggregating values up to nfft / 2 and then adding
+     * values for fft.length - 2 and fft.length -2 works for both nfft pair or odd
+     * since expectedFFTSize is nfft / 2 + 2 if nfft is even and nfft + 1 if nfft is odd
+     */
     while (i < nfft/2) {
       // duplicate the energy due to the symetry
       energy += 2.0 * pow(fft(2*i), 2)
@@ -67,6 +73,10 @@ class Energy(val nfft: Int) {
   }
 
   def fromPSD(psd: Array[Double]): Double = {
+    if (psd.length != expectedPSDSize) {
+      throw new IllegalArgumentException(s"Incorrect PSD size (${psd.length}) for Energy (${expectedPSDSize})")
+    }
+
     psd.sum
   }
 }

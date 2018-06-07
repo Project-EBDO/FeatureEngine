@@ -113,4 +113,10 @@ class TestEnergy extends FlatSpec with Matchers {
 
     an [IllegalArgumentException] should be thrownBy energyClass.fromRawSignal(signal)
   }
+
+  it should "raise an IllegalArgumentException when given a mishaped PSD" in {
+    val energyClass = new Energy(1000)
+
+    an [IllegalArgumentException] should be thrownBy energyClass.fromPSD(Array(1.0))
+  }
 }

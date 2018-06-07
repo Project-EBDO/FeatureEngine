@@ -20,13 +20,15 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 
 /**
   * Class computing energy from signal information.
-  * Can be used over raw signal, FFT singled or two sided, or PSD.
+  * Can be used over raw signal, FFT one-sided, or PSD.
   *
   * Author: Alexandre Degurse
   */
 
 
 class Energy(val nfft: Int) {
+
+  val expectedFFTSize = nfft + (if (nfft % 2 == 0) 2 else 1)
 
   def fromRawSignal(signal: Array[Double]): Double = {
     if (signal.length > nfft) {
@@ -35,22 +37,10 @@ class Energy(val nfft: Int) {
     signal.foldLeft(0.0)((acc, v) => acc + pow(v,2))
   }
 
-  def fromFFTTwoSided(fft: Array[Double]): Double = {
-    if (fft.length != 2 * nfft) {
-      throw new IllegalArgumentException(s"Incorrect fft size (${fft.length}) for Energy (${2*nfft})")
-    }
+  def fromFFT(fft: Array[Double]): Double = {
 
-    val nonNormalizedEnergy = fft
-      .foldLeft(0.0)((acc, v) => acc + pow(v,2))
-
-    nonNormalizedEnergy / (fft.length / 2.0)
-  }
-
-  def fromFFTOneSided(fft: Array[Double]): Double = {
-    val expectedSize = nfft + (if (nfft % 2 == 0) 2 else 1)
-
-    if (fft.length != expectedSize) {
-      throw new IllegalArgumentException(s"Incorrect fft size (${fft.length}) for Energy (${expectedSize})")
+    if (fft.length != expectedFFTSize) {
+      throw new IllegalArgumentException(s"Incorrect fft size (${fft.length}) for Energy (${expectedFFTSize})")
     }
 
     val nfftEven = (nfft % 2 == 0)

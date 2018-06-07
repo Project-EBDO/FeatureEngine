@@ -35,18 +35,14 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val signal = (1.0 to 10.0 by 1.0).toArray
 
-    // two-sided FFT, non normalized
+    // one-sided FFT, non normalized
     val fft = Array(
       5.5000000000000000e+01,  0.0000000000000000e+00,
       -4.9999999999999893e+00,  1.5388417685876263e+01,
       -5.0000000000000000e+00,  6.8819096023558695e+00,
       -4.9999999999999964e+00,  3.6327126400268090e+00,
       -5.0000000000000000e+00,  1.6245984811645304e+00,
-      -5.0000000000000009e+00,  4.4408920985006262e-16,
-      -5.0000000000000000e+00,  1.6245984811645304e+00,
-      -5.0000000000000027e+00,  3.6327126400268006e+00,
-      -5.0000000000000000e+00,  6.8819096023558695e+00,
-      -5.0000000000000107e+00,  1.5388417685876270e+01
+      -5.0000000000000009e+00,  4.4408920985006262e-16
     )
 
     // normalized PSD
@@ -55,22 +51,19 @@ class TestEnergy extends FlatSpec with Matchers {
       7.639320225002109 ,   5.5278640450004275,   2.5
     )
 
-    val nfft = fft.length / 2
-    val oneSidedLength = nfft + (if (nfft % 2 == 0) 2 else 1)
+    val nfft = signal.length
 
     val energyClass = new Energy(nfft)
 
     val eSig = energyClass.fromRawSignal(signal)
-    val eFFTTwo = energyClass.fromFFTTwoSided(fft)
-    val eFFTOne = energyClass.fromFFTOneSided(fft.take(oneSidedLength))
+    val eFFT = energyClass.fromFFT(fft)
     val ePSD = energyClass.fromPSD(psd)
 
 
     val eExpected = 385.0
 
     abs((eSig - eExpected) / eExpected) should be < maxError
-    abs((eFFTOne - eSig) / eSig) should be < maxError
-    abs((eFFTTwo - eSig) / eSig) should be < maxError
+    abs((eFFT - eSig) / eSig) should be < maxError
     abs((ePSD - eSig) / eSig) should be < maxError
   }
 
@@ -78,16 +71,12 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val signal = (1.0 to 11.0 by 1.0).toArray
 
-    // two-sided FFT, non normalized
+    // one-sided FFT, non normalized
     val fft = Array(
       66.0                ,  0.0               , -5.500000000000039,
       18.731279813890872  , -5.499999999999956,  8.55816705136492  ,
       -5.499999999999981  ,  4.765777128986838, -5.499999999999951 ,
-      2.5117658384695414 , -5.49999999999997  ,  0.7907806169723581,
-      -5.49999999999997  ,  0.7907806169723581, -5.499999999999951 ,
-      2.5117658384695414 , -5.499999999999981 ,  4.765777128986838 ,
-      -5.499999999999956 ,  8.55816705136492  , -5.500000000000039 ,
-      18.731279813890872
+      2.5117658384695414 , -5.49999999999997  ,  0.7907806169723581
     )
 
     // normalized PSD
@@ -96,34 +85,26 @@ class TestEnergy extends FlatSpec with Matchers {
       9.629569389668113,   6.647085023145817,   5.613697088032706
     )
 
-    val nfft = fft.length / 2
+    val nfft = signal.length
     val oneSidedLength = nfft + (if (nfft % 2 == 0) 2 else 1)
 
     val energyClass = new Energy(nfft)
 
     val eSig = energyClass.fromRawSignal(signal)
-    val eFFTTwo = energyClass.fromFFTTwoSided(fft)
-    val eFFTOne = energyClass.fromFFTOneSided(fft.take(oneSidedLength))
+    val eFFT = energyClass.fromFFT(fft)
     val ePSD = energyClass.fromPSD(psd)
 
     val eExpected = 506.0
 
     abs((eSig - eExpected) / eExpected) should be < maxError
-    abs((eFFTOne - eSig) / eSig) should be < maxError
-    abs((eFFTTwo - eSig) / eSig) should be < maxError
+    abs((eFFT - eSig) / eSig) should be < maxError
     abs((ePSD - eSig) / eSig) should be < maxError
   }
 
-  it should "raise an IllegalArgumentException when given a mishaped two-sided FFT" in {
-    val energyClass = new Energy(100)
-
-    an [IllegalArgumentException] should be thrownBy energyClass.fromFFTTwoSided(Array(1.0))
-  }
-
-  it should "raise an IllegalArgumentException when given a mishaped one-sided FFT" in {
+  it should "raise an IllegalArgumentException when given a mishaped FFT" in {
     val energyClass = new Energy(101)
 
-    an [IllegalArgumentException] should be thrownBy energyClass.fromFFTTwoSided(Array(1.0))
+    an [IllegalArgumentException] should be thrownBy energyClass.fromFFT(Array(1.0))
   }
 
   it should "raise an IllegalArgumentException when given a mishaped raw signal" in {

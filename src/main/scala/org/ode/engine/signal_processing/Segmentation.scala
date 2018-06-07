@@ -36,7 +36,7 @@ class Segmentation(val winSize: Int, val offset: Option[Int] = None) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation (${winSize})")
   }
 
-  if (offset.getOrElse(winSize) > winSize || offset.getOrElse(winSize) < 0) {
+  if (offset.getOrElse(winSize) > winSize || offset.getOrElse(winSize) <= 0) {
     throw new IllegalArgumentException(s"Incorrect offset for segmentation (${offset.getOrElse(winSize)})")
   }
 

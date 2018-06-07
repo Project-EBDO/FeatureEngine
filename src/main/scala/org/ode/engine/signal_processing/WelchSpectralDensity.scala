@@ -24,33 +24,30 @@ package org.ode.engine.signal_processing
 
 class WelchSpectralDensity(val nfft: Int) {
 
+  val expectedPSDSize = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
 
   /**
    * That compute Wech estimate of the Power Spectral Density out of
    * multiple periodograms on the signal
    *
    * @param psds The PSDs on the signal that can must be one-sided
-   * The PSD must be normalized either before or after the aggregation
+   * This function doesn't handle the normalization of the returned PSD,
+   * input PSDs must either be already normalized or the output PSD
+   * must be normalized afterwards.
    * @return The Welch Power Spectral Density estimate over all the PSDs
    *
    */
   def compute(psds: Array[Array[Double]]): Array[Double] = {
-    val oneSidedSizes = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
-
-    if ((psds(0).length != oneSidedSizes)) {
-      throw new IllegalArgumentException(s"Incorrect psd length (${psds(0).length}) for Welch aggregation (${oneSidedSizes} or ${nfft})")
-    }
-
-    if (!psds.foldLeft(true)((isSameSize, psd) => (psd.length == psds(0).length) && isSameSize)) {
+    if (!psds.forall(psd => psd.length == expectedPSDSize)) {
       throw new IllegalArgumentException(s"Inconsistent psd lengths for Welch aggregation")
     }
 
-    val psdAgg: Array[Double] = new Array[Double](psds(0).length)
+    val psdAgg: Array[Double] = new Array[Double](expectedPSDSize)
 
     var i: Int = 0
     var j: Int = 0
 
-    while (i < psds(0).length){
+    while (i < expectedPSDSize){
       while(j < psds.length) {
         psdAgg(i) += psds(j)(i)
         j += 1

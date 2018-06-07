@@ -26,16 +26,16 @@ import scala.io.Source
 
 class TestReadingFiles extends FlatSpec with Matchers {
 
-  val mdFilePath = "/wav/tutorial.md"
-  val soundFilePath1 = "/wav/whitenoise_16kHz_2.5s.wav"
-  val soundFilePath2 = "/wav/sin_48kHz_10s.wav"
+  val readmeFilePath = "/README.md"
+  val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
+  val soundFilePath2 = "/wav/sin_48kHz_2.5s.wav"
   val soundFilePathCorrupted = "/wav/sin_16kHz_2.5s_corrupted.wav"
 
   "Tutorial file" should "be readable" in {
-    val tutorialUrl: URL = getClass.getResource(mdFilePath)
+    val tutorialUrl: URL = getClass.getResource(readmeFilePath)
     val tutorialFile: File = new File(tutorialUrl.toURI)
     val tutorialFileInputStream: InputStream = new FileInputStream(tutorialFile)
-    val tutorialResourceInputStream: InputStream = getClass.getResourceAsStream(mdFilePath)
+    val tutorialResourceInputStream: InputStream = getClass.getResourceAsStream(readmeFilePath)
     Source.fromInputStream(tutorialFileInputStream).mkString should be(
       Source.fromInputStream(tutorialResourceInputStream).mkString)
   }
@@ -78,7 +78,7 @@ class TestReadingFiles extends FlatSpec with Matchers {
     val freq = 48000.0
     val chans = 1
     val bytes = 2.0
-    val duration = 10
+    val duration = 2.5
     val dataBytes = freq * duration * chans * bytes
 
     val inputStream : InputStream = getClass.getResourceAsStream(soundFilePath2)

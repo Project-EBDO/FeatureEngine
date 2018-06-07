@@ -29,7 +29,7 @@ class WelchSpectralDensity(val nfft: Int) {
    * That compute Wech estimate of the Power Spectral Density out of
    * multiple periodograms on the signal
    *
-   * @param psds The PSDs on the signal that can indifferently be one or two sided
+   * @param psds The PSDs on the signal that can must be one-sided
    * The PSD must be normalized either before or after the aggregation
    * @return The Welch Power Spectral Density estimate over all the PSDs
    *
@@ -37,7 +37,7 @@ class WelchSpectralDensity(val nfft: Int) {
   def compute(psds: Array[Array[Double]]): Array[Double] = {
     val oneSidedSizes = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
 
-    if ((psds(0).length != oneSidedSizes) && (psds(0).length != nfft)) {
+    if ((psds(0).length != oneSidedSizes)) {
       throw new IllegalArgumentException(s"Incorrect psd length (${psds(0).length}) for Welch aggregation (${oneSidedSizes} or ${nfft})")
     }
 

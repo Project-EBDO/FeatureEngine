@@ -30,18 +30,14 @@ package org.ode.engine.signal_processing;
   *
   */
 
-class Segmentation(val winSize: Int, var offset: Option[Int] = None) {
+class Segmentation(val winSize: Int, val offset: Option[Int] = None) {
 
   if (winSize < 0) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation (${winSize})")
   }
 
-  if (!offset.isDefined) {
-    offset = Some(winSize)
-  }
-
-  if (offset.get > winSize || offset.get < 0) {
-    throw new IllegalArgumentException(s"Incorrect offset for segmentation (${offset.get})")
+  if (offset.getOrElse(winSize) > winSize || offset.getOrElse(winSize) < 0) {
+    throw new IllegalArgumentException(s"Incorrect offset for segmentation (${offset.getOrElse(winSize)})")
   }
 
 
@@ -57,14 +53,14 @@ class Segmentation(val winSize: Int, var offset: Option[Int] = None) {
   }
 
     // nWindows is the number of complete windows that will be generated
-    var nWindows: Int = 1 + (signal.length - winSize) / offset.get
+    var nWindows: Int = 1 + (signal.length - winSize) / offset.getOrElse(winSize)
 
     val segmentedSignal: Array[Array[Double]] = Array.ofDim[Double](nWindows, winSize)
 
     var i: Int = 0
 
     while (i < nWindows) {
-      Array.copy(signal, i*offset.get, segmentedSignal(i), 0, winSize)
+      Array.copy(signal, i * offset.getOrElse(winSize), segmentedSignal(i), 0, winSize)
       i += 1
     }
 

@@ -30,7 +30,7 @@ class WelchSpectralDensity(val nfft: Int) {
    * That compute Wech estimate of the Power Spectral Density out of
    * multiple periodograms on the signal
    *
-   * @param psds The PSDs on the signal that can must be one-sided
+   * @param psds The PSDs on the signal that must be one-sided
    * This function doesn't handle the normalization of the returned PSD,
    * input PSDs must either be already normalized or the output PSD
    * must be normalized afterwards.

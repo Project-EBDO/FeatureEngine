@@ -31,6 +31,8 @@ javaOptions ++= Seq(
   "-XX:+CMSClassUnloadingEnabled"
 )
 
+resolvers += "Ode hadoop-io-extensions Repository" at "https://github.com/Project-ODE/hadoop-io-extensions/raw/repository"
+
 // Explicitly get scala version and don't show warnings
 // https://mvnrepository.com/artifact/org.scala-lang/scala-library
 libraryDependencies += "org.scala-lang" % "scala-library" % "2.11.8"
@@ -61,3 +63,5 @@ libraryDependencies += "com.github.scopt" % "scopt_2.11" % "3.7.0"
 libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.5.3"
 // https://mvnrepository.com/artifact/edu.emory.mathcs/JTransforms
 libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
+
+libraryDependencies += "org.ode" % "hadoop-io-extensions" % "0.1"

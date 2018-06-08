@@ -20,11 +20,14 @@ import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import javax.sound.sampled.{AudioFileFormat, AudioFormat, AudioInputStream, AudioSystem}
 
+import com.holdenkarau.spark.testing.SharedSparkContext
+import org.apache.hadoop.io.{DoubleWritable, LongWritable}
+import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
 
-class TestReadingFiles extends FlatSpec with Matchers {
+class TestReadingFiles extends FlatSpec with Matchers with SharedSparkContext {
 
   val readmeFilePath = "/README.md"
   val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
@@ -133,6 +136,37 @@ class TestReadingFiles extends FlatSpec with Matchers {
 
     // Corrupted file - real length should not match computed one
     audioFile.length should not be(dataBytes + 44)
+  }
+
+  "Example sound file 1 with HadoopReader" should "read WAV data" in {
+
+    val soundUrl: URL = getClass.getResource(soundFilePath1)
+
+    val soundSampleRate = 16000.0f
+    val soundChannels = 1
+    val soundSmapleSizeInBits = 16
+    val soundDurationInSecs = 2.5
+    val frameSizeInBytes = (soundSampleRate * soundChannels).toInt
+
+    val slices = 1000
+
+    val conf = sc.hadoopConfiguration
+
+    WavPcmInputFormat.setSampleRate(conf, soundSampleRate)
+    WavPcmInputFormat.setChannels(conf, soundChannels)
+    WavPcmInputFormat.setSampleSizeInBits(conf, soundSmapleSizeInBits)
+    WavPcmInputFormat.setRecordSizeInFrames(conf, (frameSizeInBytes * soundDurationInSecs / slices).toInt)
+
+    val rdd = sc.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
+      soundUrl.toURI.toString,
+      classOf[WavPcmInputFormat],
+      classOf[LongWritable],
+      classOf[TwoDDoubleArrayWritable],
+      sc.hadoopConfiguration
+    ).map{ case (k, v) => (k.get, v.get.map(_.map(_.asInstanceOf[DoubleWritable].get))) }
+
+    rdd.collect().length shouldEqual slices
+
   }
 
 }

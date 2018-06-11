@@ -45,7 +45,6 @@ class Energy(val nfft: Int) {
       throw new IllegalArgumentException(s"Incorrect fft size (${fft.length}) for Energy (${expectedFFTSize})")
     }
 
-    val nfftEven = (nfftEven)
     var energy = 0.0
 
     // start at 1 to not duplicate DC

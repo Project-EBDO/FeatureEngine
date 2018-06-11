@@ -16,10 +16,10 @@
 
 package org.ode.engine.signal_processing
 
-import scala.math.{cos,Pi,pow,abs,sqrt}
+import scala.math.{pow, log10}
 
 /**
-  * Class computing energy from signal information.
+  * Class computing energy and Sound Pressure Level from signal information.
   * Can be used over raw signal, FFT one-sided, or PSD.
   *
   * Author: Alexandre Degurse
@@ -28,23 +28,24 @@ import scala.math.{cos,Pi,pow,abs,sqrt}
 
 class Energy(val nfft: Int) {
 
-  val expectedFFTSize = nfft + (if (nfft % 2 == 0) 2 else 1)
+  val nfftEven: Boolean = nfft % 2 == 0
+  val expectedFFTSize = nfft + (if (nfftEven) 2 else 1)
   val expectedPSDSize = expectedFFTSize / 2
 
-  def fromRawSignal(signal: Array[Double]): Double = {
+  def computeRawFromRawSignal(signal: Array[Double]): Double = {
     if (signal.length > nfft) {
       throw new IllegalArgumentException(s"Incorrect signal size (${signal.length}) for Energy (${nfft})")
     }
     signal.foldLeft(0.0)((acc, v) => acc + pow(v,2))
   }
 
-  def fromFFT(fft: Array[Double]): Double = {
+  def computeRawFromFFT(fft: Array[Double]): Double = {
 
     if (fft.length != expectedFFTSize) {
       throw new IllegalArgumentException(s"Incorrect fft size (${fft.length}) for Energy (${expectedFFTSize})")
     }
 
-    val nfftEven = (nfft % 2 == 0)
+    val nfftEven = (nfftEven)
     var energy = 0.0
 
     // start at 1 to not duplicate DC
@@ -72,11 +73,20 @@ class Energy(val nfft: Int) {
     energy / nfft
   }
 
-  def fromPSD(psd: Array[Double]): Double = {
+  def computeRawFromPSD(psd: Array[Double]): Double = {
     if (psd.length != expectedPSDSize) {
       throw new IllegalArgumentException(s"Incorrect PSD size (${psd.length}) for Energy (${expectedPSDSize})")
     }
 
     psd.sum
   }
+
+  // functions that provide computation for Sound Pressure Level
+  def computeSPLFromRawSignal(signal: Array[Double]): Double = toDB(computeRawFromRawSignal(signal))
+  def computeSPLFromFFT(fft: Array[Double]): Double = toDB(computeRawFromFFT(fft))
+  def computeSPLFromPSD(psd: Array[Double]): Double = toDB(computeRawFromPSD(psd))
+
+  // function that convert a value from linear scale to logarithmic scale
+  def toDB(value: Double): Double = 10.0 * log10(value)
+
 }

@@ -17,7 +17,7 @@
 package org.ode.engine.signal_processing
 
 /**
-  * Class that provides Power Spectral Density (PSD) functions.
+  * Class that provides periodogram function to compute Power Spectral Density (PSD).
   * Relies on several part of open source codes rearranged to fit Matlab / Python one-sided PSD:
   * https://github.com/lancelet/scalasignal/blob/master/src/main/scala/signal/PSD.scala
   * https://gist.github.com/awekuit/7496127
@@ -28,7 +28,7 @@ package org.ode.engine.signal_processing
   * @param normalizationFactor The normalization factor of the PSD, depends on the used method.
   */
 
-class PSD(val nfft: Int, val normalizationFactor: Double) {
+class Periodogram(val nfft: Int, val normalizationFactor: Double) {
 
   val nfftEven: Boolean = nfft % 2 == 0
   // compute number of unique samples in the transformed FFT
@@ -43,7 +43,7 @@ class PSD(val nfft: Int, val normalizationFactor: Double) {
    * @param fft The one fft used to compute the PSD
    * @return the one-sided PSD of the given fft
    */
-  def periodogram(fft: Array[Double]) : Array[Double] = {
+  def compute(fft: Array[Double]) : Array[Double] = {
     if (fft.length != 2*uniqueSamples) {
       throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for PSD, it should be either a one-sided (${2*uniqueSamples}) or a two-sided (${2*nfft}) FFT")
     }

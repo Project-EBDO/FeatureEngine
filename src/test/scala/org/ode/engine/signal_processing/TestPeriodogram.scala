@@ -23,12 +23,12 @@ import org.scalatest.{FlatSpec, Matchers};
 import scala.math.{cos,sin,pow};
 
 /**
-  * Tests for PSD class
+  * Tests for Periodogram class
   * Author: Alexandre Degurse
   */
 
 
-class TestPSD extends FlatSpec with Matchers {
+class TestPeriodogram extends FlatSpec with Matchers {
 
   val maxRMSE = 1.1E-15
 
@@ -94,8 +94,8 @@ class TestPSD extends FlatSpec with Matchers {
 
     val normalizationFactor = 1 / (nfft * fs)
 
-    val psdClass: PSD = new PSD(nfft, normalizationFactor)
-    val psd: Array[Double] = psdClass.periodogram(fft)
+    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
+    val psd: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPSD: Array[Double] = Array(
       0.018821131046057503,0.155794411914756625,0.403962223018968447,
@@ -130,8 +130,8 @@ class TestPSD extends FlatSpec with Matchers {
     // normalizationFactor is specific to scipy
     val normalizationFactor = 1 / (fs * nfft)
 
-    val psdClass: PSD = new PSD(nfft, normalizationFactor)
-    val psd: Array[Double] = psdClass.periodogram(fft)
+    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
+    val psd: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPSD: Array[Double] = Array(
       1.8821131046057527e-02, 1.5579441191475596e-01,
@@ -168,8 +168,8 @@ class TestPSD extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](42)
-    val psdClass: PSD = new PSD(50, 1.0)
+    val periodogramClass: Periodogram = new Periodogram(50, 1.0)
 
-    an [IllegalArgumentException] should be thrownBy psdClass.periodogram(signal)
+    an [IllegalArgumentException] should be thrownBy periodogramClass.compute(signal)
   }
 }

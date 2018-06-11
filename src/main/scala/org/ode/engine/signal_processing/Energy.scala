@@ -81,11 +81,15 @@ class Energy(val nfft: Int) {
   }
 
   // functions that provide computation for Sound Pressure Level
-  def computeSPLFromRawSignal(signal: Array[Double]): Double = toDB(computeRawFromRawSignal(signal))
-  def computeSPLFromFFT(fft: Array[Double]): Double = toDB(computeRawFromFFT(fft))
-  def computeSPLFromPSD(psd: Array[Double]): Double = toDB(computeRawFromPSD(psd))
+  def computeSPLFromRawSignal(signal: Array[Double]): Double = Energy.toDB(computeRawFromRawSignal(signal))
+  def computeSPLFromFFT(fft: Array[Double]): Double = Energy.toDB(computeRawFromFFT(fft))
+  def computeSPLFromPSD(psd: Array[Double]): Double = Energy.toDB(computeRawFromPSD(psd))
 
+
+
+}
+
+object Energy {
   // function that convert a value from linear scale to logarithmic scale
   def toDB(value: Double): Double = 10.0 * log10(value)
-
 }

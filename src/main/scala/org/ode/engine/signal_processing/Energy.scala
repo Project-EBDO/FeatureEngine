@@ -103,7 +103,7 @@ class Energy(val nfft: Int) {
 
   /**
    * Function that provide computation for Sound Pressure Level
-   * Wraper over the raw energy function followed by the toDB one
+   * Wrapper over converting raw energy to db
    *
    * @param signal The raw signal to process as an Array[Double]
    * @return The Sound Pressure Level of the input raw signal as a Double
@@ -112,7 +112,7 @@ class Energy(val nfft: Int) {
 
   /**
    * Function that provide computation for Sound Pressure Level
-   * Wraper over the FFT energy function followed by the toDB one
+   * Wrapper over converting raw energy to db
    *
    * @param signal The FFT to process as an Array[Double]
    * @return The Sound Pressure Level of the input FFT as a Double
@@ -121,7 +121,7 @@ class Energy(val nfft: Int) {
 
   /**
    * Function that provide computation for Sound Pressure Level
-   * Wraper over the PSD energy function followed by the toDB one
+   * Wrapper over converting raw energy to db
    *
    * @param signal The PSD to process as an Array[Double]
    * @return The Sound Pressure Level of the input PSD as a Double
@@ -131,7 +131,7 @@ class Energy(val nfft: Int) {
 
 object Energy {
   /**
-   * Function that convert a value from linear scale to logarithmic scale
+   * Function converting raw energy to dB scale
    *
    * @param value The value to convert to log scala as a Double
    * @return The value converted to log scale as a Double

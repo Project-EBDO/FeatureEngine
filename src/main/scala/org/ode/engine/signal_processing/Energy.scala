@@ -16,6 +16,7 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
 import scala.math.{pow, log10}
 
 /**
@@ -26,7 +27,7 @@ import scala.math.{pow, log10}
   */
 
 
-class Energy(val nfft: Int) {
+class Energy(val nfft: Int) extends Serializable {
 
   val nfftEven: Boolean = nfft % 2 == 0
   val expectedFFTSize = nfft + (if (nfftEven) 2 else 1)

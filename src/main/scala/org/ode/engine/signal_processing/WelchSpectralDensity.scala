@@ -16,13 +16,15 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
+
 /**
  * Class that provides Welch Power Spectral Density estimate function.
  *
  * Author: Alexandre Degurse
  */
 
-class WelchSpectralDensity(val nfft: Int) {
+class WelchSpectralDensity(val nfft: Int) extends Serializable {
 
   val expectedPSDSize = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
 

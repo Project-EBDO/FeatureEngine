@@ -16,6 +16,8 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
+
 /**
  * SpectrogramWindow defined as a trait
  * Author: Joseph Allemandou
@@ -25,7 +27,7 @@ package org.ode.engine.signal_processing
  * An IllegalArgumentException is thrown if signal.length != windowSize
  *
  */
-trait SpectrogramWindow {
+trait SpectrogramWindow extends Serializable {
 
   val windowSize: Int
   val windowCoefficients: Array[Double]

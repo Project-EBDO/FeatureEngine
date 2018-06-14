@@ -16,6 +16,7 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
 import scala.math.{cos, Pi}
 
 /**
@@ -35,7 +36,7 @@ import scala.math.{cos, Pi}
  * @param hammingType The type of hamming window to compute, either periodic or symmetric
  */
 
-class HammingWindow(val windowSize: Int, val hammingType: String) extends SpectrogramWindow {
+class HammingWindow(val windowSize: Int, val hammingType: String) extends SpectrogramWindow with Serializable {
   val windowCoefficients: Array[Double] = hammingType match {
     case "periodic" => (0 until windowSize).map(idx => HammingWindow.coefficientPeriodic(idx, windowSize)).toArray
     case "symmetric" => (0 until windowSize).map(idx => HammingWindow.coefficientSymmetric(idx, windowSize)).toArray

@@ -16,6 +16,7 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
 
 /**
@@ -27,9 +28,10 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
   */
 
 
-class FFT(nfft: Int) {
+class FFT(nfft: Int) extends Serializable {
 
   // Instantiate the low level class that computes the fft
+  @transient
   val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
 
   val nfftEven: Boolean = nfft % 2 == 0

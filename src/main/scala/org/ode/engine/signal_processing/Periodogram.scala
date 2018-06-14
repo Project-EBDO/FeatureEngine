@@ -16,6 +16,8 @@
 
 package org.ode.engine.signal_processing
 
+import scala.Serializable
+
 /**
   * Class that provides periodogram function to compute Power Spectral Density (PSD).
   * Relies on several part of open source codes rearranged to fit Matlab / Python one-sided PSD:
@@ -28,7 +30,7 @@ package org.ode.engine.signal_processing
   * @param normalizationFactor The normalization factor of the PSD, depends on the used method.
   */
 
-class Periodogram(val nfft: Int, val normalizationFactor: Double) {
+class Periodogram(val nfft: Int, val normalizationFactor: Double) extends Serializable {
 
   val nfftEven: Boolean = nfft % 2 == 0
   // compute number of unique samples in the transformed FFT

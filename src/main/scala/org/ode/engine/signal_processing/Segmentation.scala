@@ -17,6 +17,8 @@
 package org.ode.engine.signal_processing;
 
 
+import scala.Serializable
+
 /**
   * Class that provides segmention functions
   *
@@ -30,7 +32,7 @@ package org.ode.engine.signal_processing;
   *
   */
 
-class Segmentation(val winSize: Int, val offset: Option[Int] = None) {
+class Segmentation(val winSize: Int, val offset: Option[Int] = None) extends Serializable {
 
   if (winSize < 0) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation (${winSize})")

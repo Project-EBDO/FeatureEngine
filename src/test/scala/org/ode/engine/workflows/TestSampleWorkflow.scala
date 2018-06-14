@@ -18,8 +18,10 @@ package org.ode.engine.workflows
 
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
+import org.apache.hadoop.conf.Configuration
 import java.net.URL
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.types._
 import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
 import scala.io.Source
@@ -39,8 +41,14 @@ class TestSampleWorkflow
   "SampleWorkflow" should "generate the same results than ScalaSampleWorkflow" in {
 
     val spark = SparkSession.builder.getOrCreate
-    val sc = spark.sparkContext
-    val hadoopConf = sc.hadoopConfiguration
+    // val sc = spark.sparkContext
+
+    // val conf = new SparkConf().setMaster("local[1]").setAppName("test")
+    // conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    // conf.registerKryoClasses(Array(classOf[Configuration]))
+    // val sc = new SparkContext(conf)
+
+    // val hadoopConf = sc.hadoopConfiguration
 
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
     val recordSize = 1000
@@ -53,14 +61,6 @@ class TestSampleWorkflow
     val soundSampleSizeInBits = 16
     val slices = 40
 
-    val frameLength = (soundSamplingRate * soundChannels * soundDurationInSecs).toInt
-
-    WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
-    WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
-    WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
-    WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, (frameLength / slices).toInt)
-    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, "skip")
-
 
     val sampleWorkflow = new SampleWorkflow(
         spark,
@@ -69,11 +69,11 @@ class TestSampleWorkflow
         nfft,
         winSize,
         offset,
-        soundSamplingRate
-        // soundChannels,
-        // soundDurationInSecs,
-        // soundSampleSizeInBits,
-        // slices
+        soundSamplingRate,
+        soundChannels,
+        soundDurationInSecs,
+        soundSampleSizeInBits,
+        slices
       )
 
 

@@ -44,16 +44,25 @@ class SampleWorkflow (
   val nfft: Int,
   val winSize: Int,
   val offset: Int,
-  val soundSamplingRate: Float
-  // val soundChannels: Int,
-  // val soundDurationInSecs: Double,
-  // val soundSampleSizeInBits: Int,
-  // val slices: Int,
-  // val lastRecordAction: String = "skip"
+  val soundSamplingRate: Float,
+  val soundChannels: Int,
+  val soundDurationInSecs: Double,
+  val soundSampleSizeInBits: Int,
+  val slices: Int,
+  val lastRecordAction: String = "skip"
 ) extends Serializable {
 
-  val sc = spark.sparkContext
-  val hadoopConf = sc.hadoopConfiguration
+  @transient val sc = spark.sparkContext
+  @transient val hadoopConf = sc.hadoopConfiguration
+
+  val frameLength = (soundSamplingRate * soundChannels * soundDurationInSecs).toInt
+
+  WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
+  WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
+  WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
+  WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, (frameLength / slices).toInt)
+  WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, "skip")
+
 
   val records = sc.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
     soundUrl.toURI.toString,

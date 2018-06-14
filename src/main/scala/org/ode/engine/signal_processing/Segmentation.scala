@@ -16,9 +16,6 @@
 
 package org.ode.engine.signal_processing;
 
-
-import scala.Serializable
-
 /**
   * Class that provides segmention functions
   *

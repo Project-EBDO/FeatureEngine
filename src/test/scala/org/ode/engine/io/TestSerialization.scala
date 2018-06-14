@@ -31,13 +31,13 @@ class TestSerialization extends FlatSpec with Matchers {
     stream.toByteArray
   }
 
-  def deserialization(bytes: Array[Byte]): Any = {
+  def deserialize(bytes: Array[Byte]): Any = {
     val stream: ByteArrayInputStream = new ByteArrayInputStream(bytes)
     val ois = new ObjectInputStream(stream)
     ois.readObject
   }
 
-  val objects: List[(String, Any)] = List(
+  val serializableObjects: List[(String, Any)] = List(
     ("Energy", new Energy(10)),
     ("FFT", new FFT(10)),
     ("Periodogram" -> new Periodogram(10, 1.0)),
@@ -46,14 +46,13 @@ class TestSerialization extends FlatSpec with Matchers {
     ("HammingWindow" -> new HammingWindow(10, "symmetric"))
   )
 
-  for (obj <- objects) {
-    it should s"serialize an instance of ${obj._1}" in {
-      val bytes = serialize(obj._2)
-      val objDeserialized = deserialization(bytes)
+  for ((objName, obj) <- serializableObjects) {
+    it should s"serialize an instance of $objName" in {
+      val bytes = serialize(obj)
+      val objDeserialized = deserialize(bytes)
 
       bytes.length should be > 0
-      objDeserialized should be(obj._2)
+      objDeserialized should equal(obj)
     }
   }
-
 }

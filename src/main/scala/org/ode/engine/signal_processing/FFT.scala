@@ -16,7 +16,6 @@
 
 package org.ode.engine.signal_processing
 
-import scala.Serializable
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
 
 /**

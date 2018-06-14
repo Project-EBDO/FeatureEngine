@@ -16,7 +16,6 @@
 
 package org.ode.engine.signal_processing
 
-import scala.Serializable
 import scala.math.{cos, Pi}
 
 /**

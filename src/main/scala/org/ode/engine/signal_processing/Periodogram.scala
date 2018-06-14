@@ -16,8 +16,6 @@
 
 package org.ode.engine.signal_processing
 
-import scala.Serializable
-
 /**
   * Class that provides periodogram function to compute Power Spectral Density (PSD).
   * Relies on several part of open source codes rearranged to fit Matlab / Python one-sided PSD:

@@ -18,6 +18,8 @@ package org.ode.engine.workflows
 
 import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
+import org.apache.spark.rdd.RDD
+
 import scala.io.Source
 
 import org.apache.hadoop.io.{DoubleWritable, LongWritable}
@@ -31,77 +33,89 @@ import org.ode.engine.io.WavReader
 import org.ode.engine.signal_processing._
 
 /**
-  * Class that provides a simple signal processing workflow without using Spark.
+  * Simple signal processing workflow in Spark.
   *
-  * Author: Alexandre Degurse
+  * Author: Alexandre Degurse, Joseph Allemandou
   */
 
-
 class SampleWorkflow (
-  val spark: SparkSession,
-  val soundUrl: URL,
-  val recordSize: Int,
-  val nfft: Int,
-  val winSize: Int,
-  val offset: Int,
-  val soundSamplingRate: Float,
-  val soundChannels: Int,
-  val soundDurationInSecs: Double,
-  val soundSampleSizeInBits: Int,
-  val slices: Int,
-  val lastRecordAction: String = "skip"
-) extends Serializable {
+                       val spark: SparkSession,
+                       val recordDurationInSec: Float,
+                       val winSize: Int,
+                       val nfft: Int,
+                       val fftOffset: Int,
+                       val lastRecordAction: String = "skip"
+                     ) extends Serializable {
 
-  @transient val sc = spark.sparkContext
-  @transient val hadoopConf = sc.hadoopConfiguration
+  type Record = (Float, Array[Array[Array[Double]]])
+  type AggregatedRecord = (Float, Array[Array[Double]])
 
-  val frameLength = (soundSamplingRate * soundChannels * soundDurationInSecs).toInt
+  def apply(
+             soundUrl: URL,
+             soundSamplingRate: Float,
+             soundChannels: Int,
+             soundSampleSizeInBits: Int
+           ): Map[String, Either[RDD[Record], RDD[AggregatedRecord]]] = {
 
-  WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
-  WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
-  WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
-  WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, (frameLength / slices).toInt)
-  WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, "skip")
+    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
+
+    if (recordSizeInFrame % 1 != 0.0f) {
+      throw new IllegalArgumentException(s"Computed record size $recordSizeInFrame should not have a decimal part.")
+    }
+
+    val hadoopConf = spark.sparkContext.hadoopConfiguration
+
+    WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
+    WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
+    WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
+    WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame.toInt)
+    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
+
+    val records = spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
+      soundUrl.toURI.toString,
+      classOf[WavPcmInputFormat],
+      classOf[LongWritable],
+      classOf[TwoDDoubleArrayWritable],
+      hadoopConf
+    ).map{ case (writableOffset, writableSignal) =>
+      val offsetInSec = writableOffset.get / soundSamplingRate
+      val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
+      (offsetInSec, signal)
+    }
 
 
-  val records = sc.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
-    soundUrl.toURI.toString,
-    classOf[WavPcmInputFormat],
-    classOf[LongWritable],
-    classOf[TwoDDoubleArrayWritable],
-    sc.hadoopConfiguration
-  ).map{ case (k, v) => (k, v.get.map(_.map(_.asInstanceOf[DoubleWritable].get))) }
+    val segmentationClass = new Segmentation(winSize, Some(fftOffset))
+    val fftClass = new FFT(nfft)
+    // TODO -- Change hammingType to an Enum (less error-prone for an API)
+    val hammingClass = new HammingWindow(winSize, "symmetric")
 
+    // TODO -- Is this normalization factor a classic ?
+    // If so, maybe a method of hamming or even SpectrogramWindow class?
+    val hammingNormalizationFactor = hammingClass.windowCoefficients
+      .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
 
-  val segmentationClass = new Segmentation(winSize, Some(offset))
-  val fftClass = new FFT(nfft)
-  val hammingClass = new HammingWindow(winSize, "symmetric")
+    val periodogramClass = new Periodogram(nfft, 1.0 / (soundSamplingRate * hammingNormalizationFactor))
+    val welchClass = new WelchSpectralDensity(nfft)
+    val energyClass = new Energy(nfft)
 
-  val hammingNormalizationFactor = hammingClass.windowCoefficients
-    .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
+    val segmented = records.mapValues(channels => channels.map(segmentationClass.compute))
+    val ffts = segmented.mapValues(channels => channels.map(signalSegment => signalSegment.map(fftClass.compute)))
+    val periodograms = ffts.mapValues(channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute)))
+    val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
+    // TODO -- We should rename all PSD functions to more explicit terminology
+    // Are we expecting periodograms or welchs in SPL ????
+    // I'm assuming it is periodogram, and therefore there was a bug originally
+    val spls = periodograms.mapValues(channels =>
+      channels.map(periodogramSegment => periodogramSegment.map(energyClass.computeSPLFromPSD)))
 
-  val periodogramClass = new Periodogram(nfft, 1.0 / (soundSamplingRate * hammingNormalizationFactor))
-  val welchClass = new WelchSpectralDensity(nfft)
-  val energyClass = new Energy(nfft)
+    Map(
+      "ffts" -> Left(ffts),
+      "periodograms" -> Left(periodograms),
+      "welchs" -> Right(welchs),
+      "spls" -> Right(spls)
+    )
 
-  val segmented = records.map{
-    case (idx, channels) => (idx, channels.map(segmentationClass.compute))
-  }
-
-  val ffts = segmented.map{
-    case (idx, channels) => (idx, channels.map(segments => segments.map(fftClass.compute)))
-  }
-
-  val periodograms = ffts.map{
-    case (idx, channels) => (idx, channels.map(segments => segments.map(periodogramClass.compute)))
-  }
-
-  val welchs = periodograms.map{
-    case (idx, channels) => (idx, channels.map(welchClass.compute))
-  }
-
-  val spls = welchs.map{
-    case (idx, channels) => (idx, channels.map(energyClass.computeSPLFromPSD))
   }
 
 }
+

@@ -17,6 +17,7 @@
 package org.ode.engine.workflows
 
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
+import org.apache.spark.rdd.RDD
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.apache.hadoop.conf.Configuration
 import java.net.URL
@@ -29,7 +30,7 @@ import scala.io.Source
 /**
  * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
  *
- * Author: Alexandre Degurse
+ * Author: Alexandre Degurse, Joseph Allemandou
  */
 
 class TestSampleWorkflow
@@ -38,54 +39,73 @@ class TestSampleWorkflow
     with SharedSparkContext
 {
 
-  "SampleWorkflow" should "generate the same results than ScalaSampleWorkflow" in {
+  "SampleWorkflow" should "generate results of expected size" in {
 
     val spark = SparkSession.builder.getOrCreate
-    // val sc = spark.sparkContext
 
-    // val conf = new SparkConf().setMaster("local[1]").setAppName("test")
-    // conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    // conf.registerKryoClasses(Array(classOf[Configuration]))
-    // val sc = new SparkContext(conf)
-
-    // val hadoopConf = sc.hadoopConfiguration
-
-    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
-    val recordSize = 1000
-    val nfft = 100
+    // Signal processing parameters
+    val recordSizeInSec = 0.1f
     val winSize = 100
-    val offset = 100
+    val nfft = 100
+    val fftOffset = 100
     val soundSamplingRate = 16000.0f
+
+    // Sound parameters
+    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
     val soundChannels = 1
-    val soundDurationInSecs= 2.5
     val soundSampleSizeInBits = 16
-    val slices = 40
+
+    // Usefull for testing
+    val soundDurationInSecs= 2.5f
 
 
     val sampleWorkflow = new SampleWorkflow(
-        spark,
-        soundUrl,
-        recordSize,
-        nfft,
-        winSize,
-        offset,
-        soundSamplingRate,
-        soundChannels,
-        soundDurationInSecs,
-        soundSampleSizeInBits,
-        slices
+      spark,
+      recordSizeInSec,
+      winSize,
+      nfft,
+      fftOffset
       )
 
-
-    val scalaWorkflow = new ScalaSampleWorkflow(
+    val resultMap = sampleWorkflow.apply(
       soundUrl,
-      recordSize,
-      nfft,
-      winSize,
-      offset
-    )
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits)
 
-    val sparkSpls = sampleWorkflow.spls.collect()
-    val scalaSpls = scalaWorkflow.spls
+    val expectedRecordNumber = soundDurationInSecs / recordSizeInSec
+    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / winSize
+    val expectedFFTSize = nfft + 2 // nfft is even
+
+    resultMap.size should equal(4)
+    val ffts = resultMap("ffts").left.get.cache()
+    ffts.count should equal(expectedRecordNumber)
+    ffts.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedWindowsPerRecord)
+      channels(0)(0).length should equal(expectedFFTSize)
+    }
+
+    val periodograms = resultMap("periodograms").left.get.cache()
+    periodograms.count should equal(expectedRecordNumber)
+    periodograms.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedWindowsPerRecord)
+      channels(0)(0).length should equal(expectedFFTSize / 2)
+    }
+
+    val welchs = resultMap("welchs").right.get.cache()
+    welchs.count should equal(expectedRecordNumber)
+    welchs.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedFFTSize / 2)
+    }
+
+    val spls = resultMap("spls").right.get.cache()
+    spls.count should equal(expectedRecordNumber)
+    spls.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedWindowsPerRecord)
+    }
+
+    // TODO -- Explain in readme the epxected result sizes
+    // for the various functions. I found them, but more by
+    // chance than anything else :)
   }
 }

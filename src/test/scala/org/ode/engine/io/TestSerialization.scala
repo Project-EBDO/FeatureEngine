@@ -19,7 +19,7 @@ package org.ode.engine.io
 
 import org.ode.engine.signal_processing._
 
-import java.io.{ByteArrayOutputStream, ObjectOutputStream}
+import java.io.{ByteArrayOutputStream, ObjectOutputStream, ObjectInputStream, ByteArrayInputStream}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TestSerialization extends FlatSpec with Matchers {
@@ -31,9 +31,15 @@ class TestSerialization extends FlatSpec with Matchers {
     stream.toByteArray
   }
 
-  val objects = List(
-    ("Energy" -> new Energy(10)),
-    ("FFT" -> new FFT(10)),
+  def deserialization(bytes: Array[Byte]): Any = {
+    val stream: ByteArrayInputStream = new ByteArrayInputStream(bytes)
+    val ois = new ObjectInputStream(stream)
+    ois.readObject
+  }
+
+  val objects: List[(String, Any)] = List(
+    ("Energy", new Energy(10)),
+    ("FFT", new FFT(10)),
     ("Periodogram" -> new Periodogram(10, 1.0)),
     ("Segmentation" -> new Segmentation(10, Some(5))),
     ("WelchSpectralDensity" -> new WelchSpectralDensity(10)),
@@ -43,7 +49,10 @@ class TestSerialization extends FlatSpec with Matchers {
   for (obj <- objects) {
     it should s"serialize an instance of ${obj._1}" in {
       val bytes = serialize(obj._2)
+      val objDeserialized = deserialization(bytes)
+
       bytes.length should be > 0
+      objDeserialized should be(obj._2)
     }
   }
 

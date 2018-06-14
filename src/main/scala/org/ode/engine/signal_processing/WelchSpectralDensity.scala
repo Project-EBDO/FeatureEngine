@@ -24,7 +24,7 @@ import scala.Serializable
  * Author: Alexandre Degurse
  */
 
-class WelchSpectralDensity(val nfft: Int) extends Serializable {
+case class WelchSpectralDensity(val nfft: Int) extends Serializable {
 
   val expectedPSDSize = (if (nfft % 2 == 0) nfft/2 + 1 else (nfft+1)/2)
 

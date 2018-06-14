@@ -28,7 +28,7 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
   */
 
 
-class FFT(nfft: Int) extends Serializable {
+case class FFT(nfft: Int) extends Serializable {
 
   // Instantiate the low level class that computes the fft
   @transient

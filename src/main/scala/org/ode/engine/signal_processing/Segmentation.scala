@@ -32,7 +32,7 @@ import scala.Serializable
   *
   */
 
-class Segmentation(val winSize: Int, val offset: Option[Int] = None) extends Serializable {
+case class Segmentation(val winSize: Int, val offset: Option[Int] = None) extends Serializable {
 
   if (winSize < 0) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation (${winSize})")

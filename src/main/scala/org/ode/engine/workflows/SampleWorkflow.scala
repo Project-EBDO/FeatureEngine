@@ -35,7 +35,15 @@ import org.ode.engine.signal_processing._
 /**
   * Simple signal processing workflow in Spark.
   *
-  * Author: Alexandre Degurse, Joseph Allemandou
+  * @author Alexandre Degurse, Joseph Allemandou
+  *
+  * @param spark the session
+  * @param recordDurationInSec The duration
+  * @param winSize the size of the windows to generate
+  * @param nfft The size
+  * @param fftOffset the offset
+  * @param lastRecordAction How to deal with the last record
+  *
   */
 
 class SampleWorkflow (
@@ -50,6 +58,16 @@ class SampleWorkflow (
   type Record = (Float, Array[Array[Array[Double]]])
   type AggregatedRecord = (Float, Array[Array[Double]])
 
+  // scalastyle:off
+  /**
+    * Apply method for the workflow
+    *
+    * @param soundUrl The URL to find the sound
+    * @param soundSamplingRate Sound's samplingRate
+    * @param soundChannels Sound's number of channels
+    * @param soundSampleSizeInBits Sound's encoding
+    * @return A map
+    */
   def apply(
              soundUrl: URL,
              soundSamplingRate: Float,
@@ -58,7 +76,6 @@ class SampleWorkflow (
            ): Map[String, Either[RDD[Record], RDD[AggregatedRecord]]] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
-
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(s"Computed record size $recordSizeInFrame should not have a decimal part.")
     }
@@ -83,14 +100,9 @@ class SampleWorkflow (
       (offsetInSec, signal)
     }
 
-
     val segmentationClass = new Segmentation(winSize, Some(fftOffset))
     val fftClass = new FFT(nfft)
-    // TODO -- Change hammingType to an Enum (less error-prone for an API)
     val hammingClass = new HammingWindow(winSize, "symmetric")
-
-    // TODO -- Is this normalization factor a classic ?
-    // If so, maybe a method of hamming or even SpectrogramWindow class?
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
 
@@ -102,9 +114,6 @@ class SampleWorkflow (
     val ffts = segmented.mapValues(channels => channels.map(signalSegment => signalSegment.map(fftClass.compute)))
     val periodograms = ffts.mapValues(channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute)))
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
-    // TODO -- We should rename all PSD functions to more explicit terminology
-    // Are we expecting periodograms or welchs in SPL ????
-    // I'm assuming it is periodogram, and therefore there was a bug originally
     val spls = periodograms.mapValues(channels =>
       channels.map(periodogramSegment => periodogramSegment.map(energyClass.computeSPLFromPSD)))
 
@@ -114,8 +123,6 @@ class SampleWorkflow (
       "welchs" -> Right(welchs),
       "spls" -> Right(spls)
     )
-
   }
-
 }
 

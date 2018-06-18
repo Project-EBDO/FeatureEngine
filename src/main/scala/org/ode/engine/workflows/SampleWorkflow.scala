@@ -16,20 +16,14 @@
 
 package org.ode.engine.workflows
 
-import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
-import org.apache.spark.rdd.RDD
-
-import scala.io.Source
 
 import org.apache.hadoop.io.{DoubleWritable, LongWritable}
-import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
-import org.apache.hadoop.conf.Configuration
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 
-import org.ode.engine.io.WavReader
+import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.ode.engine.signal_processing._
 
 /**
@@ -114,8 +108,8 @@ class SampleWorkflow (
     val ffts = segmented.mapValues(channels => channels.map(signalSegment => signalSegment.map(fftClass.compute)))
     val periodograms = ffts.mapValues(channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute)))
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
-    val spls = periodograms.mapValues(channels =>
-      channels.map(periodogramSegment => periodogramSegment.map(energyClass.computeSPLFromPSD)))
+    val spls = welchs.mapValues(channels =>
+      Array(channels.map(energyClass.computeSPLFromPSD)))
 
     Map(
       "ffts" -> Left(ffts),

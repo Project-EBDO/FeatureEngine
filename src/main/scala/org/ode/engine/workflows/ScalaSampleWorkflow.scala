@@ -26,9 +26,11 @@ import org.ode.engine.io.WavReader
 /**
   * Class that provides a simple signal processing workflow without using Spark.
   *
-  * Author: Alexandre Degurse
+  *
+  * @author Alexandre Degurse
   */
 
+// scalastyle:off
 
 class ScalaSampleWorkflow (
   val soundFilePath: URL,
@@ -75,7 +77,7 @@ class ScalaSampleWorkflow (
   }
 
   val spls = welchs.map{
-    case (idx, channels) => (idx, channels.map(energyClass.computeSPLFromPSD))
+    case (idx, channels) => (idx, Array(channels.map(energyClass.computeSPLFromPSD)))
   }
 
 }

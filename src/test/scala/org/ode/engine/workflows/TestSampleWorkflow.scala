@@ -16,6 +16,8 @@
 
 package org.ode.engine.workflows
 
+import org.ode.utils.test.ErrorMetrics.rmse
+
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
 import org.apache.spark.rdd.RDD
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
@@ -30,8 +32,10 @@ import scala.io.Source
 /**
  * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
  *
- * Author: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
+
+// scalastyle:off
 
 class TestSampleWorkflow
     extends FlatSpec
@@ -39,8 +43,78 @@ class TestSampleWorkflow
     with SharedSparkContext
 {
 
+  val maxRMSE = 1.0E-16
+
   "SampleWorkflow" should "generate results of expected size" in {
 
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val recordSizeInSec = 0.1f
+    val winSize = 100
+    val nfft = 100
+    val fftOffset = 100
+    val soundSamplingRate = 16000.0f
+
+    // Sound parameters
+    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    // Usefull for testing
+    val soundDurationInSecs = 2.5f
+
+
+    val sampleWorkflow = new SampleWorkflow(
+      spark,
+      recordSizeInSec,
+      winSize,
+      nfft,
+      fftOffset
+      )
+
+    val resultMap = sampleWorkflow.apply(
+      soundUrl,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits)
+
+    val sparkFFT = resultMap("ffts").left.get.cache()
+    val sparkPeriodograms = resultMap("periodograms").left.get.cache()
+    val sparkWelchs = resultMap("welchs").right.get.cache()
+    val sparkSPL = resultMap("spls").right.get.cache()
+
+
+    val expectedRecordNumber = soundDurationInSecs / recordSizeInSec
+    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / winSize
+    val expectedFFTSize = nfft + 2 // nfft is even
+
+    resultMap.size should equal(4)
+
+    sparkFFT.count should equal(expectedRecordNumber)
+    sparkFFT.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedWindowsPerRecord)
+      channels(0)(0).length should equal(expectedFFTSize)
+    }
+
+    sparkPeriodograms.count should equal(expectedRecordNumber)
+    sparkPeriodograms.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedWindowsPerRecord)
+      channels(0)(0).length should equal(expectedFFTSize / 2)
+    }
+
+    sparkWelchs.count should equal(expectedRecordNumber)
+    sparkWelchs.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(expectedFFTSize / 2)
+    }
+
+    sparkSPL.count should equal(expectedRecordNumber)
+    sparkSPL.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(1)
+    }
+  }
+
+  it should "generate the same results as the pure scala workflow" in {
     val spark = SparkSession.builder.getOrCreate
 
     // Signal processing parameters
@@ -73,39 +147,61 @@ class TestSampleWorkflow
       soundChannels,
       soundSampleSizeInBits)
 
-    val expectedRecordNumber = soundDurationInSecs / recordSizeInSec
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / winSize
-    val expectedFFTSize = nfft + 2 // nfft is even
+    val sparkFFT = resultMap("ffts").left.get.cache()
+    val sparkPeriodograms = resultMap("periodograms").left.get.cache()
+    val sparkWelchs = resultMap("welchs").right.get.cache()
+    val sparkSPLs = resultMap("spls").right.get.cache()
 
-    resultMap.size should equal(4)
-    val ffts = resultMap("ffts").left.get.cache()
-    ffts.count should equal(expectedRecordNumber)
-    ffts.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedWindowsPerRecord)
-      channels(0)(0).length should equal(expectedFFTSize)
-    }
+    val scalaWorkflow = new ScalaSampleWorkflow(
+      soundUrl,
+      (soundSamplingRate/10.0).toInt,
+      nfft,
+      winSize,
+      fftOffset
+    )
 
-    val periodograms = resultMap("periodograms").left.get.cache()
-    periodograms.count should equal(expectedRecordNumber)
-    periodograms.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedWindowsPerRecord)
-      channels(0)(0).length should equal(expectedFFTSize / 2)
-    }
+    val scalaFFT = scalaWorkflow.ffts
+    val scalaPeriodograms = scalaWorkflow.periodograms
+    val scalaWelchs = scalaWorkflow.welchs
+    val scalaSPLs = scalaWorkflow.spls
 
-    val welchs = resultMap("welchs").right.get.cache()
-    welchs.count should equal(expectedRecordNumber)
-    welchs.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedFFTSize / 2)
-    }
+    sparkFFT
+      .collect()
+      .zip(scalaFFT)
+      .map(fftTuple => (fftTuple._1._2(0), fftTuple._2._2(0)))
+      .foreach{fftTuple =>
+        var i = 0
+        while (i < fftTuple._1.length) {
+          rmse(fftTuple._1(i), fftTuple._2(i)) should be < maxRMSE
+          i += 1
+        }
+      }
 
-    val spls = resultMap("spls").right.get.cache()
-    spls.count should equal(expectedRecordNumber)
-    spls.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedWindowsPerRecord)
-    }
+    sparkPeriodograms
+      .collect()
+      .zip(scalaPeriodograms)
+      .map(periodogramTuple => (periodogramTuple._1._2(0), periodogramTuple._2._2(0)))
+      .foreach{periodogramTuple =>
+        var i = 0
+        while (i < periodogramTuple._1.length) {
+          rmse(periodogramTuple._1(i), periodogramTuple._2(i)) should be < maxRMSE
+          i += 1
+        }
+      }
 
-    // TODO -- Explain in readme the epxected result sizes
-    // for the various functions. I found them, but more by
-    // chance than anything else :)
+
+    sparkWelchs
+      .collect()
+      .zip(scalaWelchs)
+      .map(welchTuple => (welchTuple._1._2(0), welchTuple._2._2(0)))
+      .foreach(welchTuple =>
+        rmse(welchTuple._1, welchTuple._2) should be < maxRMSE
+      )
+
+    sparkSPLs
+      .collect()
+      .zip(scalaSPLs)
+      .foreach( splTuple => splTuple._1._2(0) should be(splTuple._2._2(0)))
+
   }
 }

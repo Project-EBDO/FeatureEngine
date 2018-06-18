@@ -1,38 +1,35 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.ode.engine.io
 
+import java.io.File
+
 import org.ode.utils.test.ErrorMetrics.rmse
-
-import java.io.{File, FileInputStream, InputStream}
-import java.net.URL
-import javax.sound.sampled.{AudioFileFormat, AudioFormat, AudioInputStream, AudioSystem}
-
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.duration
-import scala.io.Source
 
+/**
+ * Tests for WavReader
+ */
 class TestWavReader extends FlatSpec with Matchers {
 
-
-  val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
-  val maxRMSEDiff = 0.001
-  val expectedFirstWave = Seq(
+  private val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
+  private val maxRMSEDiff = 0.001
+  private val expectedFirstWave = Seq(
     0.0d,
     0.3826904296875d,
     0.707122802734375d,
@@ -60,10 +57,10 @@ class TestWavReader extends FlatSpec with Matchers {
 
     val chunks = wavReader.readChunks(chunkSize, 0)
     chunks.size should equal(math.ceil(2.5 * 16000 / chunkSize))
-    chunks(0).size should equal(1) // single channel
+    chunks.head.length should equal(1) // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks(0)(0).toSeq
+    val firstWave = chunks.head.head.toSeq
     rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
@@ -82,10 +79,10 @@ class TestWavReader extends FlatSpec with Matchers {
 
     val chunks = wavReader.readChunks(chunkSize, 0, nbChunks)
     chunks.size should equal(nbChunks)
-    chunks(0).size should equal(1) // single channel
+    chunks.head.length should equal(1) // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks(0)(0).toSeq
+    val firstWave = chunks.head.head.toSeq
     rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
@@ -105,10 +102,10 @@ class TestWavReader extends FlatSpec with Matchers {
 
     val chunks = wavReader.readChunks(chunkSize, offset, nbChunks)
     chunks.size should equal(nbChunks)
-    chunks(0).size should equal(1) // single channel
+    chunks.head.length should equal(1) // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks(0)(0).toSeq
+    val firstWave = chunks.head.head.toSeq
     rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness

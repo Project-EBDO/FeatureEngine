@@ -1,50 +1,46 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-package org.ode.engine.signal_processing;
+package org.ode.engine.signal_processing
 
+import org.ode.utils.test.ErrorMetrics.rmse
+import org.scalatest.{FlatSpec, Matchers}
 
-
-import org.ode.utils.test.ErrorMetrics.rmse;
-import org.scalatest.{FlatSpec, Matchers};
-import scala.math.{cos,sin,pow};
 
 /**
-  * Tests for Periodogram class
-  * Author: Alexandre Degurse
-  */
-
-
+ * Tests for Periodogram class
+ *
+ * Author: Alexandre Degurse
+ */
 class TestPeriodogram extends FlatSpec with Matchers {
 
-  val maxRMSE = 1.1E-15
+  private val maxRMSE = 1.1E-15
 
 
   /** fft values are generated with Matlab
-   * s = [0:0.1:10]; s = s(:);
-   * sig = 2 * cos(s) + 3 * sin(s);
-   * fft = fft(sig)
-   *
-   * Or with python:
-   * s = numpy.arange(0, 10.1, 0.1)
-   * sig = 2 * np.cos(s) + 3 * np.sin(s)
-   * fft = numpy.fft.fft(sig)
-   */
-
-  val fft: Array[Double] = Array(
+  * s = [0:0.1:10]; s = s(:);
+  * sig = 2 * cos(s) + 3 * sin(s);
+  * fft = fft(sig)
+  *
+  * Or with python:
+  * s = numpy.arange(0, 10.1, 0.1)
+  * sig = 2 * np.cos(s) + 3 * np.sin(s)
+  * fft = numpy.fft.fft(sig)
+  */
+  private val fft: Array[Double] = Array(
     43.5997045362902398,0.0000000000000000,69.4311955791687581,
     55.1989753722152585,-71.9765916749999946,-123.3671857233852478,
     -13.7939722254342882,-40.7756884800141250,-5.1964181553943245,
@@ -81,23 +77,23 @@ class TestPeriodogram extends FlatSpec with Matchers {
     -0.1272333305784191,2.6157749180318430,-0.0423835423209304
   )
 
-  val fs: Double = 1000.0
-  val nfft: Int = 101
+  private val fs: Double = 1000.0
+  private val nfft: Int = 101
 
 
-  it should "compute the same psd as matlab periodogram on a fake signal" in {
+  it should "compute the same periodograms as matlab periodogram on a fake signal" in {
     /** Matlab code
-     * s = [0:0.1:10]; s = s(:);
-     * sig = 2 * cos(s) + 3 * sin(s);
-     * [Pxx,F] = periodogram(sig,[],length(sig),1000);
-     */
+    * s = [0:0.1:10]; s = s(:);
+    * sig = 2 * cos(s) + 3 * sin(s);
+    * [Pxx,F] = periodogram(sig,[],length(sig),1000);
+    */
 
     val normalizationFactor = 1 / (nfft * fs)
 
     val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
-    val psd: Array[Double] = periodogramClass.compute(fft)
+    val periodograms: Array[Double] = periodogramClass.compute(fft)
 
-    val expectedPSD: Array[Double] = Array(
+    val expectedPeriodograms: Array[Double] = Array(
       0.018821131046057503,0.155794411914756625,0.403962223018968447,
       0.036691691896538800,0.013860845848032056,0.007496823811848302,
       0.004775020226013218,0.003339960066646203,0.002483031568184747,
@@ -117,23 +113,23 @@ class TestPeriodogram extends FlatSpec with Matchers {
       0.000136321457271676,0.000135790616778697,0.000135526233395330
     )
 
-    rmse(psd, expectedPSD) should be < maxRMSE
+    rmse(periodograms, expectedPeriodograms) should be < maxRMSE
   }
 
-  it should "compute the same psd as scipy periodogram on a fake signal" in {
+  it should "compute the same periodograms as scipy periodogram on a fake signal" in {
     /** Python code:
-     * s = numpy.arange(0,10.1,0.1)
-     * sig = 2 * numpy.cos(s) + 3 * numpy.sin(s)
-     * f, psdScipy = scipy.signal.periodogram(x=sig, fs=1000.0, window='boxcar', nfft=101, detrend=False, return_onesided=True, scaling='density')
-     */
+    * s = numpy.arange(0,10.1,0.1)
+    * sig = 2 * numpy.cos(s) + 3 * numpy.sin(s)
+    * f, psdScipy = scipy.signal.periodogram(x=sig, fs=1000.0, window='boxcar', nfft=101, detrend=False, return_onesided=True, scaling='density')
+    */
 
     // normalizationFactor is specific to scipy
     val normalizationFactor = 1 / (fs * nfft)
 
     val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
-    val psd: Array[Double] = periodogramClass.compute(fft)
+    val periodograms: Array[Double] = periodogramClass.compute(fft)
 
-    val expectedPSD: Array[Double] = Array(
+    val expectedPeriodograms: Array[Double] = Array(
       1.8821131046057527e-02, 1.5579441191475596e-01,
       4.0396222301896817e-01, 3.6691691896538488e-02,
       1.3860845848032179e-02, 7.4968238118482532e-03,
@@ -162,9 +158,8 @@ class TestPeriodogram extends FlatSpec with Matchers {
       1.3552623339531348e-04
     )
 
-    rmse(psd, expectedPSD) should be < maxRMSE
+    rmse(periodograms, expectedPeriodograms) should be < maxRMSE
   }
-
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](42)
@@ -172,4 +167,5 @@ class TestPeriodogram extends FlatSpec with Matchers {
 
     an [IllegalArgumentException] should be thrownBy periodogramClass.compute(signal)
   }
+
 }

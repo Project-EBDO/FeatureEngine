@@ -1,18 +1,18 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.ode.engine.example
 
@@ -24,10 +24,12 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
 import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
 
+
 /**
-  * Tests for Timeserie generator
-  * Author: Joseph Allemandou
-  */
+ * Tests for Timeserie generator
+ *
+ * Author: Joseph Allemandou
+ */
 class TestTimeserieGenerator
     extends FlatSpec
     with Matchers
@@ -36,8 +38,8 @@ class TestTimeserieGenerator
     with RDDComparisons {
 
   // Global variable to clean execution context for every test
-  var timeserieGenerator = null.asInstanceOf[TimeserieGenerator]
-  var now = null.asInstanceOf[LocalDateTime]
+  private var timeserieGenerator = null.asInstanceOf[TimeserieGenerator]
+  private var now = null.asInstanceOf[LocalDateTime]
 
   override def beforeEach(): Unit = {
     val spark = SparkSession.builder.getOrCreate

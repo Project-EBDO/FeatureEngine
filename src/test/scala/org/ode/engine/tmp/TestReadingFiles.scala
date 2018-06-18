@@ -1,18 +1,18 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.ode.engine.tmp
 
@@ -27,12 +27,16 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
 
+
+/**
+ * Class providing examples on read files
+ */
 class TestReadingFiles extends FlatSpec with Matchers with SharedSparkContext {
 
-  val readmeFilePath = "/README.md"
-  val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
-  val soundFilePath2 = "/wav/sin_48kHz_2.5s.wav"
-  val soundFilePathCorrupted = "/wav/sin_16kHz_2.5s_corrupted.wav"
+  private val readmeFilePath = "/README.md"
+  private val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
+  private val soundFilePath2 = "/wav/sin_48kHz_2.5s.wav"
+  private val soundFilePathCorrupted = "/wav/sin_16kHz_2.5s_corrupted.wav"
 
   "Tutorial file" should "be readable" in {
     val tutorialUrl: URL = getClass.getResource(readmeFilePath)
@@ -69,7 +73,7 @@ class TestReadingFiles extends FlatSpec with Matchers with SharedSparkContext {
 
     val audioInputStream: AudioInputStream = AudioSystem.getAudioInputStream(inputStream)
     val arraySize = 98
-    var byteArray: Array[Byte] = new Array[Byte](arraySize)
+    val byteArray: Array[Byte] = new Array[Byte](arraySize)
     (1 to (dataBytes / arraySize).toInt).foreach(halfSec => {
       audioInputStream.read(byteArray) should be(arraySize)
     })
@@ -103,7 +107,7 @@ class TestReadingFiles extends FlatSpec with Matchers with SharedSparkContext {
 
     val audioInputStream: AudioInputStream = AudioSystem.getAudioInputStream(inputStream)
     val arraySize = 98
-    var byteArray: Array[Byte] = new Array[Byte](arraySize)
+    val byteArray: Array[Byte] = new Array[Byte](arraySize)
     (1 to (dataBytes / arraySize).toInt).foreach(halfSec => {
       audioInputStream.read(byteArray) should be(arraySize)
     })

@@ -1,32 +1,33 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.ode.engine.signal_processing
 
 import org.ode.utils.test.ErrorMetrics.rmse
 import org.scalatest.{FlatSpec, Matchers}
 
-/**
-  * Tests for Spectrogram Windows Functions
-  * Author: Alexandre Degurse
-  */
 
+/**
+ * Tests for Spectrogram Windows Functions
+ *
+ * Author: Alexandre Degurse
+ */
 class TestHammingWindow extends FlatSpec with Matchers {
   // windowed signal fails for Matlab and numpy/scipy with maxRMSE lower than 3e-15
-  val maxRMSE = 4e-15
+  private val maxRMSE = 4e-15
 
   // make sure to generate results with enough digits :
   //    - "np.set_printoptions(precision=16)" for numpy
@@ -51,7 +52,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val hw = new HammingWindow(32,"symmetric")
     val window = hw.windowCoefficients
 
-    rmse(expectedWindow,window) should be < (maxRMSE)
+    rmse(expectedWindow,window) should be < maxRMSE
   }
 
   it should "rmse-match a transformed signal as in scipy" in {
@@ -73,7 +74,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hw.applyToSignal(signal)
 
-    rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
+    rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
   }
 
   it should "rmse-match numpy hamming window" in {
@@ -95,7 +96,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val hw = new HammingWindow(32,"periodic")
     val window = hw.windowCoefficients
 
-    rmse(expectedWindow,window) should be < (maxRMSE)
+    rmse(expectedWindow,window) should be < maxRMSE
   }
 
   it should "rmse-match a transformed signal as in numpy" in {
@@ -117,7 +118,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hw.applyToSignal(signal)
 
-    rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
+    rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
   }
 
   it should "rmse-match matlab hamming window" in {
@@ -139,7 +140,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val hw = new HammingWindow(32,"periodic")
     val window = hw.windowCoefficients
 
-    rmse(expectedWindow,window) should be < (maxRMSE)
+    rmse(expectedWindow,window) should be < maxRMSE
   }
 
   it should "rmse-match a transformed signal as in matlab" in {
@@ -162,7 +163,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hw.applyToSignal(signal)
 
-    rmse(expectedWindowedSignal,windowedSignal) should be < (maxRMSE)
+    rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
   }
 
   it should "raise IllegalArgumentException when given a wrong hamming type" in {

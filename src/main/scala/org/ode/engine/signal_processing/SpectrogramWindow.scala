@@ -37,6 +37,7 @@ trait SpectrogramWindow extends Serializable {
    *  The coefficients of the window (an array of size windowSize)
    */
   val windowCoefficients: Array[Double]
+  val rawNormalizationFactor: Double
 
   /**
    * Function applying a SpectrogramWindow implementation to a signal portion
@@ -60,4 +61,6 @@ trait SpectrogramWindow extends Serializable {
     // scalastyle:on while var.local
     res
   }
+
+  def normalizationFactor(alpha: Double): Double = rawNormalizationFactor / pow(alpha, 2)
 }

@@ -28,6 +28,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TestWindow(val windowSize: Int) extends SpectrogramWindow {
   val windowCoefficients: Array[Double] =
     (1 to windowSize).map(_.toDouble).toArray
+  val rawNormalizationFactor: Double = windowCoefficients.foldLeft(0.0)((acc, v) => acc + v*v)
 }
 
 /**

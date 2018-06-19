@@ -139,13 +139,14 @@ class TestSampleWorkflow
       winSize,
       nfft,
       fftOffset
-      )
+    )
 
     val resultMap = sampleWorkflow.apply(
       soundUrl,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits)
+      soundSampleSizeInBits
+    )
 
     val sparkFFT = resultMap("ffts").left.get.cache()
     val sparkPeriodograms = resultMap("periodograms").left.get.cache()
@@ -153,17 +154,21 @@ class TestSampleWorkflow
     val sparkSPLs = resultMap("spls").right.get.cache()
 
     val scalaWorkflow = new ScalaSampleWorkflow(
-      soundUrl,
-      (soundSamplingRate/10.0).toInt,
       nfft,
       winSize,
       fftOffset
     )
 
-    val scalaFFT = scalaWorkflow.ffts
-    val scalaPeriodograms = scalaWorkflow.periodograms
-    val scalaWelchs = scalaWorkflow.welchs
-    val scalaSPLs = scalaWorkflow.spls
+    val resultMapScala = scalaWorkflow.apply(
+      soundUrl,
+      (soundSamplingRate/10.0).toInt,
+      soundSamplingRate
+    )
+
+    val scalaFFT = resultMapScala("ffts").left.get
+    val scalaPeriodograms = resultMapScala("periodograms").left.get
+    val scalaWelchs = resultMapScala("welchs").right.get
+    val scalaSPLs = resultMapScala("spls").right.get
 
     sparkFFT
       .collect()

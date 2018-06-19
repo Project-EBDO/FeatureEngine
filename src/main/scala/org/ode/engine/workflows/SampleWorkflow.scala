@@ -1,18 +1,18 @@
 /** Copyright (C) 2017-2018 Project-ODE
-  *
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.ode.engine.workflows
 
@@ -27,46 +27,47 @@ import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.ode.engine.signal_processing._
 
 /**
-  * Simple signal processing workflow in Spark.
-  *
-  * @author Alexandre Degurse, Joseph Allemandou
-  *
-  * @param spark the session
-  * @param recordDurationInSec The duration
-  * @param winSize the size of the windows to generate
-  * @param nfft The size
-  * @param fftOffset the offset
-  * @param lastRecordAction How to deal with the last record
-  *
-  */
+ * Simple signal processing workflow in Spark.
+ *
+ * @author Alexandre Degurse, Joseph Allemandou
+ *
+ * @param spark the session
+ * @param recordDurationInSec The duration
+ * @param winSize the size of the windows to generate
+ * @param nfft The size
+ * @param fftOffset the offset
+ * @param lastRecordAction How to deal with the last record
+ *
+ */
 
-class SampleWorkflow (
-                       val spark: SparkSession,
-                       val recordDurationInSec: Float,
-                       val winSize: Int,
-                       val nfft: Int,
-                       val fftOffset: Int,
-                       val lastRecordAction: String = "skip"
-                     ) extends Serializable {
+class SampleWorkflow
+(
+  val spark: SparkSession,
+  val recordDurationInSec: Float,
+  val winSize: Int,
+  val nfft: Int,
+  val fftOffset: Int,
+  val lastRecordAction: String = "skip"
+) extends Serializable {
 
-  type Record = (Float, Array[Array[Array[Double]]])
-  type AggregatedRecord = (Float, Array[Array[Double]])
+  private type Record = (Float, Array[Array[Array[Double]]])
+  private type AggregatedRecord = (Float, Array[Array[Double]])
 
   // scalastyle:off
   /**
-    * Apply method for the workflow
-    *
-    * @param soundUrl The URL to find the sound
-    * @param soundSamplingRate Sound's samplingRate
-    * @param soundChannels Sound's number of channels
-    * @param soundSampleSizeInBits Sound's encoding
-    * @return A map
-    */
+   * Apply method for the workflow
+   *
+   * @param soundUrl The URL to find the sound
+   * @param soundSamplingRate Sound's samplingRate
+   * @param soundChannels Sound's number of channels
+   * @param soundSampleSizeInBits Sound's encoding
+   * @return A map
+   */
   def apply(
-             soundUrl: URL,
-             soundSamplingRate: Float,
-             soundChannels: Int,
-             soundSampleSizeInBits: Int
+              soundUrl: URL,
+              soundSamplingRate: Float,
+              soundChannels: Int,
+              soundSampleSizeInBits: Int
            ): Map[String, Either[RDD[Record], RDD[AggregatedRecord]]] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
@@ -119,4 +120,3 @@ class SampleWorkflow (
     )
   }
 }
-

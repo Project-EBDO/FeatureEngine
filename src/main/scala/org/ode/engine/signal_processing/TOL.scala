@@ -94,6 +94,13 @@ class TOL
   }
 
   /**
+   * Getter on bounds
+   *
+   * @return The computed TOB bounds for the given frequency study range
+   */
+   def getBounds(): Array[(Double, Double)] = bounds
+
+  /**
    * Function used to associate a frequency of a spectrum to an index of a discrete
    * nfft-sized spectrum
    *

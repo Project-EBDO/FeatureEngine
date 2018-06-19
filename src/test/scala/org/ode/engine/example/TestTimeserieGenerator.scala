@@ -28,7 +28,7 @@ import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
 /**
  * Tests for Timeserie generator
  *
- * Author: Joseph Allemandou
+ * @author Joseph Allemandou
  */
 class TestTimeserieGenerator
     extends FlatSpec

@@ -22,6 +22,8 @@ import org.scalatest.{Assertion, Matchers, FlatSpec}
  * Trait facilitating building homogeneous performance tests.
  * Tests extending this trait print reports over stdout and check
  * that f1 and f2 applied to the same data provide the same result.
+ *
+ * @author Joseph Allemandou
  */
 trait PerfSpec[T1, T2, U] extends FlatSpec with Matchers {
 

@@ -24,7 +24,7 @@ import scala.math.abs
 /**
  * Tests showing interesting behavior using floating-point collections
  *
- * Author: Joseph Allemandou
+ * @author Joseph Allemandou
  */
 class TestFloatingPointRounding extends FlatSpec with Matchers {
 

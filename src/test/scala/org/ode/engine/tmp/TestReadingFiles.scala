@@ -30,6 +30,8 @@ import scala.io.Source
 
 /**
  * Class providing examples on read files
+ *
+ * @author Joseph Allemandou
  */
 class TestReadingFiles extends FlatSpec with Matchers with SharedSparkContext {
 

@@ -19,9 +19,8 @@ package org.ode.perf
 /**
  * Performance test for single-map vs chaining-maps
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
 class PerfTestSingleMapVsChainingMaps
   extends PerfSpec[Vector[Double], Vector[Double], Vector[Double]]
   with ArraySizeSpec {

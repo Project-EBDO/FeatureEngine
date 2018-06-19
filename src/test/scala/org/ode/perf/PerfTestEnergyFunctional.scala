@@ -21,11 +21,10 @@ import org.ode.engine.signal_processing.Energy
 import scala.math._
 
 /**
- * Performance tests for mutables-energy vs functional-energy
+ * Performance tests for mutables-energy vs functional-energy -- From Signal
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
 class PerfTestMutablesEnergyFromSignalVsFunctionalEnergyFromSignal
   extends PerfSpec[Array[Double], Array[Double], Double]
   with ArraySizeSpec {
@@ -55,6 +54,11 @@ class PerfTestMutablesEnergyFromSignalVsFunctionalEnergyFromSignal
 
 }
 
+/**
+ * Performance tests for mutables-energy vs functional-energy -- From FTT
+ *
+ * @author Alexandre Degurse, Joseph Allemandou
+ */
 class PerfTestMutablesEnergyFromFFTVsFunctionalEnergyFromFFT
   extends PerfSpec[Array[Double], Array[Double], Double]
   with ArraySizeSpec {
@@ -103,6 +107,11 @@ class PerfTestMutablesEnergyFromFFTVsFunctionalEnergyFromFFT
 
 }
 
+/**
+ * Performance tests for mutables-energy vs functional-energy -- From PSD
+ *
+ * @author Alexandre Degurse, Joseph Allemandou
+ */
 class PerfTestMutablesEnergyFromPSDVsFunctionalEnergyFromPSD
   extends PerfSpec[Array[Double], Array[Double], Double]
   with ArraySizeSpec {

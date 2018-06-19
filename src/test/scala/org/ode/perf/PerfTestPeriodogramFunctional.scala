@@ -21,10 +21,8 @@ import org.ode.engine.signal_processing.Periodogram
 /**
  * Performance test for mutables-periodogram vs functional-periodogram
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
-
 class PerfTestPeriodogramFunctional
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]
   with ArraySizeSpec {

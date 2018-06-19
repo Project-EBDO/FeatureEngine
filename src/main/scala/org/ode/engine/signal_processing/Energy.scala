@@ -22,7 +22,7 @@ package org.ode.engine.signal_processing
  * Can be used over raw signal, FFT one-sided, or PSD (either periodogram
  * or Welch's, one-sided).
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  *
  * @param nfft The size of the fft-computation window
  */
@@ -129,7 +129,6 @@ case class Energy(nfft: Int) extends Serializable {
       i += 1
     }
     energy
-    // Using while with local variables on purpose -- See performance test
     // scalastyle:on while var.local
   }
 

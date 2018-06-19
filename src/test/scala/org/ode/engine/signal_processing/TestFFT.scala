@@ -25,6 +25,8 @@ import scala.math.cos
  * 2-sided-FTT Wrapper to compare with the 1-sided we use
  *
  * @param nfft the fft-computation window size
+ *
+ * @author Alexandre Degurse
  */
 class FFTTwoSided(nfft: Int) {
 
@@ -56,7 +58,7 @@ class FFTTwoSided(nfft: Int) {
 /**
  * Tests for FFT wrap class
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse
  */
 class TestFFT extends FlatSpec with Matchers {
 

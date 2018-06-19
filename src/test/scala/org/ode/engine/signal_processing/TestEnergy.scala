@@ -24,7 +24,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * Tests for Energy Functions
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestEnergy extends FlatSpec with Matchers {
   // The error is computed relatively to the expected value

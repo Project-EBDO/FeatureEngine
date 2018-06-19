@@ -22,7 +22,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * Tests for segmentation class
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestSegmentation extends FlatSpec with Matchers {
 

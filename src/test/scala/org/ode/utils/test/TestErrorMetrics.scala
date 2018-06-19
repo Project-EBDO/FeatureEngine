@@ -24,7 +24,7 @@ import scala.math.abs
 /**
  * Tests for Metric error functions
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestErrorMetrics extends FlatSpec with Matchers {
 

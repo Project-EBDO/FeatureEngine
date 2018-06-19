@@ -24,6 +24,8 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
  * Tests for WavReader
+ *
+ * @author Joseph Allemandou
  */
 class TestWavReader extends FlatSpec with Matchers {
 

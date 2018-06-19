@@ -28,7 +28,7 @@ package org.ode.engine.signal_processing
  * Hamming coefficients computation functions defined in companion object
  * and used to precompute coefficients for a given instance of window.
  *
- * Authors: Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
+ * @author Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
  * @param windowSize The size of the window to be computed
  * @param hammingType The type of hamming window to compute, either periodic or symmetric

@@ -16,32 +16,29 @@
 
 package org.ode.perf
 
+import org.ode.engine.signal_processing.{FFT, FFTTwoSided}
+import org.ode.utils.test.ErrorMetrics
+
+
 /**
- * Performance test for array-copy vs manual-copy
- *
- * @author Alexandre Degurse, Joseph Allemandou
+ * Tests for one-sided FFT
+ * Authors: Alexandre Degurse, Joseph Allemandou
  */
-class PerfTestArrayCopyVsManualCopy
+class PerfTestFFTOneSidedVsTwoSided
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]
   with ArraySizeSpec {
 
   val d1 = (dataStart to dataEnd by dataStep).toArray
   val d2 = (dataStart to dataEnd by dataStep).toArray
-  val f1 = (array: Array[Double]) => {
-    val result2 = new Array[Double](array.length)
-    Array.copy(array, 0, result2, 0, array.length)
-    array
+  val f1 = (array: Array[Double]) => new FFT(array.length).compute(array)
+  val f2 = (array: Array[Double]) => new FFTTwoSided(array.length).compute(array)
+  val f1Desc = "fft-1-sided"
+  val f2Desc = "fft-2-sided"
+
+  // Results are not equal, need to override equalCheck
+  override val equalCheck = (r1: Array[Double], r2: Array[Double]) => {
+    r1.length should equal(r2.length / 2 + 1) // nfft odd
+    ErrorMetrics.rmse(r1.toSeq, r2.splitAt(r2.length / 2 + 1)._1.toSeq) should be < 1.0e-13
   }
-  val f2 = (array: Array[Double]) => {
-    val result = new Array[Double](array.length)
-    var i: Int = 0
-    while (i < array.length) {
-      result(i) = array(i)
-      i += 1
-    }
-    result
-  }
-  val f1Desc = "array-copy"
-  val f2Desc = "manual-copy"
 
 }

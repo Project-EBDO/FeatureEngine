@@ -19,9 +19,8 @@ package org.ode.perf
 /**
  * Performance test for mutables-while vs immutables-map
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
 class PerfTestMutablesWhileVsImmutablesMap
   extends PerfSpec[Array[Double], Vector[Double], Seq[Double]]
   with ArraySizeSpec {

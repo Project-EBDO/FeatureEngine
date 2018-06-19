@@ -20,7 +20,7 @@ package org.ode.perf
 /**
  * Performance test for multiplication vs math.pow
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
 class PerfTestMultiplyVsPow
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]

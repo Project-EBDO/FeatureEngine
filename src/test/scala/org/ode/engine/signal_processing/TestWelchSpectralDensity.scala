@@ -23,7 +23,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * Tests for WelchSpectralDensity Functions
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestWelchSpectralDensity extends FlatSpec with Matchers {
 

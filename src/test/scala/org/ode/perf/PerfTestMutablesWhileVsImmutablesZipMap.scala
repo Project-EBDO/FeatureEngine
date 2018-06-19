@@ -19,9 +19,8 @@ package org.ode.perf
 /**
  * Performance test for mutables-while vs immutables-zip-map
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
 class PerfTestMutablesWhileVsImmutablesZipMap
   extends PerfSpec[
     (Array[Double], Array[Double]),

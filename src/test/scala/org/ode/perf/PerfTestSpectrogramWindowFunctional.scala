@@ -21,7 +21,7 @@ import org.ode.engine.signal_processing.TestWindow
 /**
  * Performance test for mutables-spectrogramWindow vs functional-spectrogramWindow
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
 class PerfTestSpectrogramWindowFunctional
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]

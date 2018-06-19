@@ -20,7 +20,7 @@ package org.ode.engine.signal_processing
 /**
  * SpectrogramWindow defined as a trait
  *
- * Author: Joseph Allemandou
+ * @author Joseph Allemandou
  *
  * Provides a function to apply a spectrogram window to a signal,
  * leaving the actual coefficients computation to the implementations.

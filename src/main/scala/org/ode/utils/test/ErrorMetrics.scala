@@ -20,7 +20,7 @@ package org.ode.utils.test
 /**
  * Metric error functions
  *
- * Authors: Joseph Allemandou, Alexandre Degurse
+ * @author Joseph Allemandou, Alexandre Degurse
  */
 object ErrorMetrics {
 

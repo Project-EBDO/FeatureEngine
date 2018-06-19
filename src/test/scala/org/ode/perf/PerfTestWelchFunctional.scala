@@ -21,7 +21,7 @@ import org.ode.engine.signal_processing.WelchSpectralDensity
 /**
  * Performance test for mutables-welch vs functional-welch
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
 class PerfTestWelchFunctional
   extends PerfSpec[Array[Array[Double]], Array[Array[Double]], Array[Double]]

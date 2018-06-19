@@ -24,6 +24,8 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
  * Test for Serialization of core objects
+ *
+ * @author Alexandre Degurse
  */
 class TestSerialization extends FlatSpec with Matchers {
 

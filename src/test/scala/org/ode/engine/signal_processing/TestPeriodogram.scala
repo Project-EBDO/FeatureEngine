@@ -23,7 +23,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * Tests for Periodogram class
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestPeriodogram extends FlatSpec with Matchers {
 

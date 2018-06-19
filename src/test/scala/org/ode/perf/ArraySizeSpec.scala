@@ -20,6 +20,8 @@ import org.scalatest.Matchers
 
 /**
  * Trait facilitating building homogeneous array-oriented test data for performance tests.
+ *
+ * @author Joseph Allemandou
  */
 trait ArraySizeSpec extends Matchers {
 

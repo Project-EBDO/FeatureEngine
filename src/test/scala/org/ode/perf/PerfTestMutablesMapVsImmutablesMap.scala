@@ -16,15 +16,11 @@
 
 package org.ode.perf
 
-import org.ode.utils.test.ErrorMetrics
-
 /**
  * Performance test for mutables-map vs immutables-map
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-
-
 class PerfTestMutablesMapVsImmutablesMap
   extends PerfSpec[Array[Double], Vector[Double], Seq[Double]]
   with ArraySizeSpec {

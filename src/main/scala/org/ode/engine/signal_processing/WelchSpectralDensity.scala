@@ -20,7 +20,7 @@ package org.ode.engine.signal_processing
 /**
  * Welch Power Spectral Density estimation function.
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  *
  * @param nfft The size of ftt-computation window
  */
@@ -33,9 +33,8 @@ case class WelchSpectralDensity(nfft: Int) extends Serializable {
    * multiple periodograms on the signal
    *
    * @param periodograms The periodograms on the signal that must be one-sided
-   * This function doesn't handle the normalization of the returned estimation.
-   * Normalization must have either happened on input periodograms or needs to be
-   * done after this function.
+   * The returned PSD estimation has the same normalization as the given periodograms.
+   * For instance power density normalized periodogram will result in a power density Welch PSD.
    *
    * @return The Welch Power Spectral Density estimation for the provided periodograms
    */

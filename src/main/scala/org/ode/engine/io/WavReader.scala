@@ -21,9 +21,9 @@ import javax.sound.sampled.{AudioInputStream, AudioFormat, AudioSystem, AudioFil
 
 
 /**
- * Wave-file reader, using javax.sound to get file format.
+ * Wave-file reader by chunks, using javax.sound to get file format.
  *
- * Author: Joseph Allemandou
+ * @author Joseph Allemandou
  *
  * @param audioFile The file to read as a wav file
  */

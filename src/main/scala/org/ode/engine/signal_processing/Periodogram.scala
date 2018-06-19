@@ -23,10 +23,15 @@ package org.ode.engine.signal_processing
  * https://github.com/lancelet/scalasignal/blob/master/src/main/scala/signal/PSD.scala
  * https://gist.github.com/awekuit/7496127
  *
- * Author: Paul Nguyen HD, Alexandre Degurse
+ * @author Paul Nguyen HD, Alexandre Degurse
  *
  * @param nfft Size of fft-computation window
- * @param normalizationFactor The normalization factor for the periodogram
+ * @param normalizationFactor The normalization factor for the periodogram.
+ *                            Usually:
+ *                              1.0 / (samplingRate * windowNormalizationFactor)
+ *                                to get a power density
+ *                              1.0 / windowNormalizationFactor
+ *                                to get a power spectrum
  */
 case class Periodogram(nfft: Int, normalizationFactor: Double) extends Serializable {
 

@@ -23,7 +23,7 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * Tests for Spectrogram Windows Functions
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  */
 class TestHammingWindow extends FlatSpec with Matchers {
   // windowed signal fails for Matlab and numpy/scipy with maxRMSE lower than 3e-15

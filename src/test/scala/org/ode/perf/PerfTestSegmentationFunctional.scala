@@ -22,7 +22,7 @@ import org.ode.engine.signal_processing.Segmentation
  * Performance test for mutables-segmentation vs functional-segmentation
  * Offset is on purpose removed from the test for simplicity
  *
- * Authors: Alexandre Degurse, Joseph Allemandou
+ * @author Alexandre Degurse, Joseph Allemandou
  */
 class PerfTestSegmentationFunctional
   extends PerfSpec[Array[Double], Array[Double], Array[Array[Double]]]

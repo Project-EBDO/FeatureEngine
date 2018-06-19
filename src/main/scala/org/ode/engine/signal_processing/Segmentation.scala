@@ -22,7 +22,7 @@ package org.ode.engine.signal_processing
  *
  * Simple segmentation dropping incomplete windows and allowing for overlap.
  *
- * Author: Alexandre Degurse
+ * @author Alexandre Degurse
  *
  * @param windowSize The size of a window
  * @param offset The offset used to slide the window over the signal (in number of values).

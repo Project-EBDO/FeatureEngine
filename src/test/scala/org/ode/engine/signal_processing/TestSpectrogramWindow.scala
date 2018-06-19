@@ -22,6 +22,8 @@ import org.scalatest.{FlatSpec, Matchers}
 /**
  * SpectrogramWindow test implementation
  * @param windowSize the window size for the test implementation
+ *
+ * @author Alexandre Degurse
  */
 class TestWindow(val windowSize: Int) extends SpectrogramWindow {
   val windowCoefficients: Array[Double] =
@@ -30,6 +32,8 @@ class TestWindow(val windowSize: Int) extends SpectrogramWindow {
 
 /**
  * Test of SpectrogramWindow test implementation
+ *
+ * @author Alexandre Degurse
  */
 class TestSpectrogramWindow extends FlatSpec with Matchers {
 

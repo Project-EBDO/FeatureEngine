@@ -25,7 +25,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
  * Timeserie generator in Spark
- * Author: Joseph Allemandou
  *
  * Generates a dataframe containing a value for every
  * tick in [from, to[ interval.
@@ -35,6 +34,8 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
  * Last partition contains remaining ticks when interval
  * modulo tick is not 0.
  * Uses java 8 time to specify boundaries and tick.
+ *
+ * @author Joseph Allemandou
  *
  * @param spark The SparkSession to use to build the resulting dataframe
  */

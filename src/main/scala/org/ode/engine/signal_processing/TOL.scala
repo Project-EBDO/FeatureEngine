@@ -75,6 +75,7 @@ class TOL
     val firstCompleteTOIdx: Int = math.ceil(10.0 * math.log10(lowCut)).toInt
     val lastCompleteTOIdx: Int = math.floor(10.0 * math.log10(highCut)).toInt
 
+    // for now, we keep the partial bands only if they don't cross the study frequency range
     val keepFirstPartial: Boolean = lowCut > (25.0 * pow(10, 0.05))
     val keepLastPartial: Boolean =
       highCut > (pow(10, 0.05) * pow(10, lastCompleteTOIdx.toDouble/10.0))

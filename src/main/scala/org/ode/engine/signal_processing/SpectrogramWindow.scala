@@ -37,6 +37,10 @@ trait SpectrogramWindow extends Serializable {
    *  The coefficients of the window (an array of size windowSize)
    */
   val windowCoefficients: Array[Double]
+
+  /**
+   * The raw normalization factor of the window
+   */
   val rawNormalizationFactor: Double
 
   /**
@@ -62,5 +66,13 @@ trait SpectrogramWindow extends Serializable {
     res
   }
 
-  def normalizationFactor(alpha: Double): Double = rawNormalizationFactor / pow(alpha, 2)
+  /**
+   * Function used to compute the normalization factor of the window.
+   * It used rawNormalization factor which is pre-computed.
+   *
+   * @param alpha User definied normaliztion factor for the window
+   * default value return the energy of the window
+   * @return The normalization factor of the window
+   */
+  def normalizationFactor(alpha: Double = 1.0): Double = rawNormalizationFactor / pow(alpha, 2)
 }

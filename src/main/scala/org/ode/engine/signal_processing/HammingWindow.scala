@@ -49,6 +49,9 @@ case class HammingWindow(windowSize: Int, hammingType: String) extends Spectrogr
       s"Unknown HammingWindow type ($hammingType), it should be 'periodic' or 'symmetric'")
   }
 
+  /**
+   * compute the the raw normalization factor wich is sum(W_i ^ 2)
+   */
   val rawNormalizationFactor: Double = windowCoefficients.foldLeft(0.0)((acc, v) => acc + pow(v,2))
 }
 

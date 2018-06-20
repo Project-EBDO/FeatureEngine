@@ -80,16 +80,14 @@ class TOL
     // Center scaling factor for bands
     val scalingFactor = math.pow(10, 0.05)
     // tob Tuples (idx, lower-bound, center, upper-bound)
-    val tobs = toCenters.map(toc => (toc._1, toc._2 / scalingFactor, toc._2, toc._2 * scalingFactor))
+    val tobs = toCenters.map(toc => (toc._1, toc._2/scalingFactor, toc._2, toc._2*scalingFactor))
 
     // lowFreq / highFreq filtered values
     val lowCut: Double = lowFreq.getOrElse(25.0)
     val highCut: Double = highFreq.getOrElse(samplingRate / 2.0)
 
     tobs
-      .filter{tob =>
-        tob._3 >= lowCut && tob._3 <= highCut
-      }
+      .filter{tob => tob._2 >= lowCut && tob._4 <= highCut}
       .map{case (idx, lowerBound, center, upperBound) => (lowerBound, upperBound)}
       .toArray
     // scalastyle:on magic.number

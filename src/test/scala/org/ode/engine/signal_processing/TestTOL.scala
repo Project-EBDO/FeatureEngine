@@ -21,13 +21,14 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
   * Tests for TOL class
+  *
   * @author Alexandre Degurse
   */
 
 
 class TestTOL extends FlatSpec with Matchers {
 
-  private val maxRMSE = 2.0E-15
+  private val maxRMSE = 3.0E-14
 
   private val psd128 = Array(
     4.1602500000000000e+03, 8.3018982314637901e+02, 2.0767253111595070e+02,
@@ -61,13 +62,10 @@ class TestTOL extends FlatSpec with Matchers {
     val tolClass = new TOL(nfft, samplingRate)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
-      (22.38721138568339 , 28.18382931264453),
       (28.183829312644537, 35.48133892335754),
       (35.481338923357555, 44.66835921509632),
       (44.66835921509631 , 56.2341325190349)
     )
-
-    tolClass.getBounds.foreach(println)
 
     tolClass.getBounds.length should be(expectedBoudaries.length)
 
@@ -91,7 +89,7 @@ class TestTOL extends FlatSpec with Matchers {
     val tols = tolClass.compute(psd128)
 
     val expectedTols = Array(
-      9.775688536361923, 8.714892243362911, 8.325191414850961, 8.388036763027877
+      8.714892243362911, 8.325191414850961, 8.388036763027877
     )
 
     rmse(tols, expectedTols) should be < maxRMSE
@@ -106,7 +104,6 @@ class TestTOL extends FlatSpec with Matchers {
     val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
-      (28.183829312644537, 35.48133892335754),
       (35.481338923357555, 44.66835921509632),
       (44.66835921509631 , 56.2341325190349)
     )
@@ -124,7 +121,7 @@ class TestTOL extends FlatSpec with Matchers {
       )
   }
 
-  it should "compute Third Octabe Levels when studying custom frequency range" in {
+  it should "compute Third Octave Levels when studying custom frequency range" in {
     val nfft = 128
     val samplingRate = 128.0
     val lowFreq = Some(35.2)
@@ -135,7 +132,7 @@ class TestTOL extends FlatSpec with Matchers {
     val tols = tolClass.compute(psd128)
 
     val expectedTols = Array(
-      8.714892243362911, 8.325191414850961, 8.388036763027877
+      8.325191414850961, 8.388036763027877
     )
 
     rmse(tols, expectedTols) should be < maxRMSE

@@ -26,55 +26,81 @@ import org.ode.engine.io.WavReader
 /**
  * Class that provides a simple signal processing workflow without using Spark.
  *
+ * @author Alexandre Degurse, Joseph Allemandou
  *
- * @author Alexandre Degurse
+ * @param recordDurationInSec The duration of a record in the workflow in seconds
+ * @param segmentSize The size of the segments to be generated
+ * @param segmentOffset The offset used to segment the signal
+ * @param nfft The size of the fft-computation window
  */
 
-// scalastyle:off
 
-class ScalaSampleWorkflow (
-  val nfft: Int,
-  val winSize: Int,
-  val offset: Int
-){
+class ScalaSampleWorkflow
+(
+  val recordDurationInSec: Float,
+  val segmentSize: Int,
+  val segmentOffset: Int,
+  val nfft: Int
+) {
 
   private type Record = (Float, Array[Array[Array[Double]]])
   private type AggregatedRecord = (Float, Array[Array[Double]])
 
-  val segmentationClass = new Segmentation(winSize, Some(offset))
-  val fftClass = new FFT(nfft)
-  val hammingClass = new HammingWindow(winSize, "symmetric")
+  private def readRecord(
+    soundUrl: URL,
+    soundSamplingRate: Float,
+    soundChannels: Int,
+    soundSampleSizeInBits: Int
+  ): Array[AggregatedRecord] = {
+    val wavFile: File = new File(soundUrl.toURI)
+    val wavReader = new WavReader(wavFile)
 
-  val hammingNormalizationFactor = hammingClass.windowCoefficients
-    .foldLeft(0.0)((acc, v) => acc + v*v)
+    val recordSize = (recordDurationInSec * soundSamplingRate).toInt
+    val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
 
-  val welchClass = new WelchSpectralDensity(nfft)
-  val energyClass = new Energy(nfft)
+    chunks.zipWithIndex
+      .map{case (record, idx) => ((idx.toFloat / soundSamplingRate), record)}.toArray
+  }
 
+  /**
+   * Apply method for the workflow
+   *
+   * @param soundUrl The URL to find the sound
+   * @param soundSamplingRate Sound's soundSamplingRate
+   * @param soundChannels Sound's number of channels
+   * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @return A map that contains all basic features as RDDs
+   */
   def apply(
-    soundFilePath: URL,
-    recordSize: Int,
-    samplingRate: Float
+    soundUrl: URL,
+    soundSamplingRate: Float,
+    soundChannels: Int,
+    soundSampleSizeInBits: Int
   ): Map[String, Either[Array[Record], Array[AggregatedRecord]]] = {
 
-    val wavFile: File = new File(soundFilePath.toURI)
-    val wavReader = new WavReader(wavFile)
-    val periodogramClass = new Periodogram(nfft, 1.0 / (samplingRate * hammingNormalizationFactor))
+    val records = readRecord(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
 
-    val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
-    val records: Array[(Float, Array[Array[Double]])] = chunks.zipWithIndex
-      .map{case (record, idx) => ((idx.toFloat / samplingRate), record)}.toArray
+    val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
+    val hammingClass = new HammingWindow(segmentSize, "symmetric")
+    val fftClass = new FFT(nfft)
+
+    val hammingNormalizationFactor = hammingClass.windowCoefficients
+      .foldLeft(0.0)((acc, v) => acc + v*v)
+
+    val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
+    val welchClass = new WelchSpectralDensity(nfft)
+    val energyClass = new Energy(nfft)
 
     val segmented = records.map{
       case (idx, channels) => (idx, channels.map(segmentationClass.compute))
     }
 
     val ffts = segmented.map{
-      case (idx, channels) => (idx, channels.map(segments => segments.map(fftClass.compute)))
+      case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))
     }
 
     val periodograms = ffts.map{
-      case (idx, channels) => (idx, channels.map(segments => segments.map(periodogramClass.compute)))
+      case (idx, channels) => (idx, channels.map(_.map(periodogramClass.compute)))
     }
 
     val welchs = periodograms.map{

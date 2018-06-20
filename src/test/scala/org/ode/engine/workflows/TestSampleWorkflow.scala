@@ -35,8 +35,6 @@ import scala.io.Source
  * @author Alexandre Degurse, Joseph Allemandou
  */
 
-// scalastyle:off
-
 class TestSampleWorkflow
     extends FlatSpec
     with Matchers
@@ -51,9 +49,9 @@ class TestSampleWorkflow
 
     // Signal processing parameters
     val recordSizeInSec = 0.1f
-    val winSize = 100
+    val segmentSize = 100
     val nfft = 100
-    val fftOffset = 100
+    val segmentOffset = 100
     val soundSamplingRate = 16000.0f
 
     // Sound parameters
@@ -68,25 +66,25 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      winSize,
-      nfft,
-      fftOffset
-      )
+      segmentSize,
+      segmentOffset,
+      nfft
+    )
 
     val resultMap = sampleWorkflow.apply(
       soundUrl,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits)
+      soundSampleSizeInBits
+    )
 
     val sparkFFT = resultMap("ffts").left.get.cache()
     val sparkPeriodograms = resultMap("periodograms").left.get.cache()
     val sparkWelchs = resultMap("welchs").right.get.cache()
     val sparkSPL = resultMap("spls").right.get.cache()
 
-
     val expectedRecordNumber = soundDurationInSecs / recordSizeInSec
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / winSize
+    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / segmentSize
     val expectedFFTSize = nfft + 2 // nfft is even
 
     resultMap.size should equal(4)
@@ -119,9 +117,9 @@ class TestSampleWorkflow
 
     // Signal processing parameters
     val recordSizeInSec = 0.1f
-    val winSize = 100
+    val segmentSize = 100
     val nfft = 100
-    val fftOffset = 100
+    val segmentOffset = 100
     val soundSamplingRate = 16000.0f
 
     // Sound parameters
@@ -136,9 +134,9 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      winSize,
+      segmentSize,
       nfft,
-      fftOffset
+      segmentOffset
     )
 
     val resultMap = sampleWorkflow.apply(
@@ -154,15 +152,17 @@ class TestSampleWorkflow
     val sparkSPLs = resultMap("spls").right.get.cache()
 
     val scalaWorkflow = new ScalaSampleWorkflow(
-      nfft,
-      winSize,
-      fftOffset
+      recordSizeInSec,
+      segmentSize,
+      segmentOffset,
+      nfft
     )
 
     val resultMapScala = scalaWorkflow.apply(
       soundUrl,
-      (soundSamplingRate/10.0).toInt,
-      soundSamplingRate
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits
     )
 
     val scalaFFT = resultMapScala("ffts").left.get

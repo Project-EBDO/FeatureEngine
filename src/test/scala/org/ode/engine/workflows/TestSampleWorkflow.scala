@@ -16,7 +16,7 @@
 
 package org.ode.engine.workflows
 
-import org.ode.utils.test.ErrorMetrics.rmse
+import org.ode.utils.test.ErrorMetrics
 
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
 import org.apache.spark.rdd.RDD
@@ -50,24 +50,68 @@ class TestSampleWorkflow
     recordsA: Array[Record],
     recordsB: Array[Record]
   ): Unit = {
-    // make sure that both records have the same dimensions
-    recordsA
-      .zip(recordsB)
-      .foreach{
-        recordTuple =>
-      }
-
     val numChannels = recordsA(0)._2.length
-    val segmentLength = recordsA(0)._2(0).length
+    val numSegments = recordsA(0)._2(0).length
+    val segmentLength = recordsA(0)._2(0)(0).length
 
     recordsA
       .zip(recordsB)
-      .map(fftTuple => (fftTuple._1._2(0), fftTuple._2._2(0)))
-      .foreach{fftTuple =>
-        var i = 0
-        while (i < fftTuple._1.length) {
-          rmse(fftTuple._1(i), fftTuple._2(i)) should be < maxRMSE
-          i += 1
+      .foreach{case (recA, recB) =>
+        // records keys should be equal
+        // fails, spark first record key doesn't start at 0.0
+        // recA._1 should equal(recB._1)
+
+        // records should have the same number of channels
+        recA._2.length should equal(numChannels)
+        recB._2.length should equal(numChannels)
+
+        var c = 0
+        while (c < numChannels) {
+          // each record should have the same number of segments
+          recA._2(c).length should equal(numSegments)
+          recB._2(c).length should equal(numSegments)
+
+          var s = 0
+          while (s < numSegments) {
+            // segments should have the same length
+            recA._2(c)(s).length should equal(segmentLength)
+            recB._2(c)(s).length should equal(segmentLength)
+
+            // finally compare values
+            ErrorMetrics.rmse(recA._2(c)(s), recB._2(c)(s)) should be < maxRMSE
+            s += 1
+          }
+          c += 1
+        }
+      }
+  }
+  def compareResultAggregatedRecord(
+    recordsA: Array[AggregatedRecord],
+    recordsB: Array[AggregatedRecord]
+  ): Unit = {
+    val numChannels = recordsA(0)._2.length
+    val recordLength = recordsA(0)._2(0).length
+
+    recordsA
+      .zip(recordsB)
+      .foreach{case (recA, recB) =>
+        // records keys should be equal
+        // fails, spark first record key doesn't start at 0.0
+        // recA._1 should equal(recB._1)
+
+        // records should have the same number of channels
+        recA._2.length should equal(numChannels)
+        recB._2.length should equal(numChannels)
+
+        var c = 0
+        while (c < numChannels) {
+          // each record should have the same number of segments
+          recA._2(c).length should equal(recordLength)
+          recB._2(c).length should equal(recordLength)
+
+          // finally compare values
+          ErrorMetrics.rmse(recA._2(c), recB._2(c)) should be < maxRMSE
+          c += 1
         }
       }
   }
@@ -175,10 +219,10 @@ class TestSampleWorkflow
       soundSampleSizeInBits
     )
 
-    val sparkFFT = resultMap("ffts").left.get.cache()
-    val sparkPeriodograms = resultMap("periodograms").left.get.cache()
-    val sparkWelchs = resultMap("welchs").right.get.cache()
-    val sparkSPLs = resultMap("spls").right.get.cache()
+    val sparkFFT = resultMap("ffts").left.get.cache().collect()
+    val sparkPeriodograms = resultMap("periodograms").left.get.cache().collect()
+    val sparkWelchs = resultMap("welchs").right.get.cache().collect()
+    val sparkSPLs = resultMap("spls").right.get.cache().collect()
 
     val scalaWorkflow = new ScalaSampleWorkflow(
       recordSizeInSec,
@@ -199,43 +243,9 @@ class TestSampleWorkflow
     val scalaWelchs = resultMapScala("welchs").right.get
     val scalaSPLs = resultMapScala("spls").right.get
 
-    sparkFFT
-      .collect()
-      .zip(scalaFFT)
-      .map(fftTuple => (fftTuple._1._2(0), fftTuple._2._2(0)))
-      .foreach{fftTuple =>
-        var i = 0
-        while (i < fftTuple._1.length) {
-          rmse(fftTuple._1(i), fftTuple._2(i)) should be < maxRMSE
-          i += 1
-        }
-      }
-
-    sparkPeriodograms
-      .collect()
-      .zip(scalaPeriodograms)
-      .map(periodogramTuple => (periodogramTuple._1._2(0), periodogramTuple._2._2(0)))
-      .foreach{periodogramTuple =>
-        var i = 0
-        while (i < periodogramTuple._1.length) {
-          rmse(periodogramTuple._1(i), periodogramTuple._2(i)) should be < maxRMSE
-          i += 1
-        }
-      }
-
-
-    sparkWelchs
-      .collect()
-      .zip(scalaWelchs)
-      .map(welchTuple => (welchTuple._1._2(0), welchTuple._2._2(0)))
-      .foreach(welchTuple =>
-        rmse(welchTuple._1, welchTuple._2) should be < maxRMSE
-      )
-
-    sparkSPLs
-      .collect()
-      .zip(scalaSPLs)
-      .foreach( splTuple => splTuple._1._2(0) should be(splTuple._2._2(0)))
-
+    compareResultRecord(scalaFFT, sparkFFT)
+    compareResultRecord(scalaPeriodograms, sparkPeriodograms)
+    compareResultAggregatedRecord(scalaWelchs, sparkWelchs)
+    compareResultAggregatedRecord(scalaSPLs, sparkSPLs)
   }
 }

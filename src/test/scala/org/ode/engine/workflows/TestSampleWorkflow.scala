@@ -43,6 +43,35 @@ class TestSampleWorkflow
 
   val maxRMSE = 1.0E-16
 
+  private type Record = (Float, Array[Array[Array[Double]]])
+  private type AggregatedRecord = (Float, Array[Array[Double]])
+
+  def compareResultRecord(
+    recordsA: Array[Record],
+    recordsB: Array[Record]
+  ): Unit = {
+    // make sure that both records have the same dimensions
+    recordsA
+      .zip(recordsB)
+      .foreach{
+        recordTuple =>
+      }
+
+    val numChannels = recordsA(0)._2.length
+    val segmentLength = recordsA(0)._2(0).length
+
+    recordsA
+      .zip(recordsB)
+      .map(fftTuple => (fftTuple._1._2(0), fftTuple._2._2(0)))
+      .foreach{fftTuple =>
+        var i = 0
+        while (i < fftTuple._1.length) {
+          rmse(fftTuple._1(i), fftTuple._2(i)) should be < maxRMSE
+          i += 1
+        }
+      }
+  }
+
   "SampleWorkflow" should "generate results of expected size" in {
 
     val spark = SparkSession.builder.getOrCreate

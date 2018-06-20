@@ -39,9 +39,10 @@ trait SpectrogramWindow extends Serializable {
   val windowCoefficients: Array[Double]
 
   /**
-   * The raw normalization factor of the window
+   * Compute the the raw normalization factor which is sum(W_i ^ 2)
    */
-  val rawNormalizationFactor: Double
+  lazy val rawNormalizationFactor: Double = windowCoefficients
+    .foldLeft(0.0)((acc, v) => acc + math.pow(v,2))
 
   /**
    * Function applying a SpectrogramWindow implementation to a signal portion

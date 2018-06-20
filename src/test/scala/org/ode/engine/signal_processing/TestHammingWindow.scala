@@ -105,9 +105,7 @@ class TestHammingWindow extends FlatSpec with Matchers {
 
     val expectedNormFactor = 4.024751020408163
 
-    val error = rmse(expectedNormFactor,normalizationFactor)
-
-    error should be < maxRMSE
+    rmse(expectedNormFactor,normalizationFactor) should be < maxRMSE
   }
 
   it should "rmse-match a transformed signal as in numpy" in {

@@ -21,7 +21,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
   * Tests for TOL class
-  * Author: Alexandre Degurse
+  * @author Alexandre Degurse
   */
 
 

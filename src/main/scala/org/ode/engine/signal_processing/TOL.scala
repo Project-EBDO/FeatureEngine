@@ -18,9 +18,14 @@ package org.ode.engine.signal_processing
 
 import scala.math.{log10, pow, log, floor}
 /**
- * Class that computes Third-Octave Level bands over a PSD.
+ * Class that computes Third-Octave Level over a Power Spectral Density.
  *
- * Author: Paul Nguyen HD, Alexandre Degurse
+ * Some abbreviations are used here:
+ * - TO: third octave, used to designate implicitly is the frequency of TO band
+ * - TOB: third octave band, designates the band of frequency of a TO
+ * - TOL: third octave level, designates the Sound Pressure Level of a TOB
+ *
+ * @author Paul Nguyen HD, Alexandre Degurse
  *
  * @param nfft The number of points of the two-sided spectrum that this class should handle
  * @param samplingRate The sampling rate of the signal
@@ -63,7 +68,7 @@ class TOL
   private val expectedWelchSize = if (nfft % 2 == 0) nfft/2 + 1 else (nfft + 1)/2
 
   // Generate third octave band boundaries for each center frequency of third octave
-  private val bounds: Array[(Double, Double)] = {
+  private val thirdOctaveBandBounds: Array[(Double, Double)] = {
     // we're using acoustic constants
     // scalastyle:off magic.number
     val lowCut: Double = if (lowFreq.isDefined) lowFreq.get else 25.0
@@ -79,7 +84,6 @@ class TOL
     val keepFirstPartial: Boolean = lowCut > (25.0 * pow(10, 0.05))
     val keepLastPartial: Boolean =
       highCut > (pow(10, 0.05) * pow(10, lastCompleteTOIdx.toDouble/10.0))
-
 
     val tobCenterFreq =
       Range(
@@ -98,7 +102,7 @@ class TOL
    *
    * @return The computed TOB bounds for the given frequency study range
    */
-   def getBounds(): Array[(Double, Double)] = bounds
+  def getBounds(): Array[(Double, Double)] = thirdOctaveBandBounds
 
   /**
    * Function used to associate a frequency of a spectrum to an index of a discrete
@@ -110,14 +114,16 @@ class TOL
   def frequencyToIndex(freq: Double): Int = (freq * nfft / samplingRate).toInt
 
   // Compute the indices associated with each TOB boundary
-  private val boundIndicies: Array[(Int, Int)] = bounds.map(
+  private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
     bound => (frequencyToIndex(bound._1), frequencyToIndex(bound._2))
   )
 
   /**
    * Function that computes the Third Octave Levels over a PSD
    *
-   * @param psd The one-sided PSD as an Array[Double] of length expectedPSDSize
+   * @param welch The one-sided Power Spectral Density as an Array[Double] of length expectedPSDSize
+   * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
+   * to compute it over a welch estimate of PSD
    * @param vADC The voltage of Analog Digital Converter used in the microphone,
    * or in other words ADC peak voltage (e.g 1.414 V)
    * @param microSensitivity Microphone sensitivity (without gain)
@@ -127,15 +133,15 @@ class TOL
    */
   def compute
   (
-    psd: Array[Double],
+    welch: Array[Double],
     vADC: Double = 1.0,
     microSensitivity: Double = 0.0,
     gain: Double = 0.0
   ): Array[Double] = {
 
-    if (psd.length != expectedWelchSize) {
+    if (welch.length != expectedWelchSize) {
       throw new IllegalArgumentException(
-        s"Incorrect PSD size (${psd.length}) for TOL ($expectedWelchSize)"
+        s"Incorrect PSD size (${welch.length}) for TOL ($expectedWelchSize)"
       )
     }
 
@@ -150,7 +156,7 @@ class TOL
     while (i < boundIndicies.length) {
       j = boundIndicies(i)._1
       while (j < boundIndicies(i)._2) {
-        tol += psd(j)
+        tol += welch(j)
         j += 1
       }
       tols(i) = 10.0 * math.log10(tol) - logNormalization

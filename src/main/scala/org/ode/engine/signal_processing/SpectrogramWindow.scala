@@ -40,6 +40,7 @@ trait SpectrogramWindow extends Serializable {
 
   /**
    * Compute the the raw normalization factor which is sum(W_i ^ 2)
+   * lazy val so to have windowCoefficients instanciated before
    */
   lazy val rawNormalizationFactor: Double = windowCoefficients
     .foldLeft(0.0)((acc, v) => acc + math.pow(v,2))

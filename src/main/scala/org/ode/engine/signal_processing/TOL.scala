@@ -27,7 +27,7 @@ import scala.math.{log10, pow, log, floor}
  *
  * @author Paul Nguyen HD, Alexandre Degurse
  *
- * @param nfft The number of points of the two-sided spectrum that this class should handle
+ * @param nfft The size of the fft-computation window
  * @param samplingRate The sampling rate of the signal
  * @param lowFreq The low boundary of the frequency range to study
  * @param highFreq The high boundary of the frequency range to study
@@ -44,7 +44,7 @@ class TOL
 
   if (nfft < samplingRate) {
     throw new IllegalArgumentException(
-      s"Incorrect window size ($nfft) for TOL (samplingRate)"
+      s"Incorrect window size ($nfft) for TOL ($samplingRate)"
     )
   }
 
@@ -52,7 +52,8 @@ class TOL
     lowFreq.isDefined && (lowFreq.get < 25.0 || lowFreq.get > highFreq.getOrElse(samplingRate/2.0))
   ) {
     throw new IllegalArgumentException(
-      s"Incorrect low frequency (${lowFreq.get}) for TOL (25.0)"
+      s"Incorrect low frequency (${lowFreq.get}) for TOL "
+      + " (smaller than 25.0 or bigger than ${highFreq.getOrElse(samplingRate/2.0)})"
     )
   }
 
@@ -61,7 +62,8 @@ class TOL
     && (highFreq.get > samplingRate/2.0 || highFreq.get < lowFreq.getOrElse(25.0))
   ) {
     throw new IllegalArgumentException(
-      s"Incorrect high frequency (${highFreq.get}) for TOL (${samplingRate/2.0})"
+      s"Incorrect high frequency (${highFreq.get}) for TOL "
+      + "(higher than ${sampingRate/2.0} or smaller than ${lowFreq.getOrElse(25.0)})"
     )
   }
 

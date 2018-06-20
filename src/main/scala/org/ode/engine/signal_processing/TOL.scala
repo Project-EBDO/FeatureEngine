@@ -25,7 +25,7 @@ import scala.math.{log10, pow, log, floor}
  * - TOB: third octave band, designates the band of frequency of a TO
  * - TOL: third octave level, designates the Sound Pressure Level of a TOB
  *
- * @author Paul Nguyen HD, Alexandre Degurse
+ * @author Paul Nguyen HD, Alexandre Degurse, Joseph Allemandou
  *
  * @param nfft The size of the fft-computation window
  * @param samplingRate The sampling rate of the signal
@@ -73,29 +73,25 @@ class TOL
   private val thirdOctaveBandBounds: Array[(Double, Double)] = {
     // we're using acoustic constants
     // scalastyle:off magic.number
-    val lowCut: Double = if (lowFreq.isDefined) lowFreq.get else 25.0
-    val highCut: Double = if (highFreq.isDefined) highFreq.get else samplingRate / 2.0
 
-    // Frequency Key from ANSI standard
-    val keyFreq = 1000.0
+    // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
+    // 32 to-centers between ~16Hz and ~20KHz with their index
+    val toCenters = (12 to 43).map(v => (v, math.pow(10, (0.1 * v))))
+    // Center scaling factor for bands
+    val scalingFactor = math.pow(10, 0.05)
+    // tob Tuples (idx, lower-bound, center, upper-bound)
+    val tobs = toCenters.map(toc => (toc._1, toc._2 / scalingFactor, toc._2, toc._2 * scalingFactor))
 
-    val firstCompleteTOIdx: Int = math.ceil(10.0 * math.log10(lowCut)).toInt
-    val lastCompleteTOIdx: Int = math.floor(10.0 * math.log10(highCut)).toInt
+    // lowFreq / highFreq filtered values
+    val lowCut: Double = lowFreq.getOrElse(25.0)
+    val highCut: Double = highFreq.getOrElse(samplingRate / 2.0)
 
-    // for now, we keep the partial bands only if they don't cross the study frequency range
-    val keepFirstPartial: Boolean = lowCut > (25.0 * pow(10, 0.05))
-    val keepLastPartial: Boolean =
-      highCut > (pow(10, 0.05) * pow(10, lastCompleteTOIdx.toDouble/10.0))
-
-    val tobCenterFreq =
-      Range(
-        firstCompleteTOIdx + (if (keepFirstPartial) -1 else 0),
-        lastCompleteTOIdx + (if (keepLastPartial) 1 else 0)
-      )
-        .map(i => math.pow(10, i.toDouble/10.0))
-        .toArray
-
-    tobCenterFreq.map(freq => (freq*pow(10,-0.05), freq*pow(10,0.05))).toArray
+    tobs
+      .filter{tob =>
+        tob._3 >= lowCut && tob._3 <= highCut
+      }
+      .map{case (idx, lowerBound, center, upperBound) => (lowerBound, upperBound)}
+      .toArray
     // scalastyle:on magic.number
   }
 

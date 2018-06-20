@@ -67,6 +67,8 @@ class TestTOL extends FlatSpec with Matchers {
       (44.66835921509631 , 56.2341325190349)
     )
 
+    tolClass.getBounds.foreach(println)
+
     tolClass.getBounds.length should be(expectedBoudaries.length)
 
     val zippedResults: Array[(Array[Double], Array[Double])] =

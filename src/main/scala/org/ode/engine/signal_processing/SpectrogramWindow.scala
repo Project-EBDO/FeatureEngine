@@ -71,7 +71,7 @@ trait SpectrogramWindow extends Serializable {
    * It used rawNormalization factor which is pre-computed.
    *
    * @param alpha User definied normalization factor for the window
-   * The default value of 1.0 returns the energy of the window
+   * With the default value of 1.0, the returned normalization factor is the energy of the windows
    * @return The normalization factor of the window
    */
   def normalizationFactor(alpha: Double = 1.0): Double = rawNormalizationFactor / math.pow(alpha, 2)

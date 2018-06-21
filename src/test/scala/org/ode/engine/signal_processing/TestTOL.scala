@@ -67,10 +67,10 @@ class TestTOL extends FlatSpec with Matchers {
       (44.66835921509631 , 56.2341325190349)
     )
 
-    tolClass.getBounds.length should be(expectedBoudaries.length)
+    tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
 
     val zippedResults: Array[(Array[Double], Array[Double])] =
-      tolClass.getBounds.zip(expectedBoudaries)
+      tolClass.thirdOctaveBandBounds.zip(expectedBoudaries)
       .map(bound => (bound._1.productIterator.toArray.map(_.asInstanceOf[Double]),
         bound._2.productIterator.toArray.map(_.asInstanceOf[Double])))
 
@@ -108,10 +108,10 @@ class TestTOL extends FlatSpec with Matchers {
       (44.66835921509631 , 56.2341325190349)
     )
 
-    tolClass.getBounds.length should be(expectedBoudaries.length)
+    tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
 
     val zippedResults: Array[(Array[Double], Array[Double])] =
-      tolClass.getBounds.zip(expectedBoudaries)
+      tolClass.thirdOctaveBandBounds.zip(expectedBoudaries)
       .map(bound => (bound._1.productIterator.toArray.map(_.asInstanceOf[Double]),
         bound._2.productIterator.toArray.map(_.asInstanceOf[Double])))
 

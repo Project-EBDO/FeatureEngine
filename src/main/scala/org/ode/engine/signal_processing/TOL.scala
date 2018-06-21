@@ -69,36 +69,29 @@ class TOL
 
   private val expectedWelchSize = if (nfft % 2 == 0) nfft/2 + 1 else (nfft + 1)/2
 
-  // Generate third octave band boundaries for each center frequency of third octave
-  private val thirdOctaveBandBounds: Array[(Double, Double)] = {
+  /**
+   * Generate third octave band boundaries for each center frequency of third octave
+   */
+  val thirdOctaveBandBounds: Array[(Double, Double)] = {
     // we're using acoustic constants
     // scalastyle:off magic.number
 
+    val tocScalingFactor = math.pow(10, 0.05)
+
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
     // 32 to-centers between ~16Hz and ~20KHz with their index
-    val toCenters = (12 to 43).map(v => (v, math.pow(10, (0.1 * v))))
-    // Center scaling factor for bands
-    val scalingFactor = math.pow(10, 0.05)
-    // tob Tuples (idx, lower-bound, center, upper-bound)
-    val tobs = toCenters.map(toc => (toc._1, toc._2/scalingFactor, toc._2, toc._2*scalingFactor))
-
-    // lowFreq / highFreq filtered values
-    val lowCut: Double = lowFreq.getOrElse(25.0)
-    val highCut: Double = highFreq.getOrElse(samplingRate / 2.0)
-
-    tobs
-      .filter{tob => tob._2 >= lowCut && tob._4 <= highCut}
-      .map{case (idx, lowerBound, center, upperBound) => (lowerBound, upperBound)}
+    (12 to 43)
+      // convert third octaves indicies to the frequency of the center of their band
+      .map(toIndex => math.pow(10, (0.1 * toIndex)))
+      // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency
+      .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
+      // keep only the band that are within the study range
+      .filter{tob =>
+        tob._1 >= lowFreq.getOrElse(25.0) && tob._2 <= highFreq.getOrElse(samplingRate / 2.0)
+      }
       .toArray
     // scalastyle:on magic.number
   }
-
-  /**
-   * Getter on bounds
-   *
-   * @return The computed TOB bounds for the given frequency study range
-   */
-  def getBounds(): Array[(Double, Double)] = thirdOctaveBandBounds
 
   /**
    * Function used to associate a frequency of a spectrum to an index of a discrete

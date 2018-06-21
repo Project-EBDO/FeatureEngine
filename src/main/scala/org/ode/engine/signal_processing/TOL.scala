@@ -16,7 +16,6 @@
 
 package org.ode.engine.signal_processing
 
-import scala.math.{log10, pow, log, floor}
 /**
  * Class that computes Third-Octave Level over a Power Spectral Density.
  *
@@ -49,21 +48,21 @@ class TOL
   }
 
   if (
-    lowFreq.isDefined && (lowFreq.get < 25.0 || lowFreq.get > highFreq.getOrElse(samplingRate/2.0))
+    lowFreq.isDefined && (lowFreq.get < 6.309573444801933 || lowFreq.get > highFreq.getOrElse(samplingRate/2.0))
   ) {
     throw new IllegalArgumentException(
       s"Incorrect low frequency (${lowFreq.get}) for TOL "
-      + " (smaller than 25.0 or bigger than ${highFreq.getOrElse(samplingRate/2.0)})"
+      + " (smaller than 6.309573444801933 or bigger than ${highFreq.getOrElse(samplingRate/2.0)})"
     )
   }
 
   if (
     highFreq.isDefined
-    && (highFreq.get > samplingRate/2.0 || highFreq.get < lowFreq.getOrElse(25.0))
+    && (highFreq.get > samplingRate/2.0 || highFreq.get < lowFreq.getOrElse(6.309573444801933))
   ) {
     throw new IllegalArgumentException(
       s"Incorrect high frequency (${highFreq.get}) for TOL "
-      + "(higher than ${sampingRate/2.0} or smaller than ${lowFreq.getOrElse(25.0)})"
+      + "(higher than ${sampingRate/2.0} or smaller than ${lowFreq.getOrElse(6.309573444801933)})"
     )
   }
 
@@ -78,16 +77,22 @@ class TOL
 
     val tocScalingFactor = math.pow(10, 0.05)
 
+
+
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
-    // 32 to-centers between ~16Hz and ~20KHz with their index
-    (12 to 43)
+    // we start at the 8th to-center/ 6.31 Hz,
+    // the last band is the last complete before samplingRate/2.0
+    val maxTOindex = (10.0*math.log10(samplingRate/2.0)-1.0).toInt
+    (8 to maxTOindex)
       // convert third octaves indicies to the frequency of the center of their band
       .map(toIndex => math.pow(10, (0.1 * toIndex)))
-      // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency
+      // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency)
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
       // keep only the band that are within the study range
       .filter{tob =>
-        tob._1 >= lowFreq.getOrElse(25.0) && tob._2 <= highFreq.getOrElse(samplingRate / 2.0)
+        // partial bands are kept
+        (tob._2 >= lowFreq.getOrElse(6.309573444801933)
+        && tob._1 <= highFreq.getOrElse(samplingRate / 2.0))
       }
       .toArray
     // scalastyle:on magic.number
@@ -110,14 +115,17 @@ class TOL
   /**
    * Function that computes the Third Octave Levels over a PSD
    *
+   * Default environmentals parameters ensures that there is no correction on
+   * on the third-octave levels.
+   *
    * @param welch The one-sided Power Spectral Density as an Array[Double] of length expectedPSDSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a welch estimate of PSD
-   * @param vADC The voltage of Analog Digital Converter used in the microphone,
+   * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts,
    * or in other words ADC peak voltage (e.g 1.414 V)
-   * @param microSensitivity Microphone sensitivity (without gain)
+   * @param microSensitivity Microphone sensitivity (without gain, given in dB)
    * (-170 dB re 1 V/Pa to -140 dB re 1 V/Pa is a range often used)
-   * @param gain Gain used for the hydrophones (range from 20 dB to 25 dB)
+   * @param gain Gain used for the hydrophones (range from 20 dB to 25 dB, given in dB)
    * @return The Third Octave Levels over the PSD as a Array[Double]
    */
   def compute
@@ -134,7 +142,7 @@ class TOL
       )
     }
 
-    val logNormalization: Double = microSensitivity + gain + 20*log10(1.0/vADC)
+    val logNormalization: Double = microSensitivity + gain + 20*math.log10(1.0/vADC)
     val tols = new Array[Double](boundIndicies.length)
 
     // scalastyle:off while var.local

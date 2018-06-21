@@ -62,9 +62,16 @@ class TestTOL extends FlatSpec with Matchers {
     val tolClass = new TOL(nfft, samplingRate)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
-      (28.183829312644537, 35.48133892335754),
-      (35.481338923357555, 44.66835921509632),
-      (44.66835921509631 , 56.2341325190349)
+      (5.623413251903492 ,  7.0794578438413795),
+      (7.07945784384138  ,  8.912509381337456 ),
+      (8.912509381337456 , 11.220184543019634 ),
+      (11.220184543019638 , 14.125375446227544),
+      (14.125375446227542 , 17.782794100389225),
+      (17.78279410038923  , 22.387211385683397),
+      (22.38721138568339  , 28.18382931264453 ),
+      (28.183829312644537 , 35.48133892335754 ),
+      (35.481338923357555 , 44.66835921509632 ),
+      (44.66835921509631  , 56.2341325190349)
     )
 
     tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
@@ -89,7 +96,8 @@ class TestTOL extends FlatSpec with Matchers {
     val tols = tolClass.compute(psd128)
 
     val expectedTols = Array(
-      8.714892243362911, 8.325191414850961, 8.388036763027877
+      17.527526296124083, 12.331713899354892, 15.0544169337612,   12.563319363791232, 10.674420316711267,
+      10.990378762004575, 9.775688536361923,  8.714892243362911,  8.325191414850961,  8.388036763027877
     )
 
     rmse(tols, expectedTols) should be < maxRMSE
@@ -104,8 +112,9 @@ class TestTOL extends FlatSpec with Matchers {
     val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
+      (28.183829312644537, 35.48133892335754),
       (35.481338923357555, 44.66835921509632),
-      (44.66835921509631 , 56.2341325190349)
+      (44.66835921509631 , 56.2341325190349 )
     )
 
     tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
@@ -132,7 +141,7 @@ class TestTOL extends FlatSpec with Matchers {
     val tols = tolClass.compute(psd128)
 
     val expectedTols = Array(
-      8.325191414850961, 8.388036763027877
+      8.714892243362911, 8.325191414850961, 8.388036763027877
     )
 
     rmse(tols, expectedTols) should be < maxRMSE
@@ -141,30 +150,30 @@ class TestTOL extends FlatSpec with Matchers {
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
     val tolClass = new TOL(100, 100.0)
 
-    an [IllegalArgumentException] should be thrownBy tolClass.compute(Array(1.0))
+    an[IllegalArgumentException] should be thrownBy tolClass.compute(Array(1.0))
   }
 
   it should "raise IllegalArgumentException when given windows that are smaller than 1 second" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 1000.0)
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 1000.0)
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than sampling rate / 2" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(200.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(200.0))
   }
 
   it should "raise IllegalArgumentException when given high frequency is higher than sampling rate / 2" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(100.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(100.0))
   }
 
   it should "raise IllegalArgumentException when given high frequency is smaller than 25 Hz" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(25.0), Some(0.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(25.0), Some(0.0))
   }
 
   it should "raise IllegalArgumentException when given low frequency is smaller than 25 Hz" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(0.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(0.0))
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than high frequency" in {
-    an [IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(40.0), Some(30.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(40.0), Some(30.0))
   }
 }

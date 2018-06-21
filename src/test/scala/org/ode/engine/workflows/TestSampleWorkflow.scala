@@ -50,40 +50,45 @@ class TestSampleWorkflow
     recordsA: Array[Record],
     recordsB: Array[Record]
   ): Unit = {
+
+    recordsA.length should equal(recordsB.length)
+
+    val numRecords = recordsA.length
     val numChannels = recordsA(0)._2.length
     val numSegments = recordsA(0)._2(0).length
     val segmentLength = recordsA(0)._2(0)(0).length
 
-    recordsA
-      .zip(recordsB)
-      .foreach{case (recA, recB) =>
-        // records keys should be equal
-        // fails, spark first record key doesn't start at 0.0
-        // recA._1 should equal(recB._1)
+    var r = 0
+    var c = 0
+    var s = 0
 
-        // records should have the same number of channels
-        recA._2.length should equal(numChannels)
-        recB._2.length should equal(numChannels)
+    while (r < numRecords) {
+      // records keys should be equal
+      recordsA(r)._1 should equal(recordsB(r)._1)
 
-        var c = 0
-        while (c < numChannels) {
-          // each record should have the same number of segments
-          recA._2(c).length should equal(numSegments)
-          recB._2(c).length should equal(numSegments)
+      // records should have the same number of channels
+      recordsA(r)._2.length should equal(numChannels)
+      recordsB(r)._2.length should equal(numChannels)
 
-          var s = 0
-          while (s < numSegments) {
-            // segments should have the same length
-            recA._2(c)(s).length should equal(segmentLength)
-            recB._2(c)(s).length should equal(segmentLength)
+      while (c < numChannels) {
+        // each record should have the same number of segments
+        recordsA(r)._2(c).length should equal(numSegments)
+        recordsB(r)._2(c).length should equal(numSegments)
 
-            // finally compare values
-            ErrorMetrics.rmse(recA._2(c)(s), recB._2(c)(s)) should be < maxRMSE
-            s += 1
-          }
-          c += 1
+        var s = 0
+        while (s < numSegments) {
+          // segments should have the same length
+          recordsA(r)._2(c)(s).length should equal(segmentLength)
+          recordsB(r)._2(c)(s).length should equal(segmentLength)
+
+          // finally compare values
+          ErrorMetrics.rmse(recordsA(r)._2(c)(s), recordsB(r)._2(c)(s)) should be < maxRMSE
+          s += 1
         }
+        c += 1
       }
+      r += 1
+    }
   }
   def compareResultAggregatedRecord(
     recordsA: Array[AggregatedRecord],

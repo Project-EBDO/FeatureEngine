@@ -64,4 +64,4 @@ libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.5.3"
 // https://mvnrepository.com/artifact/edu.emory.mathcs/JTransforms
 libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
 
-libraryDependencies += "org.ode" % "hadoop-io-extensions" % "0.1"
+libraryDependencies += "org.ode" % "hadoop-io-extensions" % "0.2"

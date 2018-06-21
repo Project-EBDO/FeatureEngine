@@ -59,7 +59,9 @@ class ScalaSampleWorkflow
     val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
 
     chunks.zipWithIndex
-      .map{case (record, idx) => ((idx.toFloat / soundSamplingRate), record)}.toArray
+      .map{case (record, idx) =>
+        (((2*idx * recordSize).toFloat / soundSamplingRate), record)
+      }.toArray
   }
 
   /**

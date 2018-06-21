@@ -24,9 +24,10 @@ package org.ode.engine.signal_processing
  *
  * @param nfft The size of ftt-computation window
  */
-case class WelchSpectralDensity(nfft: Int) extends Serializable {
-
-  private val expectedPeriodogramSize = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
+case class WelchSpectralDensity(
+  nfft: Int,
+  samplingRate: Float
+) extends Serializable with FrequencyConverter {
 
   /**
    * Computes Wech estimate of the Power Spectral Density out of
@@ -39,19 +40,19 @@ case class WelchSpectralDensity(nfft: Int) extends Serializable {
    * @return The Welch Power Spectral Density estimation for the provided periodograms
    */
   def compute(periodograms: Array[Array[Double]]): Array[Double] = {
-    if (!periodograms.forall(_.length == expectedPeriodogramSize)) {
+    if (!periodograms.forall(_.length == spectrumSize)) {
       throw new IllegalArgumentException(
-        s"Inconsistent periodogram lengths for Welch aggregation ($expectedPeriodogramSize)"
+        s"Inconsistent periodogram lengths for Welch aggregation ($spectrumSize)"
       )
     }
 
-    val psdAgg: Array[Double] = new Array[Double](expectedPeriodogramSize)
+    val psdAgg: Array[Double] = new Array[Double](spectrumSize)
 
     // Using while with local variables on purpose -- See performance test
     // scalastyle:off while var.local
     var i: Int = 0
     var j: Int = 0
-    while (i < expectedPeriodogramSize){
+    while (i < spectrumSize){
       while(j < periodograms.length) {
         psdAgg(i) += periodograms(j)(i)
         j += 1

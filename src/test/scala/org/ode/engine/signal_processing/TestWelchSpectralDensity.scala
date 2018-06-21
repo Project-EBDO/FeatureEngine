@@ -290,20 +290,20 @@ class TestWelchSpectralDensity extends FlatSpec with Matchers {
   it should "compute the same Welch aggregation as scipy when given " +
     "normalized periodograms without overlap, windows and winSize equals nfft" in {
     val nfft = 256
-    val welchClass = new WelchSpectralDensity(nfft)
+    val welchClass = new WelchSpectralDensity(nfft, 1.0f)
     val welchAgg = welchClass.compute(periodograms)
     rmse(expectedWelch, welchAgg) should be < maxRMSE
   }
 
   it should "raise IllegalArgumentException when given PSDs with inconsistent shape" in {
-    val welchClass = new WelchSpectralDensity(1)
+    val welchClass = new WelchSpectralDensity(1, 1.0f)
     val wrongWelchs = Array(Array(1.0), Array(2.0, 3.0))
 
     an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)
   }
 
-    it should "raise IllegalArgumentException when given PSDs with incorrect shape" in {
-    val welchClass = new WelchSpectralDensity(100)
+  it should "raise IllegalArgumentException when given PSDs with incorrect shape" in {
+    val welchClass = new WelchSpectralDensity(100, 1.0f)
     val wrongWelchs = Array(Array(1.0), Array(2.0))
 
     an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)

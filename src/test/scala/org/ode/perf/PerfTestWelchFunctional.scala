@@ -52,7 +52,7 @@ class PerfTestWelchFunctional
   val d2 = (dataStart until dataEnd by dataStep).grouped(1000).toArray.map(_.toArray)
 
   val nfft = 1998
-  val welchSpectralDensityClass: WelchSpectralDensity = new WelchSpectralDensity(nfft)
+  val welchSpectralDensityClass: WelchSpectralDensity = new WelchSpectralDensity(nfft, 1.0f)
 
   val f1 = (array: Array[Array[Double]]) => welchSpectralDensityClass.compute(array)
   val f2 = (array: Array[Array[Double]]) => computeWelchFunctional(array, array.head.length)

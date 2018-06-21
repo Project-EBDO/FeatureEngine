@@ -48,7 +48,7 @@ class TestSerialization extends FlatSpec with Matchers {
     "FFT" -> new FFT(10),
     "Periodogram" -> new Periodogram(10, 1.0),
     "Segmentation" -> new Segmentation(10, Some(5)),
-    "WelchSpectralDensity" -> new WelchSpectralDensity(10),
+    "WelchSpectralDensity" -> new WelchSpectralDensity(10, 1.0f),
     "HammingWindow" -> new HammingWindow(10, "symmetric")
   )
 

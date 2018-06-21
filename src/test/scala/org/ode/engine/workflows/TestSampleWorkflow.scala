@@ -16,18 +16,22 @@
 
 package org.ode.engine.workflows
 
-import org.ode.utils.test.ErrorMetrics
+import java.net.URL
+import scala.io.Source
 
-import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
-import org.apache.spark.rdd.RDD
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.apache.hadoop.conf.Configuration
-import java.net.URL
+
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.types._
+
 import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
-import scala.io.Source
+import org.ode.utils.test.ErrorMetrics
+import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
+
+import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
 
 /**
  * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
@@ -42,9 +46,6 @@ class TestSampleWorkflow
 {
 
   val maxRMSE = 1.0E-16
-
-  private type Record = (Float, Array[Array[Array[Double]]])
-  private type AggregatedRecord = (Float, Array[Array[Double]])
 
   "SampleWorkflow" should "generate results of expected size" in {
 

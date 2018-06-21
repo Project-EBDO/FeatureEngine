@@ -20,8 +20,9 @@ import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import scala.io.Source
 
-import org.ode.engine.signal_processing._
 import org.ode.engine.io.WavReader
+import org.ode.engine.signal_processing._
+import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
 
 /**
  * Class that provides a simple signal processing workflow without using Spark.
@@ -43,10 +44,7 @@ class ScalaSampleWorkflow
   val nfft: Int
 ) {
 
-  private type Record = (Float, Array[Array[Array[Double]]])
-  private type AggregatedRecord = (Float, Array[Array[Double]])
-
-  private def readRecord(
+  private def readRecords(
     soundUrl: URL,
     soundSamplingRate: Float,
     soundChannels: Int,
@@ -80,7 +78,7 @@ class ScalaSampleWorkflow
     soundSampleSizeInBits: Int
   ): Map[String, Either[Array[Record], Array[AggregatedRecord]]] = {
 
-    val records = readRecord(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
+    val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")

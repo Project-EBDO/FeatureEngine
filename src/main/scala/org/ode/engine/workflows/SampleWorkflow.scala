@@ -25,6 +25,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.RDD
 
 import org.ode.engine.signal_processing._
+import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
 
 /**
  * Simple signal processing workflow in Spark.
@@ -50,46 +51,7 @@ class SampleWorkflow
   val segmentOffset: Int,
   val nfft: Int,
   val lastRecordAction: String = "skip"
-) extends Serializable {
-
-  private type Record = (Float, Array[Array[Array[Double]]])
-  private type AggregatedRecord = (Float, Array[Array[Double]])
-
-  private def readRecords(
-    soundUrl: URL,
-    soundSamplingRate: Float,
-    soundChannels: Int,
-    soundSampleSizeInBits: Int
-  ): RDD[AggregatedRecord] = {
-
-    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
-
-    if (recordSizeInFrame % 1 != 0.0f) {
-      throw new IllegalArgumentException(
-        s"Computed record size $recordSizeInFrame should not have a decimal part."
-      )
-    }
-
-    val hadoopConf = spark.sparkContext.hadoopConfiguration
-
-    WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
-    WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
-    WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
-    WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame.toInt)
-    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
-
-    spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
-      soundUrl.toURI.toString,
-      classOf[WavPcmInputFormat],
-      classOf[LongWritable],
-      classOf[TwoDDoubleArrayWritable],
-      hadoopConf
-    ).map{ case (writableOffset, writableSignal) =>
-      val offsetInSec = writableOffset.get / soundSamplingRate
-      val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
-      (offsetInSec, signal)
-    }
-  }
+) extends SparkSignalProcessingWorkflow {
 
   /**
    * Apply method for the workflow
@@ -107,7 +69,7 @@ class SampleWorkflow
     soundSampleSizeInBits: Int
   ): Map[String, Either[RDD[Record], RDD[AggregatedRecord]]] = {
 
-    val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
+    val records = readWavRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft)

@@ -25,7 +25,6 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.RDD
 
 import org.ode.engine.signal_processing._
-import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
 
 /**
  * Simple signal processing workflow in Spark.
@@ -51,7 +50,52 @@ class SampleWorkflow
   val segmentOffset: Int,
   val nfft: Int,
   val lastRecordAction: String = "skip"
-) extends SparkSignalProcessingWorkflow {
+) {
+
+  /**
+   * Function used to read wav files inside a Spark workflow
+   *
+   * @param soundUrl The URL to find the sound
+   * @param soundSamplingRate Sound's samplingRate
+   * @param soundChannels Sound's number of channels
+   * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @return The records that contains wav's data
+   */
+  protected def readWavRecords(
+    soundUrl: URL,
+    soundSamplingRate: Float,
+    soundChannels: Int,
+    soundSampleSizeInBits: Int
+  ): RDD[AggregatedRecord] = {
+
+    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
+
+    if (recordSizeInFrame % 1 != 0.0f) {
+      throw new IllegalArgumentException(
+        s"Computed record size $recordSizeInFrame should not have a decimal part."
+      )
+    }
+
+    val hadoopConf = spark.sparkContext.hadoopConfiguration
+
+    WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
+    WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
+    WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
+    WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame.toInt)
+    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
+
+    spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
+      soundUrl.toURI.toString,
+      classOf[WavPcmInputFormat],
+      classOf[LongWritable],
+      classOf[TwoDDoubleArrayWritable],
+      hadoopConf
+    ).map{ case (writableOffset, writableSignal) =>
+      val offsetInSec = writableOffset.get / soundSamplingRate
+      val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
+      (offsetInSec, signal)
+    }
+  }
 
   /**
    * Apply method for the workflow

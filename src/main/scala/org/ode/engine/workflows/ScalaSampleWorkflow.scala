@@ -22,7 +22,6 @@ import scala.io.Source
 
 import org.ode.engine.io.WavReader
 import org.ode.engine.signal_processing._
-import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
 
 /**
  * Class that provides a simple signal processing workflow without using Spark.

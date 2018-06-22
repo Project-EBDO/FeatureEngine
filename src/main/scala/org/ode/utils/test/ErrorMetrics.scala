@@ -16,6 +16,7 @@
 
 package org.ode.utils.test
 
+import org.ode.engine.workflows.{Record, AggregatedRecord}
 
 /**
  * Metric error functions

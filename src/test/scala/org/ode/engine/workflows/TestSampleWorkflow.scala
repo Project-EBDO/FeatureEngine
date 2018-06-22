@@ -31,8 +31,6 @@ import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
 import org.ode.utils.test.ErrorMetrics
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
 
-import org.ode.engine.workflows.SparkSignalProcessingWorkflow.{Record, AggregatedRecord}
-
 /**
  * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
  *

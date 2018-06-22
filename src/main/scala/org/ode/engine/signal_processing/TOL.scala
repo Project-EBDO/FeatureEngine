@@ -52,7 +52,7 @@ class TOL
 
   // the first accepted TO is the 0th, center at 1.0 Hz
   private val lowerLimit = 1.0
-  private val upperLimit = samplingRate / 2.0
+  private val upperLimit = math.min(samplingRate / 2.0, math.pow(10, 0.1 * 60) * math.pow(10, 0.05))
 
   if (lowFreq.filter(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit)).isDefined) {
     throw new IllegalArgumentException(
@@ -75,7 +75,7 @@ class TOL
    */
   val thirdOctaveBandBounds: Array[(Double, Double)] = {
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
-    (8 to 60)
+    (0 to 60)
       // convert third octaves indicies to the frequency of the center of their band
       .map(toIndex => math.pow(10, (0.1 * toIndex)))
       // scalastyle:on magic.number
@@ -84,7 +84,7 @@ class TOL
       // keep only the band within the study range
       .filter{tob =>
         // partial bands are kept
-        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._2 <= highFreq.getOrElse(upperLimit))
+        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._1 <= highFreq.getOrElse(upperLimit))
       }
       .toArray
   }
@@ -104,8 +104,7 @@ class TOL
    * as an Array[Double] of length spectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
-   * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts,
-   * or in other words ADC peak voltage
+   * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts)
    * @param microSensitivity Microphone sensitivity (without gain, given in dB)
    * @param gain Gain used for the hydrophones (given in dB)
    * @return The Third Octave Levels over the PSD as a Array[Double]

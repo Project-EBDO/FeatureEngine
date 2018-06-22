@@ -84,7 +84,7 @@ class TOL
       // keep only the band within the study range
       .filter{tob =>
         // partial bands are kept
-        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._1 <= highFreq.getOrElse(upperLimit))
+        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._2 <= highFreq.getOrElse(upperLimit))
       }
       .toArray
   }

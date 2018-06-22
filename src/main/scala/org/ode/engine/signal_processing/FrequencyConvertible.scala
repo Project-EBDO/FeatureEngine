@@ -83,5 +83,7 @@ trait FrequencyConvertible extends Serializable {
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
-  def frequencyVector(): Array[Double] = (0 until spectrumSize).map(spectrumIndexToFrequency).toArray
+  def frequencyVector(): Array[Double] = {
+    (0 until spectrumSize).map(spectrumIndexToFrequency).toArray
+  }
 }

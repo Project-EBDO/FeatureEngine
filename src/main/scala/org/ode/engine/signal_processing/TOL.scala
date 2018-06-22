@@ -17,10 +17,10 @@
 package org.ode.engine.signal_processing
 
 /**
- * Class that computes Third-Octave Level over a Power Spectrum.
+ * Class computing Third-Octave Level over a Power Spectrum.
  *
  * Some abbreviations are used here:
- * - TO: third octave, used to designate implicitly is the frequency of TO band
+ * - TO: third octave, used to designate implicitely the center frequency of a TO band
  * - TOB: third octave band, designates the band of frequency of a TO
  * - TOL: third octave level, designates the Sound Pressure Level of a TOB
  *
@@ -47,54 +47,44 @@ class TOL
     )
   }
 
-  // the first accepted TO is the 8th, center at 6.30 Hz
-  private val firstTOLowerBoundFreq = 5.623413251903492
+  // we're using acoustic constants
+  // scalastyle:off magic.number
+
+  // the first accepted TO is the 0th, center at 1.0 Hz
+  private val lowerLimit = 1.0
   private val upperLimit = samplingRate / 2.0
 
-  if (
-    lowFreq.isDefined
-    && (lowFreq.get < firstTOLowerBoundFreq || lowFreq.get > highFreq.getOrElse(upperLimit))
-  ) {
+  if (lowFreq.filter(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit)).isDefined) {
     throw new IllegalArgumentException(
       s"Incorrect low frequency (${lowFreq.get}) for TOL "
-      + " (smaller than $firstTOLowerBoundFreq or bigger than ${highFreq.getOrElse(upperLimit)})"
+      + s"(smaller than $lowerLimit or bigger than ${highFreq.getOrElse(upperLimit)})"
     )
   }
 
-  if (
-    highFreq.isDefined
-    && (highFreq.get > upperLimit || highFreq.get < lowFreq.getOrElse(firstTOLowerBoundFreq))
-  ) {
+  if (highFreq.filter(hf => hf > upperLimit || hf < lowFreq.getOrElse(lowerLimit)).isDefined) {
     throw new IllegalArgumentException(
       s"Incorrect high frequency (${highFreq.get}) for TOL "
-      + "(higher than $upperLimit or smaller than ${lowFreq.getOrElse(firstTOLowerBoundFreq)})"
+      + s"(higher than $upperLimit or smaller than ${lowFreq.getOrElse(lowerLimit)})"
     )
   }
 
-  // scalastyle:off magic.number
   private val tocScalingFactor = math.pow(10, 0.05)
 
   /**
    * Generate third octave band boundaries for each center frequency of third octave
    */
   val thirdOctaveBandBounds: Array[(Double, Double)] = {
-    // we're using acoustic constants
-
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
-    // we start at the 8th to-center/ 6.30 Hz,
-    // the last band is the last complete before upperLimit = samplingRate/2.0
-    val maxTOindex = (10.0*math.log10(upperLimit)-1.0).toInt
-    (8 to maxTOindex)
+    (8 to 60)
       // convert third octaves indicies to the frequency of the center of their band
       .map(toIndex => math.pow(10, (0.1 * toIndex)))
       // scalastyle:on magic.number
       // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency)
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
-      // keep only the band that are within the study range
+      // keep only the band within the study range
       .filter{tob =>
         // partial bands are kept
-        (tob._2 >= lowFreq.getOrElse(firstTOLowerBoundFreq)
-        && tob._1 <= highFreq.getOrElse(upperLimit))
+        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._2 <= highFreq.getOrElse(upperLimit))
       }
       .toArray
   }
@@ -105,9 +95,9 @@ class TOL
   )
 
   /**
-   * Function that computes the Third Octave Levels over a PSD
+   * Function computing the Third Octave Levels over a PSD
    *
-   * Default environmentals parameters ensures that there is no correction on
+   * Default environmentals parameters ensures there is no correction on
    * on the third-octave levels.
    *
    * @param spectrum The one-sided Power Spectral Density
@@ -115,10 +105,9 @@ class TOL
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
    * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts,
-   * or in other words ADC peak voltage (e.g 1.414 V)
+   * or in other words ADC peak voltage
    * @param microSensitivity Microphone sensitivity (without gain, given in dB)
-   * (-170 dB re 1 V/Pa to -140 dB re 1 V/Pa is a range often used)
-   * @param gain Gain used for the hydrophones (range from 20 dB to 25 dB, given in dB)
+   * @param gain Gain used for the hydrophones (given in dB)
    * @return The Third Octave Levels over the PSD as a Array[Double]
    */
   def compute

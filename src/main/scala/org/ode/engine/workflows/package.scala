@@ -17,11 +17,8 @@
 package org.ode.engine
 
 /**
- * Spark signal processing trait's object companion.
- * provides the types used in Spark workflows for import
- *
+ * Spark workflow package object providing the types used in Spark workflows.
  */
-
 package object workflows {
   /**
    * Type for signal processing records.
@@ -31,13 +28,23 @@ package object workflows {
    *                          |     |> segments
    *                          |> channels
    */
-  type Record = (Float, Array[Array[Array[Double]]])
+  type SegmentedRecord = (Float, Array[Array[Array[Double]]])
+
   /**
    * Type for signal processing records.
    * A AggregatedRecord represents this:
    * (Float: key/timestamp, Array[Array[Double])
-   *                          |     |> samples/feature
+   *                          |     |> feature
    *                          |> channels
    */
   type AggregatedRecord = (Float, Array[Array[Double]])
+
+  /**
+   * Type for signal processing records.
+   * A AggregatedRecord represents this:
+   * (Float: key/timestamp, Array[Array[Double])
+   *                          |     |> samples
+   *                          |> channels
+   */
+  type Record = (Float, Array[Array[Double]])
 }

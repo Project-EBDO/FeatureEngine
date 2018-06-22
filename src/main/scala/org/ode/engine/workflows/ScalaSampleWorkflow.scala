@@ -48,7 +48,7 @@ class ScalaSampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int
-  ): Array[AggregatedRecord] = {
+  ): Array[Record] = {
     val wavFile: File = new File(soundUrl.toURI)
     val wavReader = new WavReader(wavFile)
 
@@ -75,7 +75,7 @@ class ScalaSampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int
-  ): Map[String, Either[Array[Record], Array[AggregatedRecord]]] = {
+  ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
     val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
 

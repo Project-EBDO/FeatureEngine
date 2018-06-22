@@ -66,7 +66,7 @@ class SampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int
-  ): RDD[AggregatedRecord] = {
+  ): RDD[Record] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
 
@@ -111,7 +111,7 @@ class SampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int
-  ): Map[String, Either[RDD[Record], RDD[AggregatedRecord]]] = {
+  ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
     val records = readWavRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
 

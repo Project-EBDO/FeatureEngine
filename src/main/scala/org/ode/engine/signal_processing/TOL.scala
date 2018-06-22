@@ -17,7 +17,7 @@
 package org.ode.engine.signal_processing
 
 /**
- * Class that computes Third-Octave Level over a Power Spectral Density.
+ * Class that computes Third-Octave Level over a Power Spectrum.
  *
  * Some abbreviations are used here:
  * - TO: third octave, used to designate implicitly is the frequency of TO band
@@ -47,55 +47,57 @@ class TOL
     )
   }
 
+  // the first accepted TO is the 8th, center at 6.30 Hz
+  private val firstTOLowerBoundFreq = 5.623413251903492
+  private val upperLimit = samplingRate / 2.0
+
   if (
-    lowFreq.isDefined && (lowFreq.get < 6.309573444801933 || lowFreq.get > highFreq.getOrElse(samplingRate/2.0))
+    lowFreq.isDefined
+    && (lowFreq.get < firstTOLowerBoundFreq || lowFreq.get > highFreq.getOrElse(upperLimit))
   ) {
     throw new IllegalArgumentException(
       s"Incorrect low frequency (${lowFreq.get}) for TOL "
-      + " (smaller than 6.309573444801933 or bigger than ${highFreq.getOrElse(samplingRate/2.0)})"
+      + " (smaller than $firstTOLowerBoundFreq or bigger than ${highFreq.getOrElse(upperLimit)})"
     )
   }
 
   if (
     highFreq.isDefined
-    && (highFreq.get > samplingRate/2.0 || highFreq.get < lowFreq.getOrElse(6.309573444801933))
+    && (highFreq.get > upperLimit || highFreq.get < lowFreq.getOrElse(firstTOLowerBoundFreq))
   ) {
     throw new IllegalArgumentException(
       s"Incorrect high frequency (${highFreq.get}) for TOL "
-      + "(higher than ${sampingRate/2.0} or smaller than ${lowFreq.getOrElse(6.309573444801933)})"
+      + "(higher than $upperLimit or smaller than ${lowFreq.getOrElse(firstTOLowerBoundFreq)})"
     )
   }
 
-  private val expectedWelchSize = if (nfft % 2 == 0) nfft/2 + 1 else (nfft + 1)/2
+  private val expectedSpectrumSize = if (nfft % 2 == 0) nfft/2 + 1 else (nfft + 1)/2
+  // scalastyle:off magic.number
+  private val tocScalingFactor = math.pow(10, 0.05)
 
   /**
    * Generate third octave band boundaries for each center frequency of third octave
    */
   val thirdOctaveBandBounds: Array[(Double, Double)] = {
     // we're using acoustic constants
-    // scalastyle:off magic.number
-
-    val tocScalingFactor = math.pow(10, 0.05)
-
-
 
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
-    // we start at the 8th to-center/ 6.31 Hz,
-    // the last band is the last complete before samplingRate/2.0
-    val maxTOindex = (10.0*math.log10(samplingRate/2.0)-1.0).toInt
+    // we start at the 8th to-center/ 6.30 Hz,
+    // the last band is the last complete before upperLimit = samplingRate/2.0
+    val maxTOindex = (10.0*math.log10(upperLimit)-1.0).toInt
     (8 to maxTOindex)
       // convert third octaves indicies to the frequency of the center of their band
       .map(toIndex => math.pow(10, (0.1 * toIndex)))
+      // scalastyle:on magic.number
       // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency)
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
       // keep only the band that are within the study range
       .filter{tob =>
         // partial bands are kept
-        (tob._2 >= lowFreq.getOrElse(6.309573444801933)
-        && tob._1 <= highFreq.getOrElse(samplingRate / 2.0))
+        (tob._2 >= lowFreq.getOrElse(firstTOLowerBoundFreq)
+        && tob._1 <= highFreq.getOrElse(upperLimit))
       }
       .toArray
-    // scalastyle:on magic.number
   }
 
   /**
@@ -118,9 +120,10 @@ class TOL
    * Default environmentals parameters ensures that there is no correction on
    * on the third-octave levels.
    *
-   * @param welch The one-sided Power Spectral Density as an Array[Double] of length expectedPSDSize
+   * @param spectrum The one-sided Power Spectral Density
+   * as an Array[Double] of length expectedSpectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
-   * to compute it over a welch estimate of PSD
+   * to compute it over a Welch estimate of PSD
    * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts,
    * or in other words ADC peak voltage (e.g 1.414 V)
    * @param microSensitivity Microphone sensitivity (without gain, given in dB)
@@ -130,15 +133,15 @@ class TOL
    */
   def compute
   (
-    welch: Array[Double],
+    spectrum: Array[Double],
     vADC: Double = 1.0,
     microSensitivity: Double = 0.0,
     gain: Double = 0.0
   ): Array[Double] = {
 
-    if (welch.length != expectedWelchSize) {
+    if (spectrum.length != expectedSpectrumSize) {
       throw new IllegalArgumentException(
-        s"Incorrect PSD size (${welch.length}) for TOL ($expectedWelchSize)"
+        s"Incorrect PSD size (${spectrum.length}) for TOL ($expectedSpectrumSize)"
       )
     }
 
@@ -153,7 +156,7 @@ class TOL
     while (i < boundIndicies.length) {
       j = boundIndicies(i)._1
       while (j < boundIndicies(i)._2) {
-        tol += welch(j)
+        tol += spectrum(j)
         j += 1
       }
       tols(i) = 10.0 * math.log10(tol) - logNormalization

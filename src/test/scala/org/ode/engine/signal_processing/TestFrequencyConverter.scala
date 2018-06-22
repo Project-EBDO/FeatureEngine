@@ -27,7 +27,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
 
-class TestFrequencyConverter extends FlatSpec with Matchers {
+class TestFrequencyConvertible extends FlatSpec with Matchers {
 
   val testClass0 = TestClass(100, 1.0f)
   val testClass1 = TestClass(1024, 44800.0f)

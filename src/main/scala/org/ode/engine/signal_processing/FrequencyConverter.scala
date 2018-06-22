@@ -17,48 +17,71 @@
 package org.ode.engine.signal_processing
 
 /**
- * Trait that provides frequency conversion function for final features
+ * Trait providing frequency conversion function for frequency features
  *
  * @author Alexandre Degurse
  */
-trait FrequencyConverter extends Serializable {
+trait FrequencyConvertible extends Serializable {
   /**
-   * the size of the fft-computation window
+   * Size of the fft-computation window
    */
   val nfft: Int
 
   /**
-   * the sampling rate of the sound the FFT is computed upon
+   * Sampling rate of the sound the FFT is computed upon
    */
   val samplingRate: Float
 
+  /**
+   * Parity of the fft-computation window
+   */
   protected val nfftEven: Boolean = nfft % 2 == 0
+
+  /**
+   * Size of the spectrum to be expected given nfft
+   */
   protected val spectrumSize: Int = (if (nfftEven) (nfft + 2) / 2 else (nfft + 1) / 2)
 
   /**
-   * Function that converts a frequency to a index in the spectrum
+   * Function converting a frequency to a index in the spectrum
    * Spectrum designates either a Periodogram or a Welch, for both have
    * frequency vector given the same nfft and samplingRate
    *
-   * @param freq The frequency to be converted
-   * @return The index in spectrum that corresponds to the given frequency
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
    */
-  def frequencyToSpectrumIndex(freq: Double): Int = (freq * nfft / samplingRate).toInt
+  def frequencyToSpectrumIndex(freq: Double): Int = {
+    if (freq > samplingRate / 2.0 || freq < 0.0) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
+      )
+    }
+
+    (freq * nfft / samplingRate).toInt
+  }
 
   /**
-   * Function that converts a index in the spectrum to a frequency
+   * Function converting a index in the spectrum to a frequency
    * Spectrum designates either a Periodogram or a Welch, for both have
    * frequency vector given the same nfft and samplingRate
    *
-   * @param idx The index to be converted
-   * @return The frequency that corresponds to the given index
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
    */
-  def spectrumIndexToFrequency(idx: Int): Double = idx.toDouble * samplingRate / nfft
+  def spectrumIndexToFrequency(idx: Int): Double = {
+    if (idx >= spectrumSize || idx < 0) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion ($spectrumSize)"
+      )
+    }
+
+    idx.toDouble * samplingRate / nfft
+  }
 
   /**
-   * Function computes the frequency vector given a nfft and a samplingRate
+   * Function computing the frequency vector given a nfft and a samplingRate
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
-  def frequencyVector(): Array[Double] = (0 to spectrumSize).map(spectrumIndexToFrequency).toArray
+  def frequencyVector(): Array[Double] = (0 until spectrumSize).map(spectrumIndexToFrequency).toArray
 }

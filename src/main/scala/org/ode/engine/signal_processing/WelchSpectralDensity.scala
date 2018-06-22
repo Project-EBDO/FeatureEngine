@@ -23,11 +23,13 @@ package org.ode.engine.signal_processing
  * @author Alexandre Degurse
  *
  * @param nfft The size of ftt-computation window
+ * @param samplingRate The signal's sampling rate
  */
-case class WelchSpectralDensity(
+case class WelchSpectralDensity
+(
   nfft: Int,
   samplingRate: Float
-) extends Serializable with FrequencyConverter {
+) extends Serializable with FrequencyConvertible {
 
   /**
    * Computes Wech estimate of the Power Spectral Density out of

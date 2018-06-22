@@ -25,7 +25,7 @@ import org.scalatest.{FlatSpec, Matchers}
  * @author Alexandre Degurse
  */
 
-case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConverter
+case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
 
 class TestFrequencyConverter extends FlatSpec with Matchers {
 
@@ -42,12 +42,10 @@ class TestFrequencyConverter extends FlatSpec with Matchers {
     testClass1.spectrumIndexToFrequency(0) should equal(0.0)
     testClass1.spectrumIndexToFrequency(1) should equal(43.75)
     testClass1.spectrumIndexToFrequency(100) should equal(4375.0)
-    testClass1.spectrumIndexToFrequency(1026) should equal(44887.5)
 
     testClass2.spectrumIndexToFrequency(0) should equal(0.0)
     testClass2.spectrumIndexToFrequency(1) should equal(46.85212298682284)
     testClass2.spectrumIndexToFrequency(1024) should equal(47976.57393850659)
-    testClass2.spectrumIndexToFrequency(2050) should equal(96046.85212298682)
   }
 
   it should "compute the right index in the spectrum given frequencies" in {
@@ -58,22 +56,22 @@ class TestFrequencyConverter extends FlatSpec with Matchers {
 
     testClass1.frequencyToSpectrumIndex(43.75) should equal(1)
     testClass1.frequencyToSpectrumIndex(4375.0) should equal(100)
-    testClass1.frequencyToSpectrumIndex(44887.5) should equal(1026)
 
     testClass2.frequencyToSpectrumIndex(46.85212298682284) should equal(1)
     testClass2.frequencyToSpectrumIndex(47976.57393850659) should equal(1024)
-    testClass2.frequencyToSpectrumIndex(96046.85212298682) should equal(2050)
   }
 
   it should "compute the right frequency ranges" in {
+    // freqVect0, p = scipy.signal.periodogram(numpy.arange(100),1.0)
     val freqVect0 = Array(
       0.0 , 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1 ,
       0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.2 , 0.21,
       0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3 , 0.31, 0.32,
       0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4 , 0.41, 0.42, 0.43,
-      0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5 , 0.51
+      0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
     )
 
+    // freqVect1, p = scipy.signal.periodogram(numpy.arange(1024),44800.0)
     val freqVect1 = Array(
       0.0 ,    43.75,    87.5 ,   131.25,   175.0 ,   218.75,   262.5 ,   306.25,   350.0 ,
       393.75,   437.5 ,   481.25,   525.0 ,   568.75,   612.5 ,   656.25,   700.0 ,   743.75,
@@ -131,11 +129,30 @@ class TestFrequencyConverter extends FlatSpec with Matchers {
       20868.75, 20912.5 , 20956.25, 21000.0 , 21043.75, 21087.5 , 21131.25, 21175.0 , 21218.75,
       21262.5 , 21306.25, 21350.0 , 21393.75, 21437.5 , 21481.25, 21525.0 , 21568.75, 21612.5 ,
       21656.25, 21700.0 , 21743.75, 21787.5 , 21831.25, 21875.0 , 21918.75, 21962.5 , 22006.25,
-      22050.0 , 22093.75, 22137.5 , 22181.25, 22225.0 , 22268.75, 22312.5 , 22356.25, 22400.0 ,
-      22443.75
+      22050.0 , 22093.75, 22137.5 , 22181.25, 22225.0 , 22268.75, 22312.5 , 22356.25, 22400.0
     )
 
     testClass0.frequencyVector() should equal(freqVect0)
     ErrorMetrics.rmse(testClass1.frequencyVector(), freqVect1) should be < 1.0E-16
+  }
+
+  it should "raise IllegalArgumentException when given a frequency higher than half of samplingRate" in {
+    val testClassFail = TestClass(1024, 44800.0f)
+    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToSpectrumIndex(22500.0)
+  }
+
+  it should "raise IllegalArgumentException when given a negative frequency" in {
+    val testClassFail = TestClass(1024, 44800.0f)
+    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToSpectrumIndex(-22300.0)
+  }
+
+  it should "raise IllegalArgumentException when given a negative index" in {
+    val testClassFail = TestClass(1024, 44800.0f)
+    an[IllegalArgumentException] should be thrownBy testClassFail.spectrumIndexToFrequency(-1)
+  }
+
+  it should "raise IllegalArgumentException when given a index that exceeds spectrum size" in {
+    val testClassFail = TestClass(1024, 44800.0f)
+    an[IllegalArgumentException] should be thrownBy testClassFail.spectrumIndexToFrequency(1030)
   }
 }

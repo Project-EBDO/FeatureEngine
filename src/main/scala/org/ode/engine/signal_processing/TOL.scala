@@ -49,10 +49,14 @@ class TOL
 
   // we're using acoustic constants
   // scalastyle:off magic.number
+  private val tocScalingFactor = math.pow(10, 0.05)
 
   // the first accepted TO is the 0th, center at 1.0 Hz
   private val lowerLimit = 1.0
-  private val upperLimit = math.min(samplingRate / 2.0, math.pow(10, 0.1 * 60) * math.pow(10, 0.05))
+  private val upperLimit = math.min(
+    samplingRate / (2.0 * math.pow(10, 0.1)),
+    math.pow(10, 0.1 * 60) * tocScalingFactor
+  )
 
   if (lowFreq.filter(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit)).isDefined) {
     throw new IllegalArgumentException(
@@ -68,8 +72,6 @@ class TOL
     )
   }
 
-  private val tocScalingFactor = math.pow(10, 0.05)
-
   /**
    * Generate third octave band boundaries for each center frequency of third octave
    */
@@ -83,8 +85,8 @@ class TOL
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
       // keep only the band within the study range
       .filter{tob =>
-        // partial bands are kept
-        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._2 <= highFreq.getOrElse(upperLimit))
+        // lower partial band are kept and upper one is dropped (since it would exceed spectrum size)
+        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._1 <= highFreq.getOrElse(upperLimit))
       }
       .toArray
   }

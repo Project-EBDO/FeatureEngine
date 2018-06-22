@@ -117,7 +117,7 @@ class TestTOL extends FlatSpec with Matchers {
     val nfft = 128
     val samplingRate = 128.0f
     val lowFreq = Some(35.2)
-    val highFreq = Some(61.9)
+    val highFreq = Some(50.5)
 
     val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
 
@@ -144,7 +144,7 @@ class TestTOL extends FlatSpec with Matchers {
     val nfft = 128
     val samplingRate = 128.0f
     val lowFreq = Some(35.2)
-    val highFreq = Some(61.9)
+    val highFreq = Some(50.5)
 
     val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
 

@@ -57,7 +57,7 @@ class TestTOL extends FlatSpec with Matchers {
 
   it should "compute Third Octave Band Boundaries when studying default frequency range" in {
     val nfft = 128
-    val samplingRate = 128.0
+    val samplingRate = 128.0f
 
     val tolClass = new TOL(nfft, samplingRate)
 
@@ -89,7 +89,7 @@ class TestTOL extends FlatSpec with Matchers {
 
   it should "compute Third Octabe Levels when studying default frequency range" in {
     val nfft = 128
-    val samplingRate = 128.0
+    val samplingRate = 128.0f
 
     val tolClass = new TOL(nfft, samplingRate)
 
@@ -105,7 +105,7 @@ class TestTOL extends FlatSpec with Matchers {
 
   it should "compute Third Octave Band Boundaries when studying custom frequency range" in {
     val nfft = 128
-    val samplingRate = 128.0
+    val samplingRate = 128.0f
     val lowFreq = Some(35.2)
     val highFreq = Some(61.9)
 
@@ -132,7 +132,7 @@ class TestTOL extends FlatSpec with Matchers {
 
   it should "compute Third Octave Levels when studying custom frequency range" in {
     val nfft = 128
-    val samplingRate = 128.0
+    val samplingRate = 128.0f
     val lowFreq = Some(35.2)
     val highFreq = Some(61.9)
 
@@ -148,32 +148,32 @@ class TestTOL extends FlatSpec with Matchers {
   }
 
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
-    val tolClass = new TOL(100, 100.0)
+    val tolClass = new TOL(100, 100.0f)
 
     an[IllegalArgumentException] should be thrownBy tolClass.compute(Array(1.0))
   }
 
   it should "raise IllegalArgumentException when given windows that are smaller than 1 second" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 1000.0)
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 1000.0f)
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than sampling rate / 2" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(200.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f, Some(200.0))
   }
 
   it should "raise IllegalArgumentException when given high frequency is higher than sampling rate / 2" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(100.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(100.0))
   }
 
   it should "raise IllegalArgumentException when given high frequency is smaller than 25 Hz" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0, Some(25.0), Some(0.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f, Some(25.0), Some(0.0))
   }
 
   it should "raise IllegalArgumentException when given low frequency is smaller than 25 Hz" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(0.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(0.0))
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than high frequency" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0,  Some(40.0), Some(30.0))
+    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(40.0), Some(30.0))
   }
 }

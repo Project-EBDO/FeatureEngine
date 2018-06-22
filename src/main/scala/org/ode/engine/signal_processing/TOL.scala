@@ -36,10 +36,10 @@ package org.ode.engine.signal_processing
 class TOL
 (
   val nfft: Int,
-  val samplingRate: Double,
+  val samplingRate: Float,
   val lowFreq: Option[Double] = None,
   val highFreq: Option[Double] = None
-) {
+) extends FrequencyConvertible {
 
   if (nfft < samplingRate) {
     throw new IllegalArgumentException(
@@ -71,7 +71,6 @@ class TOL
     )
   }
 
-  private val expectedSpectrumSize = if (nfft % 2 == 0) nfft/2 + 1 else (nfft + 1)/2
   // scalastyle:off magic.number
   private val tocScalingFactor = math.pow(10, 0.05)
 
@@ -100,18 +99,9 @@ class TOL
       .toArray
   }
 
-  /**
-   * Function used to associate a frequency of a spectrum to an index of a discrete
-   * nfft-sized spectrum
-   *
-   * @param freq The frequency to be matched with an index
-   * @return The index that corresponds to the given frequency
-   */
-  def frequencyToIndex(freq: Double): Int = (freq * nfft / samplingRate).toInt
-
   // Compute the indices associated with each TOB boundary
   private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
-    bound => (frequencyToIndex(bound._1), frequencyToIndex(bound._2))
+    bound => (frequencyToSpectrumIndex(bound._1), frequencyToSpectrumIndex(bound._2))
   )
 
   /**
@@ -121,7 +111,7 @@ class TOL
    * on the third-octave levels.
    *
    * @param spectrum The one-sided Power Spectral Density
-   * as an Array[Double] of length expectedSpectrumSize
+   * as an Array[Double] of length spectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
    * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts,
@@ -139,9 +129,9 @@ class TOL
     gain: Double = 0.0
   ): Array[Double] = {
 
-    if (spectrum.length != expectedSpectrumSize) {
+    if (spectrum.length != spectrumSize) {
       throw new IllegalArgumentException(
-        s"Incorrect PSD size (${spectrum.length}) for TOL ($expectedSpectrumSize)"
+        s"Incorrect PSD size (${spectrum.length}) for TOL ($spectrumSize)"
       )
     }
 

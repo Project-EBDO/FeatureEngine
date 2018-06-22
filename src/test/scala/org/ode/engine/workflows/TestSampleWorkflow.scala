@@ -123,6 +123,7 @@ class TestSampleWorkflow
     val nfft = 100
     val segmentOffset = 100
     val soundSamplingRate = 16000.0f
+    val soundStartTime = 1529684841.1133163f
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
@@ -145,7 +146,8 @@ class TestSampleWorkflow
       soundUrl,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits
+      soundSampleSizeInBits,
+      soundStartTime
     )
 
     val sparkFFT = resultMap("ffts").left.get.cache().collect()
@@ -164,7 +166,8 @@ class TestSampleWorkflow
       soundUrl,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits
+      soundSampleSizeInBits,
+      soundStartTime
     )
 
     val scalaFFT = resultMapScala("ffts").left.get

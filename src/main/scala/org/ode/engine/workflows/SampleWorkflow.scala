@@ -59,13 +59,15 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundStartTime Sound's start date in seconds
    * @return The records that contains wav's data
    */
-  protected def readWavRecords(
+  def readWavRecords(
     soundUrl: URL,
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundStartTime: Float
   ): RDD[Record] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
@@ -91,7 +93,7 @@ class SampleWorkflow
       classOf[TwoDDoubleArrayWritable],
       hadoopConf
     ).map{ case (writableOffset, writableSignal) =>
-      val offsetInSec = writableOffset.get / soundSamplingRate
+      val offsetInSec = soundStartTime + writableOffset.get / soundSamplingRate
       val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
       (offsetInSec, signal)
     }
@@ -104,16 +106,24 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundStartTime Sound's start date in seconds
    * @return A map that contains all basic features as RDDs
    */
   def apply(
     soundUrl: URL,
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundStartTime: Float = 0.0f
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
-    val records = readWavRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
+    val records = readWavRecords(
+      soundUrl,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits,
+      soundStartTime
+    )
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft)

@@ -43,11 +43,22 @@ class ScalaSampleWorkflow
   val nfft: Int
 ) {
 
-  private def readRecords(
+  /**
+   * Function used to read wav files inside a scala workflow
+   *
+   * @param soundUrl The URL to find the sound
+   * @param soundSamplingRate Sound's samplingRate
+   * @param soundChannels Sound's number of channels
+   * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundStartTime Sound's start date in seconds
+   * @return The records that contains wav's data
+   */
+  def readRecords(
     soundUrl: URL,
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundStartTime: Float
   ): Array[Record] = {
     val wavFile: File = new File(soundUrl.toURI)
     val wavReader = new WavReader(wavFile)
@@ -57,7 +68,7 @@ class ScalaSampleWorkflow
 
     chunks.zipWithIndex
       .map{case (record, idx) =>
-        (((2*idx * recordSize).toFloat / soundSamplingRate), record)
+        (soundStartTime + ((2*idx*recordSize).toFloat / soundSamplingRate), record)
       }.toArray
   }
 
@@ -68,16 +79,18 @@ class ScalaSampleWorkflow
    * @param soundSamplingRate Sound's soundSamplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundStartTime Sound's start date in seconds
    * @return A map that contains all basic features as RDDs
    */
   def apply(
     soundUrl: URL,
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundStartTime: Float = 0.0f
   ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
-    val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits)
+    val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits, soundStartTime)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")

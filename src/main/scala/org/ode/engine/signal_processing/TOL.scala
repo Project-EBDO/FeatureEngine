@@ -54,8 +54,8 @@ class TOL
   // the first accepted TO is the 0th, center at 1.0 Hz
   private val lowerLimit = 1.0
   private val upperLimit = math.min(
-    samplingRate / (2.0 * math.pow(10, 0.1)),
-    math.pow(10, 0.1 * 60) * tocScalingFactor
+    samplingRate / (2.0 ),
+    math.pow(10, 0.1 * 60)
   )
 
   if (lowFreq.filter(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit)).isDefined) {
@@ -85,8 +85,14 @@ class TOL
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
       // keep only the band within the study range
       .filter{tob =>
-        // lower partial band are kept and upper one is dropped (since it would exceed spectrum size)
-        (tob._2 >= lowFreq.getOrElse(lowerLimit) && tob._1 <= highFreq.getOrElse(upperLimit))
+        /**
+         * lower partial band are kept and upper one is dropped if it exceeds upperlimit
+         * (upperLimit is usually samplingRate/2, in this case, the band exceeds the power spectrum limits)
+         * and is kept if the upper bound is inferior to upperLimit (ie tob._1 < highFreq < tob ._2 < upperLimit)
+         */
+        (tob._2 >= lowFreq.getOrElse(lowerLimit)
+        && tob._1 <= highFreq.getOrElse(upperLimit)
+        && tob._2 < upperLimit)
       }
       .toArray
   }

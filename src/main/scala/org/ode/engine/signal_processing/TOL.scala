@@ -51,8 +51,9 @@ class TOL
   // scalastyle:off magic.number
   private val tocScalingFactor = math.pow(10, 0.05)
 
-  // the first accepted TO is the 0th, center at 1.0 Hz
+  // The lowest accepted value is the 0th band (center at 1Hz),
   private val lowerLimit = 1.0
+  // and the highest is the minimum of samplingRate / 2 and the 60th band.
   private val upperLimit = math.min(
     samplingRate / (2.0 ),
     math.pow(10, 0.1 * 60)
@@ -76,6 +77,9 @@ class TOL
    * Generate third octave band boundaries for each center frequency of third octave
    */
   val thirdOctaveBandBounds: Array[(Double, Double)] = {
+    // We compute bands for indices from 0 to 60, and then filter them
+    // This way of proceeding makes the code easier to understand in comparison to
+    // computing the exact boundaries
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
     (0 to 60)
       // convert third octaves indicies to the frequency of the center of their band
@@ -86,9 +90,11 @@ class TOL
       // keep only the band within the study range
       .filter{tob =>
         /**
-         * lower partial band are kept and upper one is dropped if it exceeds upperlimit
-         * (upperLimit is usually samplingRate/2, in this case, the band exceeds the power spectrum limits)
-         * and is kept if the upper bound is inferior to upperLimit (ie tob._1 < highFreq < tob ._2 < upperLimit)
+         * lower partial band is kept and the upper one is dropped if it exceeds over upperlimit
+         * (upperLimit is usually samplingRate/2, in this case,
+         * the band overflows the power spectrum limits)
+         * and is kept if the upper bound is inferior to upperLimit
+         * (ie tob._1 < highFreq < tob ._2 < upperLimit)
          */
         (tob._2 >= lowFreq.getOrElse(lowerLimit)
         && tob._1 <= highFreq.getOrElse(upperLimit)
@@ -131,7 +137,7 @@ class TOL
       )
     }
 
-    val logNormalization: Double = microSensitivity + gain + 20*math.log10(1.0/vADC)
+    val logNormalization: Double = microSensitivity + gain + 20 * math.log10(1.0 / vADC)
     val tols = new Array[Double](boundIndicies.length)
 
     // scalastyle:off while var.local
@@ -139,8 +145,10 @@ class TOL
     var j = 0
     var tol: Double = 0.0
 
+    // i moves over the TO indices
     while (i < boundIndicies.length) {
       j = boundIndicies(i)._1
+      // j moves between a TO low to high band
       while (j < boundIndicies(i)._2) {
         tol += spectrum(j)
         j += 1

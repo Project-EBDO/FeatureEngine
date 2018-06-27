@@ -118,18 +118,9 @@ class TOL
    * as an Array[Double] of length spectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
-   * @param vADC The voltage of Analog Digital Converter used in the microphone (given in volts)
-   * @param microSensitivity Microphone sensitivity (without gain, given in dB)
-   * @param gain Gain used for the hydrophones (given in dB)
    * @return The Third Octave Levels over the PSD as a Array[Double]
    */
-  def compute
-  (
-    spectrum: Array[Double],
-    vADC: Double = 1.0,
-    microSensitivity: Double = 0.0,
-    gain: Double = 0.0
-  ): Array[Double] = {
+  def compute(spectrum: Array[Double]): Array[Double] = {
 
     if (spectrum.length != spectrumSize) {
       throw new IllegalArgumentException(
@@ -137,7 +128,6 @@ class TOL
       )
     }
 
-    val logNormalization: Double = microSensitivity + gain + 20 * math.log10(1.0 / vADC)
     val tols = new Array[Double](boundIndicies.length)
 
     // scalastyle:off while var.local
@@ -153,7 +143,7 @@ class TOL
         tol += spectrum(j)
         j += 1
       }
-      tols(i) = 10.0 * math.log10(tol) - logNormalization
+      tols(i) = 10.0 * math.log10(tol)
       tol = 0.0
       i += 1
     }

@@ -16,7 +16,7 @@
 
 package org.ode.utils.test
 
-import org.ode.engine.workflows.{Record, AggregatedRecord}
+import org.ode.engine.workflows.{SegmentedRecord, AggregatedRecord}
 
 /**
  * Metric error functions
@@ -24,10 +24,6 @@ import org.ode.engine.workflows.{Record, AggregatedRecord}
  * @author Joseph Allemandou, Alexandre Degurse
  */
 object ErrorMetrics {
-
-
-  private type Record = (Float, Array[Array[Array[Double]]])
-  private type AggregatedRecord = (Float, Array[Array[Double]])
 
   /**
    * Root-mean-square deviation of two doubles.
@@ -67,7 +63,7 @@ object ErrorMetrics {
    * @param actual The actual Record
    * @return The root-mean-square deviation of the records
    */
-  def rmse(expected: => Array[Record], actual: => Array[Record]): Double = {
+  def rmse(expected: => Array[SegmentedRecord], actual: => Array[SegmentedRecord]): Double = {
     if (expected.length != actual.length) {
       throw new IllegalArgumentException("The given sequences' sizes don't match")
     }

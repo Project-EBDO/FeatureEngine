@@ -24,6 +24,9 @@ import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.RDD
 
+import com.github.nscala_time.time.Imports._
+import org.joda.time.Days
+
 import org.ode.engine.signal_processing._
 
 /**
@@ -59,6 +62,7 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param startDate The starting date of the sound file
    * @param soundStartTime Sound's start date in seconds
    * @return The records that contains wav's data
    */
@@ -67,10 +71,11 @@ class SampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundStartTime: Float
+    soundStartDate: String
   ): RDD[Record] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
+    val startTime: Long = new DateTime(soundStartDate).instant.millis
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
@@ -93,9 +98,10 @@ class SampleWorkflow
       classOf[TwoDDoubleArrayWritable],
       hadoopConf
     ).map{ case (writableOffset, writableSignal) =>
-      val offsetInSec = soundStartTime + writableOffset.get / soundSamplingRate
+      // no idea why /2 is needed
+      val offsetInMillis = startTime + (1000.0f * writableOffset.get.toFloat / (2.0f * soundSamplingRate)).toLong
       val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
-      (offsetInSec, signal)
+      (offsetInMillis, signal)
     }
   }
 
@@ -106,7 +112,7 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param soundStartTime Sound's start date in seconds
+   * @param startDate The starting date of the sound file
    * @return A map that contains all basic features as RDDs
    */
   def apply(
@@ -114,7 +120,7 @@ class SampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundStartTime: Float = 0.0f
+    soundStartDate: String = "1970-01-01T00:00:00.000Z"
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
     val records = readWavRecords(
@@ -122,7 +128,7 @@ class SampleWorkflow
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,
-      soundStartTime
+      soundStartDate
     )
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))

@@ -23,28 +23,28 @@ package object workflows {
   /**
    * Type for signal processing records.
    * A record represents this:
-   * (Float: key/timestamp, Array[Array[Array[Double])
+   * (Long: key/timestamp, Array[Array[Array[Double])
    *                          |     |     |> feature
    *                          |     |> segments
    *                          |> channels
    */
-  type SegmentedRecord = (Float, Array[Array[Array[Double]]])
+  type SegmentedRecord = (Long, Array[Array[Array[Double]]])
 
   /**
    * Type for signal processing records.
    * A AggregatedRecord represents this:
-   * (Float: key/timestamp, Array[Array[Double])
+   * (Long: key/timestamp, Array[Array[Double])
    *                          |     |> feature
    *                          |> channels
    */
-  type AggregatedRecord = (Float, Array[Array[Double]])
+  type AggregatedRecord = (Long, Array[Array[Double]])
 
   /**
    * Type for signal processing records.
    * A AggregatedRecord represents this:
-   * (Float: key/timestamp, Array[Array[Double])
+   * (Long: key/timestamp, Array[Array[Double])
    *                          |     |> samples
    *                          |> channels
    */
-  type Record = (Float, Array[Array[Double]])
+  type Record = (Long, Array[Array[Double]])
 }

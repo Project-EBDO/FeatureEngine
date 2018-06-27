@@ -27,6 +27,9 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 
+import com.github.nscala_time.time.Imports._
+import org.joda.time.Days
+
 import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
 import org.ode.utils.test.ErrorMetrics
 import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
@@ -123,7 +126,6 @@ class TestSampleWorkflow
     val nfft = 100
     val segmentOffset = 100
     val soundSamplingRate = 16000.0f
-    val soundStartTime = 1529684841.1133163f
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
@@ -132,6 +134,7 @@ class TestSampleWorkflow
 
     // Usefull for testing
     val soundDurationInSecs= 2.5f
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
 
 
     val sampleWorkflow = new SampleWorkflow(
@@ -147,7 +150,7 @@ class TestSampleWorkflow
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,
-      soundStartTime
+      soundStartDate
     )
 
     val sparkFFT = resultMap("ffts").left.get.cache().collect()
@@ -167,7 +170,7 @@ class TestSampleWorkflow
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,
-      soundStartTime
+      soundStartDate
     )
 
     val scalaFFT = resultMapScala("ffts").left.get
@@ -179,5 +182,58 @@ class TestSampleWorkflow
     ErrorMetrics.rmse(scalaPeriodograms, sparkPeriodograms) should be < maxRMSE
     ErrorMetrics.rmse(scalaWelchs, sparkWelchs) should be < maxRMSE
     ErrorMetrics.rmse(scalaSPLs, sparkSPLs) should be < maxRMSE
+  }
+
+  it should "generate the same results with the right keys" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val recordSizeInSec = 0.1f
+    val segmentSize = 100
+    val nfft = 100
+    val segmentOffset = 100
+    val soundSamplingRate = 16000.0f
+
+    // Sound parameters
+    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    // Usefull for testing
+    val soundDurationInSecs= 2.5f
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+
+
+    val sampleWorkflow = new SampleWorkflow(
+      spark,
+      recordSizeInSec,
+      segmentSize,
+      nfft,
+      segmentOffset
+    )
+
+    val resultMap = sampleWorkflow.apply(
+      soundUrl,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits,
+      soundStartDate
+    )
+
+    val sparkFFT = resultMap("ffts").left.get.cache().collect().sortBy(_._1)
+
+    val lastRecordStartTime = sparkFFT.last._1
+    val lastRecordStartDate = new DateTime(lastRecordStartTime)
+
+    val startDate = new DateTime(soundStartDate)
+
+    val duration = lastRecordStartTime - startDate.instant.millis
+    val expectedDuration = (1000 * (soundDurationInSecs - recordSizeInSec)).toLong
+
+    duration should equal(expectedDuration)
+
+    val expectedLastRecordDate = new DateTime("1978-04-11T13:14:22.600Z")
+
+    lastRecordStartDate should equal(expectedLastRecordDate)
   }
 }

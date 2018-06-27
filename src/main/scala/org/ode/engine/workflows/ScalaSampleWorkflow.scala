@@ -20,6 +20,9 @@ import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import scala.io.Source
 
+import com.github.nscala_time.time.Imports._
+import org.joda.time.Days
+
 import org.ode.engine.io.WavReader
 import org.ode.engine.signal_processing._
 
@@ -50,7 +53,7 @@ class ScalaSampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param soundStartTime Sound's start date in seconds
+   * @param soundStartDate The starting date of the sound file
    * @return The records that contains wav's data
    */
   def readRecords(
@@ -58,17 +61,19 @@ class ScalaSampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundStartTime: Float
+    soundStartDate: String
   ): Array[Record] = {
     val wavFile: File = new File(soundUrl.toURI)
     val wavReader = new WavReader(wavFile)
+
+    val startTime: Long = new DateTime(soundStartDate).instant.millis
 
     val recordSize = (recordDurationInSec * soundSamplingRate).toInt
     val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
 
     chunks.zipWithIndex
       .map{case (record, idx) =>
-        (soundStartTime + ((2*idx*recordSize).toFloat / soundSamplingRate), record)
+        (startTime + ((1000.0f * idx * recordSize).toFloat / soundSamplingRate).toLong, record)
       }.toArray
   }
 
@@ -79,7 +84,7 @@ class ScalaSampleWorkflow
    * @param soundSamplingRate Sound's soundSamplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param soundStartTime Sound's start date in seconds
+   * @param startDate The starting date of the sound file
    * @return A map that contains all basic features as RDDs
    */
   def apply(
@@ -87,10 +92,16 @@ class ScalaSampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundStartTime: Float = 0.0f
+    soundStartDate: String = "1970-01-01T00:00:00.000Z"
   ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
-    val records = readRecords(soundUrl, soundSamplingRate, soundChannels, soundSampleSizeInBits, soundStartTime)
+    val records = readRecords(
+      soundUrl,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits,
+      soundStartDate
+    )
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")

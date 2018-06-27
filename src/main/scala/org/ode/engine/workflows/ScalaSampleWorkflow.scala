@@ -111,7 +111,7 @@ class ScalaSampleWorkflow
       .foldLeft(0.0)((acc, v) => acc + v*v)
 
     val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
-    val welchClass = new WelchSpectralDensity(nfft)
+    val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
     val segmented = records.map{

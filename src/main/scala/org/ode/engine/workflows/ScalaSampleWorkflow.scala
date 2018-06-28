@@ -17,7 +17,7 @@
 package org.ode.engine.workflows
 
 import java.io.{File, FileInputStream, InputStream}
-import java.net.URL
+import java.net.URI
 import scala.io.Source
 
 import com.github.nscala_time.time.Imports._
@@ -53,7 +53,7 @@ class ScalaSampleWorkflow
   /**
    * Function used to read wav files inside a scala workflow
    *
-   * @param soundUrl The URL to find the sound
+   * @param soundUri The URI to find the sound
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
@@ -61,13 +61,13 @@ class ScalaSampleWorkflow
    * @return The records that contains wav's data
    */
   def readRecords(
-    soundUrl: URL,
+    soundUri: URI,
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
     soundStartDate: String
   ): Array[Record] = {
-    val wavFile: File = new File(soundUrl.toURI)
+    val wavFile: File = new File(soundUri)
     val wavReader = new WavReader(wavFile)
 
     val startTime: Long = new DateTime(soundStartDate).instant.millis
@@ -91,7 +91,7 @@ class ScalaSampleWorkflow
   /**
    * Apply method for the workflow
    *
-   * @param soundUrl The URL to find the sound
+   * @param soundUri The URI to find the sound
    * @param soundSamplingRate Sound's soundSamplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
@@ -99,7 +99,7 @@ class ScalaSampleWorkflow
    * @return A map that contains all basic features as RDDs
    */
   def apply(
-    soundUrl: URL,
+    soundUri: URI,
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
@@ -107,7 +107,7 @@ class ScalaSampleWorkflow
   ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
     val records = readRecords(
-      soundUrl,
+      soundUri,
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,

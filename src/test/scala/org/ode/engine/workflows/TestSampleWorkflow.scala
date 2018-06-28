@@ -16,7 +16,7 @@
 
 package org.ode.engine.workflows
 
-import java.net.URL
+import java.net.URI
 import scala.io.Source
 
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
@@ -62,7 +62,7 @@ class TestSampleWorkflow
     val highFreq = Some(7000.0)
 
     // Sound parameters
-    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime("1978-04-11T13:14:20.200Z")))
     val soundChannels = 1
     val soundSampleSizeInBits = 16
@@ -80,7 +80,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUrl,
+      soundUri,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -140,7 +140,7 @@ class TestSampleWorkflow
     val highFreq = Some(7000.0)
 
     // Sound parameters
-    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundChannels = 1
     val soundSampleSizeInBits = 16
     val soundDurationInSecs= 2.5f
@@ -159,7 +159,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUrl,
+      soundUri,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -182,7 +182,7 @@ class TestSampleWorkflow
     )
 
     val resultMapScala = scalaWorkflow.apply(
-      soundUrl,
+      soundUri,
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,
@@ -215,7 +215,7 @@ class TestSampleWorkflow
     val highFreq = Some(7000.0)
 
     // Sound parameters
-    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundChannels = 1
     val soundSampleSizeInBits = 16
 
@@ -236,7 +236,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUrl,
+      soundUri,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -262,7 +262,7 @@ class TestSampleWorkflow
   it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
     val spark = SparkSession.builder.getOrCreate
 
-    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundChannels = 1
     val soundSampleSizeInBits = 16
 
@@ -272,6 +272,6 @@ class TestSampleWorkflow
 
     val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
 
-    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUrl, soundsNameAndStartDate, 1.0f, 1, 16)
+    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUri, soundsNameAndStartDate, 1.0f, 1, 16)
   }
 }

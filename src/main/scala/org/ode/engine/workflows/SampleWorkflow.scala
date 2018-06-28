@@ -90,7 +90,7 @@ class SampleWorkflow
     val soundNames = soundsNameAndStartDate.map(_._1)
     if (soundNames.length != soundNames.distinct.length) {
       throw new IllegalArgumentException(
-        "Sounds list of names and start dates contains duplicate entries")}
+        "Sounds list contains duplicate filename entries")}
 
     val hadoopConf = spark.sparkContext.hadoopConfiguration
     WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
@@ -112,7 +112,7 @@ class SampleWorkflow
 
       if (startDate.isEmpty) {
         throw new IllegalArgumentException(
-          s"Unexpected file found ($fileName) while reading wav files")}
+          s"Read file $fileName has no startDate in given list")}
 
       iterator.map{ case (writableOffset, writableSignal) =>
         val offsetInMillis = (startDate.get.instant.millis
@@ -163,11 +163,11 @@ class SampleWorkflow
   ): DataFrame = {
 
     val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
-    val MultiChannelFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
+    val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
 
     val schema = StructType(Seq(
       StructField("timestamp", TimestampType, nullable = true),
-      StructField(featureName, MultiChannelFeatureType, nullable = false)
+      StructField(featureName, MultiChannelsFeatureType, nullable = false)
     ))
 
     spark.createDataFrame(

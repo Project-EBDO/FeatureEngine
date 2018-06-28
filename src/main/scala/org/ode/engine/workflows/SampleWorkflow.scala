@@ -77,10 +77,19 @@ class SampleWorkflow
   ): RDD[Record] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
+    val frameSize = soundChannels * soundSampleSizeInBits / 8
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
         s"Computed record size $recordSizeInFrame should not have a decimal part."
+      )
+    }
+
+    val soundNames = soundsNameAndStartDate.map(_._1)
+
+    if (soundNames.length != soundNames.distinct.length) {
+      throw new IllegalArgumentException(
+        "Sounds list of names and start dates contains duplicate entries"
       )
     }
 
@@ -102,19 +111,18 @@ class SampleWorkflow
     .asInstanceOf[NewHadoopRDD[LongWritable, TwoDDoubleArrayWritable]]
     .mapPartitionsWithInputSplit{ (inputSplit, iterator) ⇒
       val fileName: String = inputSplit.asInstanceOf[FileSplit].getPath.getName
-      val nameAndDate = soundsNameAndStartDate.filter{case (name, date) => name == fileName}
+      val startDate = soundsNameAndStartDate.find{case (name, date) => name == fileName}.map(_._2)
 
-      if (nameAndDate.length != 1) {
+      if (startDate.isEmpty) {
         throw new IllegalArgumentException(
           s"Unexpected file found ($fileName) while reading wav files"
         )
       }
 
-      val fileOffset = nameAndDate.head._2.instant.millis
+      val fileOffset = startDate.get.instant.millis
 
       iterator.map{ case (writableOffset, writableSignal) =>
-        // no idea why /2 is needed
-        val offsetInMillis = fileOffset + (1000.0f * writableOffset.get.toFloat / (2.0f * soundSamplingRate)).toLong
+        val offsetInMillis = fileOffset + (1000.0f * writableOffset.get.toFloat / (frameSize * soundSamplingRate)).toLong
         val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
         (offsetInMillis, signal)
       }
@@ -145,6 +153,32 @@ class SampleWorkflow
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits
+    )
+  }
+
+  /**
+   * Function converting a RDD of Aggregated Records to a DataFrame
+   *
+   * @param aggRDD RDD of AggregatedRecord to be converted
+   * @param featureName Name of the feature in the RDD
+   * @return The feature of the RDD as a DataFrame
+   */
+  def aggRecordRDDToDF(
+    aggRDD: RDD[AggregatedRecord],
+    featureName: String
+  ): DataFrame = {
+
+    val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
+    val MultiChannelFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
+
+    val schema = StructType(Seq(
+      StructField("timestamp", TimestampType, nullable = true),
+      StructField(featureName, MultiChannelFeatureType, nullable = false)
+    ))
+
+    spark.createDataFrame(
+      aggRDD.map{ case (k, v) => Row(new Timestamp(k), v)},
+      schema
     )
   }
 
@@ -202,25 +236,6 @@ class SampleWorkflow
       "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs),
       "spls" -> Right(spls)
-    )
-  }
-
-  def aggRecordRDDToDF(
-    aggRDD: RDD[AggregatedRecord],
-    featureName: String
-  ): DataFrame = {
-
-    val channelType = DataTypes.createArrayType(DoubleType, false)
-    val featureType = DataTypes.createArrayType(channelType, false)
-
-    val schema = StructType(Seq(
-      StructField("timestamp", TimestampType, nullable = true),
-      StructField(featureName, featureType, nullable = false)
-    ))
-
-    spark.createDataFrame(
-      aggRDD.map{ case (k, v) => Row(new Timestamp(k), v)},
-      schema
     )
   }
 }

@@ -45,6 +45,8 @@ import org.ode.engine.signal_processing._
  * @param segmentSize The size of the segments to be generated
  * @param segmentOffset The offset used to segment the signal
  * @param nfft The size of the fft-computation window
+ * @param lowFreq The low boundary of the frequency range to study for TOL computation
+ * @param highFreq The high boundary of the frequency range to study for TOL computation
  * @param lastRecordAction The action to perform when a partial record is encountered
  *
  */
@@ -55,6 +57,8 @@ class SampleWorkflow
   val segmentSize: Int,
   val segmentOffset: Int,
   val nfft: Int,
+  val lowFreq: Option[Double] = None,
+  val highFreq: Option[Double] = None,
   val lastRecordAction: String = "skip"
 ) {
 
@@ -212,6 +216,7 @@ class SampleWorkflow
 
     val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
+    val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
     val energyClass = new Energy(nfft)
 
     val segmented = records.mapValues(channels => channels.map(segmentationClass.compute))
@@ -223,7 +228,10 @@ class SampleWorkflow
     val periodograms = ffts.mapValues(
       channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute))
     )
+
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
+
+    val tols = welchs.mapValues(tolClass.compute)
 
     val spls = welchs.mapValues(welch => Array(welch.map(energyClass.computeSPLFromPSD)))
 
@@ -231,6 +239,7 @@ class SampleWorkflow
       "ffts" -> Left(ffts),
       "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs),
+      "tols" -> Right(tols),
       "spls" -> Right(spls)
     )
   }

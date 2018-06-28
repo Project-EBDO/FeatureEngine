@@ -54,18 +54,18 @@ class TestSampleWorkflow
 
     // Signal processing parameters
     val recordSizeInSec = 0.1f
-    val segmentSize = 100
-    val nfft = 100
-    val segmentOffset = 100
     val soundSamplingRate = 16000.0f
+    val segmentSize = 100
+    val segmentOffset = 100
+    val nfft = 100
+    val lowFreq = Some(3000.0f)
+    val highFreq = Some(7000.0f)
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime("1978-04-11T13:14:20.200Z")))
     val soundChannels = 1
     val soundSampleSizeInBits = 16
-
-    // Usefull for testing
     val soundDurationInSecs = 2.5f
 
 
@@ -88,6 +88,7 @@ class TestSampleWorkflow
     val sparkFFT = resultMap("ffts").left.get.cache()
     val sparkPeriodograms = resultMap("periodograms").left.get.cache()
     val sparkWelchs = resultMap("welchs").right.get.cache()
+    val sparkTOLs = resultMap("tols").right.get.cache()
     val sparkSPL = resultMap("spls").right.get.cache()
 
     val expectedRecordNumber = soundDurationInSecs / recordSizeInSec
@@ -113,6 +114,11 @@ class TestSampleWorkflow
       channels(0).length should equal(expectedFFTSize / 2)
     }
 
+    sparkTOLs.count should equal(expectedRecordNumber)
+    sparkTOLs.take(1).map{case (idx, channels) =>
+      channels(0).length should equal(4)
+    }
+
     sparkSPL.count should equal(expectedRecordNumber)
     sparkSPL.take(1).map{case (idx, channels) =>
       channels(0).length should equal(1)
@@ -124,17 +130,17 @@ class TestSampleWorkflow
 
     // Signal processing parameters
     val recordSizeInSec = 0.1f
-    val segmentSize = 100
-    val nfft = 100
-    val segmentOffset = 100
     val soundSamplingRate = 16000.0f
+    val segmentSize = 100
+    val segmentOffset = 100
+    val nfft = 100
+    val lowFreq = Some(3000.0f)
+    val highFreq = Some(7000.0f)
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
     val soundChannels = 1
     val soundSampleSizeInBits = 16
-
-    // Usefull for testing
     val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
@@ -144,8 +150,10 @@ class TestSampleWorkflow
       spark,
       recordSizeInSec,
       segmentSize,
+      segmentOffset,
       nfft,
-      segmentOffset
+      lowFreq,
+      highFreq
     )
 
     val resultMap = sampleWorkflow.apply(
@@ -159,13 +167,16 @@ class TestSampleWorkflow
     val sparkFFT = resultMap("ffts").left.get.cache().collect()
     val sparkPeriodograms = resultMap("periodograms").left.get.cache().collect()
     val sparkWelchs = resultMap("welchs").right.get.cache().collect()
+    val sparkTOLs = resultMap("tols").right.get.cache().collect()
     val sparkSPLs = resultMap("spls").right.get.cache().collect()
 
     val scalaWorkflow = new ScalaSampleWorkflow(
       recordSizeInSec,
       segmentSize,
       segmentOffset,
-      nfft
+      nfft,
+      lowFreq,
+      highFreq
     )
 
     val resultMapScala = scalaWorkflow.apply(
@@ -179,11 +190,13 @@ class TestSampleWorkflow
     val scalaFFT = resultMapScala("ffts").left.get
     val scalaPeriodograms = resultMapScala("periodograms").left.get
     val scalaWelchs = resultMapScala("welchs").right.get
+    val scalaTOLs = resultMapScala("tols").right.get
     val scalaSPLs = resultMapScala("spls").right.get
 
     ErrorMetrics.rmse(scalaFFT, sparkFFT) should be < maxRMSE
     ErrorMetrics.rmse(scalaPeriodograms, sparkPeriodograms) should be < maxRMSE
     ErrorMetrics.rmse(scalaWelchs, sparkWelchs) should be < maxRMSE
+    ErrorMetrics.rmse(scalaTOLs, sparkTOLs) should be < maxRMSE
     ErrorMetrics.rmse(scalaSPLs, sparkSPLs) should be < maxRMSE
   }
 
@@ -192,10 +205,12 @@ class TestSampleWorkflow
 
     // Signal processing parameters
     val recordSizeInSec = 0.1f
-    val segmentSize = 100
-    val nfft = 100
-    val segmentOffset = 100
     val soundSamplingRate = 16000.0f
+    val segmentSize = 100
+    val segmentOffset = 100
+    val nfft = 100
+    val lowFreq = Some(3000.0f)
+    val highFreq = Some(7000.0f)
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
@@ -212,8 +227,10 @@ class TestSampleWorkflow
       spark,
       recordSizeInSec,
       segmentSize,
+      segmentOffset,
       nfft,
-      segmentOffset
+      lowFreq,
+      highFreq
     )
 
     val resultMap = sampleWorkflow.apply(

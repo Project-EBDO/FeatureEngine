@@ -63,6 +63,7 @@ class SampleWorkflow
    *
    * @todo pass sounds path instead of names in soundsNameAndStartDate to avoid duplicate when
    * files have the same name but different path
+   * @todo read only the files of the list
    *
    * @param soundsUrl The URL to the directory that contains the sounds
    * @param soundsNameAndStartDate A list containing all files names

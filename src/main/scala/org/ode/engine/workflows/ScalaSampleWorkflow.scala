@@ -78,7 +78,9 @@ class ScalaSampleWorkflow
     // drop last record if imcomplete
     val completeChunks = if (chunks.head.head.length != chunks.last.last.length) {
       chunks.dropRight(1)
-    } else chunks
+    } else {
+      chunks
+    }
 
     completeChunks.zipWithIndex
       .map{case (record, idx) =>
@@ -126,24 +128,19 @@ class ScalaSampleWorkflow
       (idx, channels.map(segmentationClass.compute))}
 
     val ffts = segmented.map{
-      case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))
-    }
+      case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
 
     val periodograms = ffts.map{
-      case (idx, channels) => (idx, channels.map(_.map(periodogramClass.compute)))
-    }
+      case (idx, channels) => (idx, channels.map(_.map(periodogramClass.compute)))}
 
     val welchs = periodograms.map{
-      case (idx, channels) => (idx, channels.map(welchClass.compute))
-    }
+      case (idx, channels) => (idx, channels.map(welchClass.compute))}
 
     val tols = welchs.map{
-      case (idx, channels) => (idx, channels.map(tolClass.compute))
-    }
+      case (idx, channels) => (idx, channels.map(tolClass.compute))}
 
     val spls = welchs.map{
-      case (idx, channels) => (idx, Array(channels.map(energyClass.computeSPLFromPSD)))
-    }
+      case (idx, channels) => (idx, Array(channels.map(energyClass.computeSPLFromPSD)))}
 
     Map(
       "ffts" -> Left(ffts),

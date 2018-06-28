@@ -84,7 +84,7 @@ class ScalaSampleWorkflow
    * @param soundSamplingRate Sound's soundSamplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param startDate The starting date of the sound file
+   * @param soundStartDate The starting date of the sound file
    * @return A map that contains all basic features as RDDs
    */
   def apply(
@@ -106,17 +106,14 @@ class ScalaSampleWorkflow
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")
     val fftClass = new FFT(nfft)
-
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .foldLeft(0.0)((acc, v) => acc + v*v)
-
     val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
-    val segmented = records.map{
-      case (idx, channels) => (idx, channels.map(segmentationClass.compute))
-    }
+    val segmented = records.map{case (idx, channels) =>
+      (idx, channels.map(segmentationClass.compute))}
 
     val ffts = segmented.map{
       case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))

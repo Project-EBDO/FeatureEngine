@@ -61,8 +61,12 @@ class SampleWorkflow
   /**
    * Function used to read wav files inside a Spark workflow
    *
-   * @param soundUrl The URL to the directory that contains the sounds
-   * @param soundsNameAndStartDate A list containing all files names and their start date as a DateTime
+   * @todo pass sounds path instead of names in soundsNameAndStartDate to avoid duplicate when
+   * files have the same name but different path
+   *
+   * @param soundsUrl The URL to the directory that contains the sounds
+   * @param soundsNameAndStartDate A list containing all files names
+   * and their start date as a DateTime
    * @param soundSamplingRate Sound's sampling rate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
@@ -81,20 +85,14 @@ class SampleWorkflow
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
-        s"Computed record size $recordSizeInFrame should not have a decimal part."
-      )
-    }
+        s"Computed record size $recordSizeInFrame should not have a decimal part.")}
 
     val soundNames = soundsNameAndStartDate.map(_._1)
-
     if (soundNames.length != soundNames.distinct.length) {
       throw new IllegalArgumentException(
-        "Sounds list of names and start dates contains duplicate entries"
-      )
-    }
+        "Sounds list of names and start dates contains duplicate entries")}
 
     val hadoopConf = spark.sparkContext.hadoopConfiguration
-
     WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
     WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
     WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
@@ -106,23 +104,19 @@ class SampleWorkflow
       classOf[WavPcmInputFormat],
       classOf[LongWritable],
       classOf[TwoDDoubleArrayWritable],
-      hadoopConf
-    )
+      hadoopConf)
     .asInstanceOf[NewHadoopRDD[LongWritable, TwoDDoubleArrayWritable]]
-    .mapPartitionsWithInputSplit{ (inputSplit, iterator) ⇒
+    .mapPartitionsWithInputSplit{ (inputSplit, iterator) =>
       val fileName: String = inputSplit.asInstanceOf[FileSplit].getPath.getName
       val startDate = soundsNameAndStartDate.find{case (name, date) => name == fileName}.map(_._2)
 
       if (startDate.isEmpty) {
         throw new IllegalArgumentException(
-          s"Unexpected file found ($fileName) while reading wav files"
-        )
-      }
-
-      val fileOffset = startDate.get.instant.millis
+          s"Unexpected file found ($fileName) while reading wav files")}
 
       iterator.map{ case (writableOffset, writableSignal) =>
-        val offsetInMillis = fileOffset + (1000.0f * writableOffset.get.toFloat / (frameSize * soundSamplingRate)).toLong
+        val offsetInMillis = (startDate.get.instant.millis
+          + (1000.0f * writableOffset.get.toFloat / (frameSize.toFloat * soundSamplingRate)).toLong)
         val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
         (offsetInMillis, signal)
       }
@@ -134,7 +128,7 @@ class SampleWorkflow
    * Wrapper function used to read a single file
    *
    * @param soundUrl The URL pointing to a wav file
-   * @param soundsStartDate The start date of the recording
+   * @param soundStartDate The start date of the recording
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
@@ -185,8 +179,9 @@ class SampleWorkflow
   /**
    * Apply method for the workflow
    *
-   * @param soundUrl The URL to find the sound
-   * @param soundsNameAndStartDate A list containing all files names and their start date as a DateTime
+   * @param soundsUrl The URL to find the sound
+   * @param soundsNameAndStartDate A list containing all files
+   * names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample

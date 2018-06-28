@@ -111,8 +111,7 @@ class ScalaSampleWorkflow
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits,
-      soundStartDate
-    )
+      soundStartDate)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")
@@ -147,7 +146,6 @@ class ScalaSampleWorkflow
       "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs),
       "tols" -> Right(tols),
-      "spls" -> Right(spls)
-    )
+      "spls" -> Right(spls))
   }
 }

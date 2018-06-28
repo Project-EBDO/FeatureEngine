@@ -85,8 +85,8 @@ class SampleWorkflow
     soundSampleSizeInBits: Int
   ): RDD[Record] = {
 
-    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
     val frameSize = soundChannels * soundSampleSizeInBits / 8
+    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
@@ -231,7 +231,7 @@ class SampleWorkflow
 
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
 
-    val tols = welchs.mapValues(tolClass.compute)
+    val tols = welchs.mapValues(channels => channels.map(tolClass.compute))
 
     val spls = welchs.mapValues(welch => Array(welch.map(energyClass.computeSPLFromPSD)))
 

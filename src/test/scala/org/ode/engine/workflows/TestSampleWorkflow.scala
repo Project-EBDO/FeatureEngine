@@ -240,4 +240,20 @@ class TestSampleWorkflow
 
     lastRecordStartDate should equal(expectedLastRecordDate)
   }
+
+  it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
+
+
+    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
+
+    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUrl, soundsNameAndStartDate, 1.0f, 1, 16)
+  }
 }

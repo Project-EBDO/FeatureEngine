@@ -61,9 +61,9 @@ class SampleWorkflow
   /**
    * Function used to read wav files inside a Spark workflow
    *
-   * @param soundUrl The URL to find the sounds
+   * @param soundUrl The URL to the directory that contains the sounds
    * @param soundsNameAndStartDate A list containing all files names and their start date as a DateTime
-   * @param soundSamplingRate Sound's samplingRate
+   * @param soundSamplingRate Sound's sampling rate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
    * @return The records that contains wav's data
@@ -105,7 +105,9 @@ class SampleWorkflow
       val nameAndDate = soundsNameAndStartDate.filter{case (name, date) => name == fileName}
 
       if (nameAndDate.length != 1) {
-        throw new IllegalArgumentException("Except during reading files")
+        throw new IllegalArgumentException(
+          s"Unexpected file found ($fileName) while reading wav files"
+        )
       }
 
       val fileOffset = nameAndDate.head._2.instant.millis
@@ -118,6 +120,32 @@ class SampleWorkflow
       }
     }
     .asInstanceOf[RDD[Record]]
+  }
+
+  /**
+   * Wrapper function used to read a single file
+   *
+   * @param soundUrl The URL pointing to a wav file
+   * @param soundsStartDate The start date of the recording
+   * @param soundSamplingRate Sound's samplingRate
+   * @param soundChannels Sound's number of channels
+   * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @return The records that contains wav's data
+   */
+  def readWavRecords(
+    soundUrl: URL,
+    soundStartDate: DateTime,
+    soundSamplingRate: Float,
+    soundChannels: Int,
+    soundSampleSizeInBits: Int
+  ): RDD[Record] = {
+    readWavRecords(
+      soundUrl,
+      List((soundUrl.getPath.split("/").last, soundStartDate)),
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits
+    )
   }
 
   /**

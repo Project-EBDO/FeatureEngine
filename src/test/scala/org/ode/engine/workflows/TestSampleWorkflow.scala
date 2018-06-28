@@ -61,6 +61,7 @@ class TestSampleWorkflow
 
     // Sound parameters
     val soundUrl = getClass.getResource("/wav/sin_16kHz_2.5s.wav")
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime("1978-04-11T13:14:20.200Z")))
     val soundChannels = 1
     val soundSampleSizeInBits = 16
 
@@ -78,6 +79,7 @@ class TestSampleWorkflow
 
     val resultMap = sampleWorkflow.apply(
       soundUrl,
+      soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits
@@ -135,6 +137,7 @@ class TestSampleWorkflow
     // Usefull for testing
     val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
 
     val sampleWorkflow = new SampleWorkflow(
@@ -147,10 +150,10 @@ class TestSampleWorkflow
 
     val resultMap = sampleWorkflow.apply(
       soundUrl,
+      soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits,
-      soundStartDate
+      soundSampleSizeInBits
     )
 
     val sparkFFT = resultMap("ffts").left.get.cache().collect()
@@ -202,6 +205,7 @@ class TestSampleWorkflow
     // Usefull for testing
     val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
 
     val sampleWorkflow = new SampleWorkflow(
@@ -214,10 +218,10 @@ class TestSampleWorkflow
 
     val resultMap = sampleWorkflow.apply(
       soundUrl,
+      soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits,
-      soundStartDate
+      soundSampleSizeInBits
     )
 
     val sparkFFT = resultMap("ffts").left.get.cache().collect().sortBy(_._1)

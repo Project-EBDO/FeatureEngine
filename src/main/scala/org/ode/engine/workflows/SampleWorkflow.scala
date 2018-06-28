@@ -20,9 +20,10 @@ import java.net.URL
 
 import org.apache.hadoop.io.{DoubleWritable, LongWritable}
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
+import org.apache.hadoop.mapreduce.lib.input.FileSplit
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd.{RDD, HadoopRDD, NewHadoopRDD}
 
 import com.github.nscala_time.time.Imports._
 import org.joda.time.Days
@@ -67,15 +68,14 @@ class SampleWorkflow
    * @return The records that contains wav's data
    */
   def readWavRecords(
-    soundUrl: URL,
+    soundsUrl: URL,
+    soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int,
-    soundStartDate: String
+    soundSampleSizeInBits: Int
   ): RDD[Record] = {
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
-    val startTime: Long = new DateTime(soundStartDate).instant.millis
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
@@ -92,17 +92,31 @@ class SampleWorkflow
     WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
 
     spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
-      soundUrl.toURI.toString,
+      soundsUrl.toURI.toString,
       classOf[WavPcmInputFormat],
       classOf[LongWritable],
       classOf[TwoDDoubleArrayWritable],
       hadoopConf
-    ).map{ case (writableOffset, writableSignal) =>
-      // no idea why /2 is needed
-      val offsetInMillis = startTime + (1000.0f * writableOffset.get.toFloat / (2.0f * soundSamplingRate)).toLong
-      val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
-      (offsetInMillis, signal)
+    )
+    .asInstanceOf[NewHadoopRDD[LongWritable, TwoDDoubleArrayWritable]]
+    .mapPartitionsWithInputSplit{ (inputSplit, iterator) ⇒
+      val fileName: String = inputSplit.asInstanceOf[FileSplit].getPath.getName
+      val nameAndDate = soundsNameAndStartDate.filter{case (name, date) => name == fileName}
+
+      if (nameAndDate.length != 1) {
+        throw new IllegalArgumentException("Except during reading files")
+      }
+
+      val fileOffset = nameAndDate.head._2.instant.millis
+
+      iterator.map{ case (writableOffset, writableSignal) =>
+        // no idea why /2 is needed
+        val offsetInMillis = fileOffset + (1000.0f * writableOffset.get.toFloat / (2.0f * soundSamplingRate)).toLong
+        val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
+        (offsetInMillis, signal)
+      }
     }
+    .asInstanceOf[RDD[Record]]
   }
 
   /**
@@ -112,23 +126,22 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param startDate The starting date of the sound file
    * @return A map that contains all basic features as RDDs
    */
   def apply(
-    soundUrl: URL,
+    soundsUrl: URL,
+    soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int,
-    soundStartDate: String = "1970-01-01T00:00:00.000Z"
+    soundSampleSizeInBits: Int
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
     val records = readWavRecords(
-      soundUrl,
+      soundsUrl,
+      soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits,
-      soundStartDate
+      soundSampleSizeInBits
     )
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))

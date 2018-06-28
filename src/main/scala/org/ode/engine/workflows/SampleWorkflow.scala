@@ -22,11 +22,13 @@ import org.apache.hadoop.io.{DoubleWritable, LongWritable}
 import org.ode.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
 import org.apache.hadoop.mapreduce.lib.input.FileSplit
 
-import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.{RDD, HadoopRDD, NewHadoopRDD}
+import org.apache.spark.sql.{SparkSession, DataFrame, Row}
+import org.apache.spark.sql.types._
 
 import com.github.nscala_time.time.Imports._
 import org.joda.time.Days
+import java.sql.Timestamp
 
 import org.ode.engine.signal_processing._
 
@@ -59,12 +61,11 @@ class SampleWorkflow
   /**
    * Function used to read wav files inside a Spark workflow
    *
-   * @param soundUrl The URL to find the sound
+   * @param soundUrl The URL to find the sounds
+   * @param soundsNameAndStartDate A list containing all files names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @param startDate The starting date of the sound file
-   * @param soundStartTime Sound's start date in seconds
    * @return The records that contains wav's data
    */
   def readWavRecords(
@@ -123,6 +124,7 @@ class SampleWorkflow
    * Apply method for the workflow
    *
    * @param soundUrl The URL to find the sound
+   * @param soundsNameAndStartDate A list containing all files names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
@@ -172,6 +174,25 @@ class SampleWorkflow
       "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs),
       "spls" -> Right(spls)
+    )
+  }
+
+  def aggRecordRDDToDF(
+    aggRDD: RDD[AggregatedRecord],
+    featureName: String
+  ): DataFrame = {
+
+    val channelType = DataTypes.createArrayType(DoubleType, false)
+    val featureType = DataTypes.createArrayType(channelType, false)
+
+    val schema = StructType(Seq(
+      StructField("timestamp", TimestampType, nullable = true),
+      StructField(featureName, featureType, nullable = false)
+    ))
+
+    spark.createDataFrame(
+      aggRDD.map{ case (k, v) => Row(new Timestamp(k), v)},
+      schema
     )
   }
 }

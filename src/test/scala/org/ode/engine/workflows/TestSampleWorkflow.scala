@@ -187,7 +187,7 @@ class TestSampleWorkflow
     ErrorMetrics.rmse(scalaSPLs, sparkSPLs) should be < maxRMSE
   }
 
-  it should "generate the same results with the right keys" in {
+  it should "generate the results with the right timestamps" in {
     val spark = SparkSession.builder.getOrCreate
 
     // Signal processing parameters

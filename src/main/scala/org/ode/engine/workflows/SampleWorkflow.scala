@@ -202,13 +202,11 @@ class SampleWorkflow
     soundSampleSizeInBits: Int
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
-    val records = readWavRecords(
-      soundsUri,
+    val records = readWavRecords(soundsUri,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
-      soundSampleSizeInBits
-    )
+      soundSampleSizeInBits)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft)
@@ -224,12 +222,10 @@ class SampleWorkflow
     val segmented = records.mapValues(channels => channels.map(segmentationClass.compute))
 
     val ffts = segmented.mapValues(
-      channels => channels.map(signalSegment => signalSegment.map(fftClass.compute))
-    )
+      channels => channels.map(signalSegment => signalSegment.map(fftClass.compute)))
 
     val periodograms = ffts.mapValues(
-      channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute))
-    )
+      channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute)))
 
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
 
@@ -237,12 +233,15 @@ class SampleWorkflow
 
     val spls = welchs.mapValues(welch => Array(welch.map(energyClass.computeSPLFromPSD)))
 
-    Map(
-      "ffts" -> Left(ffts),
+    val resultMap = Map("ffts" -> Left(ffts),
       "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs),
-      "tols" -> Right(tols),
-      "spls" -> Right(spls)
-    )
+      "spls" -> Right(spls))
+
+    if (nfft >= soundSamplingRate.toInt) {
+      val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
+      val tols = welchs.mapValues(channels => channels.map(tolClass.compute))
+      resultMap ++ Map("tols" -> Right(tols))
+    } else {resultMap}
   }
 }

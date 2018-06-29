@@ -80,7 +80,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUri,
+      soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -159,7 +159,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUri,
+      soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -236,7 +236,7 @@ class TestSampleWorkflow
     )
 
     val resultMap = sampleWorkflow.apply(
-      soundUri,
+      soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
       soundChannels,
@@ -272,6 +272,6 @@ class TestSampleWorkflow
 
     val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
 
-    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUri, soundsNameAndStartDate, 1.0f, 1, 16)
+    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
   }
 }

@@ -69,7 +69,8 @@ class SampleWorkflow
    * files have the same name but different path
    * @todo read only the files of the list
    *
-   * @param soundsUri The URI to the directory that contains the sounds
+   * @param soundsUri URI-like string pointing to the wav files
+   * (Unix globbing is allowed, file:///tmp/{sound0,sound1}.wav is a valid soundsUri)
    * @param soundsNameAndStartDate A list containing all files names
    * and their start date as a DateTime
    * @param soundSamplingRate Sound's sampling rate
@@ -78,7 +79,7 @@ class SampleWorkflow
    * @return The records that contains wav's data
    */
   def readWavRecords(
-    soundsUri: URI,
+    soundsUri: String,
     soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
@@ -105,7 +106,7 @@ class SampleWorkflow
     WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
 
     spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
-      soundsUri.toString,
+      soundsUri,
       classOf[WavPcmInputFormat],
       classOf[LongWritable],
       classOf[TwoDDoubleArrayWritable],
@@ -132,7 +133,7 @@ class SampleWorkflow
   /**
    * Wrapper function used to read a single file
    *
-   * @param soundUri The URI pointing to a wav file
+   * @param soundUri URI pointing to a wav file as a String
    * @param soundStartDate The start date of the recording
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
@@ -140,7 +141,7 @@ class SampleWorkflow
    * @return The records that contains wav's data
    */
   def readWavRecords(
-    soundUri: URI,
+    soundUri: String,
     soundStartDate: DateTime,
     soundSamplingRate: Float,
     soundChannels: Int,
@@ -148,7 +149,7 @@ class SampleWorkflow
   ): RDD[Record] = {
     readWavRecords(
       soundUri,
-      List((soundUri.getPath.split("/").last, soundStartDate)),
+      List(((new URI(soundUri)).getPath.split("/").last, soundStartDate)),
       soundSamplingRate,
       soundChannels,
       soundSampleSizeInBits
@@ -184,7 +185,8 @@ class SampleWorkflow
   /**
    * Apply method for the workflow
    *
-   * @param soundsUri The URI to find the sound
+   * @param soundsUri URI-like string pointing to the wav files
+   * (Unix globbing is allowed, file:///tmp/{sound0,sound1}.wav is a valid soundsUri)
    * @param soundsNameAndStartDate A list containing all files
    * names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
@@ -193,7 +195,7 @@ class SampleWorkflow
    * @return A map that contains all basic features as RDDs
    */
   def apply(
-    soundsUri: URI,
+    soundsUri: String,
     soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,

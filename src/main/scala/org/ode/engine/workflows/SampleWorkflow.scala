@@ -86,7 +86,6 @@ class SampleWorkflow
     soundSampleSizeInBits: Int
   ): RDD[Record] = {
 
-    val frameSize = soundChannels * soundSampleSizeInBits / 8
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
 
     if (recordSizeInFrame % 1 != 0.0f) {
@@ -122,7 +121,7 @@ class SampleWorkflow
 
       iterator.map{ case (writableOffset, writableSignal) =>
         val offsetInMillis = (startDate.get.instant.millis
-          + (1000.0f * writableOffset.get.toFloat / (frameSize.toFloat * soundSamplingRate)).toLong)
+          + (1000.0f * writableOffset.get.toFloat / soundSamplingRate).toLong)
         val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
         (offsetInMillis, signal)
       }

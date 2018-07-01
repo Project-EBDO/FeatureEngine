@@ -215,7 +215,6 @@ class SampleWorkflow
 
     val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
-    val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
     val energyClass = new Energy(nfft)
 
     val segmented = records.mapValues(channels => channels.map(segmentationClass.compute))
@@ -227,8 +226,6 @@ class SampleWorkflow
       channels => channels.map(fftSegment => fftSegment.map(periodogramClass.compute)))
 
     val welchs = periodograms.mapValues(channels => channels.map(welchClass.compute))
-
-    val tols = welchs.mapValues(channels => channels.map(tolClass.compute))
 
     val spls = welchs.mapValues(welch => Array(welch.map(energyClass.computeSPLFromPSD)))
 

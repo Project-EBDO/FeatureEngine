@@ -126,7 +126,10 @@ class ScalaSampleWorkflow
     val segmented = records.map{case (idx, channels) =>
       (idx, channels.map(segmentationClass.compute))}
 
-    val ffts = segmented.map{
+    val windowed = segmented.map{
+      case (idx, channels) => (idx, channels.map(_.map(hammingClass.applyToSignal)))}
+
+    val ffts = windowed.map{
       case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
 
     val periodograms = ffts.map{

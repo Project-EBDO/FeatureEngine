@@ -219,7 +219,10 @@ class SampleWorkflow
 
     val segmented = records.mapValues(channels => channels.map(segmentationClass.compute))
 
-    val ffts = segmented.mapValues(
+    val windowed = segmented.mapValues(
+      channels => channels.map(signalSegment => signalSegment.map(hammingClass.applyToSignal)))
+
+    val ffts = windowed.mapValues(
       channels => channels.map(signalSegment => signalSegment.map(fftClass.compute)))
 
     val periodograms = ffts.mapValues(

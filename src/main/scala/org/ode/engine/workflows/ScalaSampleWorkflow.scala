@@ -123,14 +123,10 @@ class ScalaSampleWorkflow
     val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
     val energyClass = new Energy(nfft)
 
-    val segmented = records.map{case (idx, channels) =>
-      (idx, channels.map(segmentationClass.compute))}
-
-    val windowed = segmented.map{
-      case (idx, channels) => (idx, channels.map(_.map(hammingClass.applyToSignal)))}
-
-    val ffts = windowed.map{
-      case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
+    val ffts = records
+      .map{case (idx, channels) =>(idx, channels.map(segmentationClass.compute))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(hammingClass.applyToSignal)))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
 
     val periodograms = ffts.map{
       case (idx, channels) => (idx, channels.map(_.map(periodogramClass.compute)))}

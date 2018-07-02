@@ -74,7 +74,7 @@ class SampleWorkflow
    * @param soundsNameAndStartDate A list containing all files names
    * and their start date as a DateTime
    * @param soundSamplingRate Sound's sampling rate
-   * @param soundChannels Sound's number of chans
+   * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
    * @return The records that contains wav's data
    */
@@ -135,7 +135,7 @@ class SampleWorkflow
    * @param soundUri URI pointing to a wav file as a String
    * @param soundStartDate The start date of the recording
    * @param soundSamplingRate Sound's samplingRate
-   * @param soundChannels Sound's number of chans
+   * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
    * @return The records that contains wav's data
    */
@@ -189,7 +189,7 @@ class SampleWorkflow
    * @param soundsNameAndStartDate A list containing all files
    * names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
-   * @param soundChannels Sound's number of chans
+   * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
    * @return A map that contains all basic features as RDDs
    */

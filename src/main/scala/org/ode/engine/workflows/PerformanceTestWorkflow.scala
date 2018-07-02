@@ -169,24 +169,21 @@ class PerformanceTestWorkflow
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
-    val ffts = records
+    val periodograms = records
       .mapValues(chans => chans.map(segmentationClass.compute))
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
       .mapValues(windowedChans => windowedChans.map(windowedChan =>
         windowedChan.map(fftClass.compute)))
-
-    val periodograms = ffts.mapValues(fftChans =>
-      fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
+      .mapValues(fftChans =>
+        fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
 
     val welchs = periodograms.mapValues(periodogramChans =>
       periodogramChans.map(welchClass.compute))
 
-    val spls = welchs.mapValues(welchChans => welchChans.map(welchChan =>
-      Array(energyClass.computeSPLFromPSD(welchChan))))
-
-    val results = welchs.map{ case (ts, welchRecord) =>
-      (ts, welchRecord, welchRecord.map(welch => Array(energyClass.computeSPLFromPSD(welch))))}
+    val results = welchs.map{ case (ts, welchChans) =>
+      (ts, welchChans, welchChans.map(welchChan => Array(energyClass.computeSPLFromPSD(welchChan))))
+    }
 
     spark.createDataFrame(
       results.map{ case (ts, welch, spls) => Row(new Timestamp(ts), welch, spls)},

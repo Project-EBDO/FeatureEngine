@@ -21,6 +21,8 @@ import org.scalatest.{FlatSpec, Matchers}
 
 /**
   * Tests for TOL class
+  * The expected results are generated with the python code at
+  * src/test/resources/standardization/scipy/scripts/tol.py
   *
   * @author Alexandre Degurse
   */
@@ -32,9 +34,9 @@ class TestTOL extends FlatSpec with Matchers {
 
   /**
    * Scipy code:
-   * signal = numpy.arange(1, 128)
-   * f, psd128 = scipy.signal.periodogram(x=signal, fs=param["fs"],
-   *                                      window='boxcar', nfft=param["nfft"],
+   * signal = numpy.arange(1, 128 + 1)
+   * f, psd128 = scipy.signal.periodogram(x=signal, fs=128,
+   *                                      window='boxcar', nfft=128,
    *                                      detrend=False, return_onesided=True,
    *                                      scaling='density')
    */
@@ -174,34 +176,11 @@ class TestTOL extends FlatSpec with Matchers {
 
     val tols = tolClass.compute(psd128)
 
-    val expectedTols = Array(
-      8.714892243362911, 8.325191414850961, 8.388036763027877
-    )
+    val expectedTolsLength = 3
 
-    tols.length should equal(expectedTols.length)
-    // ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
+    tols.length should equal(expectedTolsLength)
   }
 
-  // it should "rmse-match TOL non-approximate and TOL approximated" in {
-  //   val nfft = 128
-  //   val samplingRate = 256.0f
-  //   val lowFreq = Some(35.2)
-  //   val highFreq = Some(50.5)
-
-
-  //   val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq, true)
-
-  //   val tols = tolClass.compute(psd128)
-  //   val tolsNonNormalized = tols
-  //     .map()
-
-  //   val expectedTols = Array(
-  //     8.714892243362911, 8.325191414850961, 8.388036763027877
-  //   )
-
-  //   tols.length should equal(expectedTols.length)
-  //   ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
-  // }
 
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
     val tolClass = new TOL(100, 100.0f)

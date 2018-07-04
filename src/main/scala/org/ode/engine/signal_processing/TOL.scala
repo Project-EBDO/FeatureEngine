@@ -30,7 +30,8 @@ package org.ode.engine.signal_processing
  * @param samplingRate The sampling rate of the signal
  * @param lowFreq The low boundary of the frequency range to study
  * @param highFreq The high boundary of the frequency range to study
- * @param approximate Whether it should return TOL approximate when nfft < samplingRate
+ * @param approximate Whether it should return TOL when nfft < samplingRate
+ * thus doing a approxition. The correctness is not guaranteed, use it at your own risk !
  */
 
 
@@ -43,12 +44,10 @@ class TOL
   val approximate: Boolean = false
 ) extends FrequencyConvertible {
 
-  if (!approximate) {
-    if (nfft < samplingRate) {
-      throw new IllegalArgumentException(
-        s"Incorrect window size ($nfft) for TOL ($samplingRate)"
-      )
-    }
+  if (!approximate && nfft < samplingRate) {
+    throw new IllegalArgumentException(
+      s"Incorrect window size ($nfft) for TOL ($samplingRate)"
+    )
   }
 
   // we're using acoustic constants

@@ -5,3 +5,6 @@ target
 project/target
 spark-warehouse
 .idea
+
+*.pyc
+__pycache__

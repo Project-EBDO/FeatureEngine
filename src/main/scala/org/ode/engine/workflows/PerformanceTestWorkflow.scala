@@ -144,7 +144,10 @@ class PerformanceTestWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @return A map that contains all basic features as RDDs
+   * @return The computed features (SPL and Welch) over the wav files given in soundsUri
+   * as a DataFrame of Row(timestamp, spl, welch).
+   * The channels are kept inside the tuple value to have multiple dataframe columns
+   * instead of a single one with complex content
    */
   def apply(
     soundsUri: String,
@@ -170,7 +173,7 @@ class PerformanceTestWorkflow
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
-    val periodograms = records
+    val results = records
       .mapValues(chans => chans.map(segmentationClass.compute))
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
@@ -178,12 +181,11 @@ class PerformanceTestWorkflow
         windowedChan.map(fftClass.compute)))
       .mapValues(fftChans =>
         fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
-
-    val welchs = periodograms.mapValues(periodogramChans =>
-      periodogramChans.map(welchClass.compute))
-
-    val results = welchs.map{ case (ts, welchChans) =>
-      (ts, welchChans, welchChans.map(welchChan => Array(energyClass.computeSPLFromPSD(welchChan))))
+      .mapValues(periodogramChans =>
+        periodogramChans.map(welchClass.compute))
+      .map{ case (ts, welchChans) =>
+        (ts, welchChans, welchChans.map(welchChan =>
+          Array(energyClass.computeSPLFromPSD(welchChan))))
     }
 
     spark.createDataFrame(

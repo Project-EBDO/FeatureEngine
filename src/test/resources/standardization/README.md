@@ -39,7 +39,7 @@ with space separated values, values written as floating-point numbers (float or 
 The file names should follow the convention:
 
 ```bash
-SOUNDID_SYSBITS_WAVBITS_SAMPLENUMBER_SAMPRATE_CHANSNUMBER_ALGO_NFFT_WINSIZE_OVERLAP_VALUESPACE_VSYSBITS.txt
+SOUNDID_SYSBITS_WAVBITS_SAMPLENUMBER_SAMPRATE_CHANSNUMBER_ALGO_NFFT_WINSIZE_OVERLAP_VSYSBITS.txt
 ```
 
 With:
@@ -49,10 +49,4 @@ With:
 + `NFFT` - The size of the FFT computation window in bytes
 + `WINSIZE` - The size of the signal window used in FFT in bytes
 + `OVERLAP` - The overlap of signal windows as ratio of `WINSIZE`
-+ `VALUESPACE` - The space the values in the files belong to, can be `real` or `imag`
 + `VSYSBITS` - The bytes number the computation-system used (generally `64`, but could be `32`)
-
-## TODO: Generating expected values using scripts
-
-Put the matlab and scipy scripts in the corresponding `scripts` folders, and describe how to run them
-in order to generate the expected values files.

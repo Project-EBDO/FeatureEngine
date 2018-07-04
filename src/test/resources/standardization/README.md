@@ -36,6 +36,9 @@ With:
 
 Expected values in  `*/values` folders should be formatted using one line per time-result,
 with space separated values, values written as floating-point numbers (float or double).
+Complex values in the files follow this convention: complex number are represented by
+two consecutive Double (i.e. `Re(z_0) Im(z_0) Re(R_1) Im(z_1) ... Im(z_n)`)
+
 The file names should follow the convention:
 
 ```bash

@@ -34,6 +34,7 @@ import org.ode.engine.signal_processing._
 
 /**
  * Performance test workflow for Spark over Datarmor.
+ * Copy from SampleWorkflow before we provied better general Workflow utility.
  *
  * @author Alexandre Degurse, Joseph Allemandou
  *

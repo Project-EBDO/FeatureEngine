@@ -253,19 +253,19 @@ class TestPerformanceTestWorkflow
     lastRecordStartDate should equal(expectedLastRecordDate)
   }
 
-  // it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
-  //   val spark = SparkSession.builder.getOrCreate
+  it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
+    val spark = SparkSession.builder.getOrCreate
 
-  //   val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-  //   val soundChannels = 1
-  //   val soundSampleSizeInBits = 16
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
 
-  //   val soundStartDate = "1978-04-11T13:14:20.200Z"
-  //   val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
 
 
-  //   val perfTestWorkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 100, 100)
+    val perfTestWorkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 100, 100)
 
-  //   an[IllegalArgumentException] should be thrownBy perfTestWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
-  // }
+    an[IllegalArgumentException] should be thrownBy perfTestWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+  }
 }

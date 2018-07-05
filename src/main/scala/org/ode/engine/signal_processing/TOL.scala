@@ -39,7 +39,7 @@ case class TOL
   samplingRate: Float,
   lowFreq: Option[Double] = None,
   highFreq: Option[Double] = None
-) extends Serializable with FrequencyConvertible {
+) extends FrequencyConvertible with Serializable {
 
   if (nfft < samplingRate) {
     throw new IllegalArgumentException(

@@ -75,7 +75,7 @@ class PerfTestPeriodogramWithouti2Vars
   val nfftEven = nfft % 2 == 0
   val uniqueSamples = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
   val normalizationFactor = 1 / (fs * nfft)
-  val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
+  val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor, 1.0f)
 
   val f1 = (array: Array[Double]) => periodogramClass.compute(array)
   val f2 = (array: Array[Double]) => {

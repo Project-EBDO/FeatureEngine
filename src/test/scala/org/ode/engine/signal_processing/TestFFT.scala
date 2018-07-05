@@ -68,7 +68,7 @@ class TestFFT extends FlatSpec with Matchers {
   "FFT" should "Return an expected layout (with 0 values in right places) for nfft even" in {
 
     val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft)
+    val fftClass: FFT = new FFT(eventNfft, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     fft.length should equal(eventNfft + 2)
@@ -81,7 +81,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return an expected layout (with 0 values in right places) for nfft odd" in {
 
     val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft + 1)
+    val fftClass: FFT = new FFT(eventNfft + 1, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     fft.length should equal(eventNfft + 2)
@@ -93,7 +93,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft even" in {
 
     val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft)
+    val fftClass: FFT = new FFT(eventNfft, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft)
@@ -126,7 +126,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft odd" in {
 
     val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft + 1)
+    val fftClass: FFT = new FFT(eventNfft + 1, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft + 1)
@@ -161,7 +161,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "compute the same fft as numpy on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
-    val fftClass: FFT = new FFT(signal.length)
+    val fftClass: FFT = new FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val expectedFFT: Array[Double] = Array(
@@ -276,7 +276,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "compute the same fft as Matlab on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
-    val fftClass: FFT = new FFT(signal.length)
+    val fftClass: FFT = new FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val expectedFFT: Array[Double] = Array(
@@ -356,7 +356,7 @@ class TestFFT extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](100)
-    val fftClass: FFT = new FFT(10)
+    val fftClass: FFT = new FFT(10, 1.0f)
 
     an [IllegalArgumentException] should be thrownBy fftClass.compute(signal)
   }

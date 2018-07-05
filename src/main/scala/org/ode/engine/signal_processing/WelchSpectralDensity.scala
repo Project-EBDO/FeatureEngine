@@ -31,6 +31,42 @@ case class WelchSpectralDensity
   samplingRate: Float
 ) extends Serializable with FrequencyConvertible {
 
+  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
+  val featureSize = powerSpectrumSize
+
+  /**
+   * Function converting a frequency to a index in the welch PSD
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  def frequencyToIndex(freq: Double): Int = {
+    if (freq > samplingRate / 2.0 || freq < 0.0) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
+      )
+    }
+
+    (freq * nfft / samplingRate).toInt
+  }
+
+  /**
+   * Function converting a index in the welch PSD to a frequency
+   *
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
+   */
+  def indexToFrequency(idx: Int): Double = {
+    if (idx >= powerSpectrumSize || idx < 0) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion ($powerSpectrumSize)"
+      )
+    }
+
+    idx.toDouble * samplingRate / nfft
+  }
+
+
   /**
    * Computes Wech estimate of the Power Spectral Density out of
    * multiple periodograms on the signal
@@ -42,19 +78,19 @@ case class WelchSpectralDensity
    * @return The Welch Power Spectral Density estimation for the provided periodograms
    */
   def compute(periodograms: Array[Array[Double]]): Array[Double] = {
-    if (!periodograms.forall(_.length == spectrumSize)) {
+    if (!periodograms.forall(_.length == powerSpectrumSize)) {
       throw new IllegalArgumentException(
-        s"Inconsistent periodogram lengths for Welch aggregation ($spectrumSize)"
+        s"Inconsistent periodogram lengths for Welch aggregation ($powerSpectrumSize)"
       )
     }
 
-    val psdAgg: Array[Double] = new Array[Double](spectrumSize)
+    val psdAgg: Array[Double] = new Array[Double](powerSpectrumSize)
 
     // Using while with local variables on purpose -- See performance test
     // scalastyle:off while var.local
     var i: Int = 0
     var j: Int = 0
-    while (i < spectrumSize){
+    while (i < powerSpectrumSize){
       while(j < periodograms.length) {
         psdAgg(i) += periodograms(j)(i)
         j += 1

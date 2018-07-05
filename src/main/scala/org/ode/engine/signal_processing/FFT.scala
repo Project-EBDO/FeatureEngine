@@ -27,7 +27,10 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
  *
  * @param nfft The size of the fft-computation window
  */
-case class FFT(nfft: Int) extends Serializable {
+case class FFT(
+  nfft: Int,
+  samplingRate: Float
+) extends Serializable with FrequencyConvertible {
 
   // Instantiate the low level class that computes the fft
   // This class needs to be a var in order to be reinitialised
@@ -37,6 +40,41 @@ case class FFT(nfft: Int) extends Serializable {
   private var lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
   // scalastyle:on var.field
   private val nfftEven: Boolean = nfft % 2 == 0
+
+  private val fftSize: Int = if (nfftEven) (nfft + 2) / 2 else (nfft + 1) / 2
+  val featureSize: Int = fftSize
+
+  /**
+   * Function converting a frequency to a index in the spectrum
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  def frequencyToIndex(freq: Double): Int = {
+    if (freq < 0.0 || freq > samplingRate / 2.0) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
+      )
+    }
+
+    2 * (freq * nfft / samplingRate).toInt
+  }
+
+  /**
+   * Function converting a index in the spectrum to a frequency
+   *
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
+   */
+  def indexToFrequency(idx: Int): Double = {
+    if (idx < 0 || idx >= 2 * fftSize) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion (${2*fftSize})"
+      )
+    }
+
+    (idx / 2).toDouble * samplingRate / nfft
+  }
 
   /**
    * Function that computes FFT for an Array

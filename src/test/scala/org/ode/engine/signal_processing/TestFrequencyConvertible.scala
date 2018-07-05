@@ -25,7 +25,30 @@ import org.scalatest.{FlatSpec, Matchers}
  * @author Alexandre Degurse
  */
 
-case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
+case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible {
+  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
+  val featureSize = powerSpectrumSize
+
+  def frequencyToIndex(freq: Double): Int = {
+    if (freq > samplingRate / 2.0 || freq < 0.0) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
+      )
+    }
+
+    (freq * nfft / samplingRate).toInt
+  }
+
+  def indexToFrequency(idx: Int): Double = {
+    if (idx >= powerSpectrumSize || idx < 0) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion ($powerSpectrumSize)"
+      )
+    }
+
+    idx.toDouble * samplingRate / nfft
+  }
+}
 
 class TestFrequencyConvertible extends FlatSpec with Matchers {
 
@@ -34,31 +57,31 @@ class TestFrequencyConvertible extends FlatSpec with Matchers {
   val testClass2 = TestClass(2049, 96000.0f)
 
   it should "compute the right frequency when given spectrum indicies" in {
-    testClass0.spectrumIndexToFrequency(0) should equal(0.0)
-    testClass0.spectrumIndexToFrequency(10) should equal(0.1)
-    testClass0.spectrumIndexToFrequency(25) should equal(0.25)
-    testClass0.spectrumIndexToFrequency(50) should equal(0.5)
+    testClass0.indexToFrequency(0) should equal(0.0)
+    testClass0.indexToFrequency(10) should equal(0.1)
+    testClass0.indexToFrequency(25) should equal(0.25)
+    testClass0.indexToFrequency(50) should equal(0.5)
 
-    testClass1.spectrumIndexToFrequency(0) should equal(0.0)
-    testClass1.spectrumIndexToFrequency(1) should equal(43.75)
-    testClass1.spectrumIndexToFrequency(100) should equal(4375.0)
+    testClass1.indexToFrequency(0) should equal(0.0)
+    testClass1.indexToFrequency(1) should equal(43.75)
+    testClass1.indexToFrequency(100) should equal(4375.0)
 
-    testClass2.spectrumIndexToFrequency(0) should equal(0.0)
-    testClass2.spectrumIndexToFrequency(1) should equal(46.85212298682284)
-    testClass2.spectrumIndexToFrequency(1024) should equal(47976.57393850659)
+    testClass2.indexToFrequency(0) should equal(0.0)
+    testClass2.indexToFrequency(1) should equal(46.85212298682284)
+    testClass2.indexToFrequency(1024) should equal(47976.57393850659)
   }
 
   it should "compute the right index in the spectrum given frequencies" in {
-    testClass0.frequencyToSpectrumIndex(0.0) should equal(0)
-    testClass0.frequencyToSpectrumIndex(0.1) should equal(10)
-    testClass0.frequencyToSpectrumIndex(0.25) should equal(25)
-    testClass0.frequencyToSpectrumIndex(0.5) should equal(50)
+    testClass0.frequencyToIndex(0.0) should equal(0)
+    testClass0.frequencyToIndex(0.1) should equal(10)
+    testClass0.frequencyToIndex(0.25) should equal(25)
+    testClass0.frequencyToIndex(0.5) should equal(50)
 
-    testClass1.frequencyToSpectrumIndex(43.75) should equal(1)
-    testClass1.frequencyToSpectrumIndex(4375.0) should equal(100)
+    testClass1.frequencyToIndex(43.75) should equal(1)
+    testClass1.frequencyToIndex(4375.0) should equal(100)
 
-    testClass2.frequencyToSpectrumIndex(46.85212298682284) should equal(1)
-    testClass2.frequencyToSpectrumIndex(47976.57393850659) should equal(1024)
+    testClass2.frequencyToIndex(46.85212298682284) should equal(1)
+    testClass2.frequencyToIndex(47976.57393850659) should equal(1024)
   }
 
   it should "compute the right frequency ranges" in {
@@ -138,21 +161,21 @@ class TestFrequencyConvertible extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given a frequency higher than half of samplingRate" in {
     val testClassFail = TestClass(1024, 44800.0f)
-    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToSpectrumIndex(22500.0)
+    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToIndex(22500.0)
   }
 
   it should "raise IllegalArgumentException when given a negative frequency" in {
     val testClassFail = TestClass(1024, 44800.0f)
-    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToSpectrumIndex(-22300.0)
+    an[IllegalArgumentException] should be thrownBy testClassFail.frequencyToIndex(-22300.0)
   }
 
   it should "raise IllegalArgumentException when given a negative index" in {
     val testClassFail = TestClass(1024, 44800.0f)
-    an[IllegalArgumentException] should be thrownBy testClassFail.spectrumIndexToFrequency(-1)
+    an[IllegalArgumentException] should be thrownBy testClassFail.indexToFrequency(-1)
   }
 
   it should "raise IllegalArgumentException when given a index that exceeds spectrum size" in {
     val testClassFail = TestClass(1024, 44800.0f)
-    an[IllegalArgumentException] should be thrownBy testClassFail.spectrumIndexToFrequency(1030)
+    an[IllegalArgumentException] should be thrownBy testClassFail.indexToFrequency(1030)
   }
 }

@@ -30,7 +30,7 @@ class PerfTestFFTOneSidedVsTwoSided
 
   val d1 = (dataStart to dataEnd by dataStep).toArray
   val d2 = (dataStart to dataEnd by dataStep).toArray
-  val f1 = (array: Array[Double]) => new FFT(array.length).compute(array)
+  val f1 = (array: Array[Double]) => new FFT(array.length, 1.0f).compute(array)
   val f2 = (array: Array[Double]) => new FFTTwoSided(array.length).compute(array)
   val f1Desc = "fft-1-sided"
   val f2Desc = "fft-2-sided"

@@ -90,7 +90,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
 
     val normalizationFactor = 1 / (nfft * fs)
 
-    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
+    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor, 1.0f)
     val periodograms: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPeriodograms: Array[Double] = Array(
@@ -126,7 +126,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
     // normalizationFactor is specific to scipy
     val normalizationFactor = 1 / (fs * nfft)
 
-    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor)
+    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor, 1.0f)
     val periodograms: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPeriodograms: Array[Double] = Array(
@@ -163,7 +163,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](42)
-    val periodogramClass: Periodogram = new Periodogram(50, 1.0)
+    val periodogramClass: Periodogram = new Periodogram(50, 1.0, 1.0f)
 
     an [IllegalArgumentException] should be thrownBy periodogramClass.compute(signal)
   }

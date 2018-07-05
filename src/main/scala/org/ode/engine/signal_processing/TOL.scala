@@ -103,10 +103,63 @@ class TOL
       .toArray
   }
 
+  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
+
+  /**
+   * Function converting a frequency to a index in the welch PSD
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  def frequencyToPowerSpectrumIndex(freq: Double): Int = {
+    if (freq > samplingRate / 2.0 || freq < 0.0) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
+      )
+    }
+
+    (freq * nfft / samplingRate).toInt
+  }
+
   // Compute the indices associated with each TOB boundary
   private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
-    bound => (frequencyToSpectrumIndex(bound._1), frequencyToSpectrumIndex(bound._2))
+    bound => (frequencyToPowerSpectrumIndex(bound._1), frequencyToPowerSpectrumIndex(bound._2))
   )
+
+  val featureSize = thirdOctaveBandBounds.length
+
+  /**
+   * Function converting a frequency to a index in the TOLs
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  def frequencyToIndex(freq: Double): Int = {
+    if (freq < lowFreq.getOrElse(lowerLimit) || freq > highFreq.getOrElse(upperLimit)) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion "
+        + s"(${lowFreq.getOrElse(lowerLimit)},${highFreq.getOrElse(upperLimit)})"
+      )
+    }
+
+    thirdOctaveBandBounds.indexWhere(bound => freq >= bound._1 && freq <= bound._2, 0)
+  }
+
+  /**
+   * Function converting a index in the TOLs to a frequency
+   *
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
+   */
+  def indexToFrequency(idx: Int): Double = {
+    if (idx < 0 || idx >= thirdOctaveBandBounds.length) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion (${thirdOctaveBandBounds.length})"
+      )
+    }
+
+    thirdOctaveBandBounds(idx)._1
+  }
 
   /**
    * Function computing the Third Octave Levels over a PSD
@@ -115,16 +168,16 @@ class TOL
    * on the third-octave levels.
    *
    * @param spectrum The one-sided Power Spectral Density
-   * as an Array[Double] of length spectrumSize
+   * as an Array[Double] of length powerSpectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
    * @return The Third Octave Levels over the PSD as a Array[Double]
    */
   def compute(spectrum: Array[Double]): Array[Double] = {
 
-    if (spectrum.length != spectrumSize) {
+    if (spectrum.length != powerSpectrumSize) {
       throw new IllegalArgumentException(
-        s"Incorrect PSD size (${spectrum.length}) for TOL ($spectrumSize)"
+        s"Incorrect PSD size (${spectrum.length}) for TOL ($powerSpectrumSize)"
       )
     }
 

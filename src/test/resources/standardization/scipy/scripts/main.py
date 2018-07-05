@@ -10,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -19,95 +19,89 @@
 # Authors: Dorian Cazau, Alexandre Degurse
 
 import scipy.signal
-from itertools import product
+# from itertools import product
 
 from tol import tol
-from soundParameters import SoundParameters
-from referenceValueParameters import ReferenceValueParameters
+from SoundHandler import SoundHandler
+from ResultsHandler import ResultsHandler
 
 
-class Features:
-    def __init__(self, soundsParams, algos, algoParams):
-        self.algoParams = algoParams
-        self.soundsParams = soundsParams
-        self.algos = algos
-
-        self.refValuesParameters = []
+class FeatureGenerator:
+    def __init__(self, resultsHandlers):
+        self.resultsHandlers = resultsHandlers
 
     def __str__(self):
-        return "\n".join([str(rvp) for rvp in self.refValuesParameters])
+        return "\n".join([str(rh) for rh in self.resultsHandlers])
 
     def generate(self):
-        for (soundId, sysBits, wavBits,
-             sampleNumber, samplingRate, chanNumber) in self.soundsParams:
+        for resultsHandler in self.resultsHandlers:
 
-            soundParam = SoundParameters(soundId, sysBits, wavBits,
-                                         sampleNumber, samplingRate,
-                                         chanNumber)
+            sound, fs = resultsHandler.soundHandler.read()
 
-            sound, fs = soundParam.read()
+            winSize = resultsHandler.winSize
+            offset = resultsHandler.offset
+            nfft = resultsHandler.nfft
 
-            for nfft, winSize, offset in self.algoParams:
-                if (winSize > nfft or offset > winSize):
-                    continue
+            if (resultsHandler.algorithm in ["vFFT", "fFFT"]):
+                fFFT, vFFT = scipy.signal.stft(
+                    x=sound, fs=fs, window='hamming', noverlap=winSize-offset,
+                    nperseg=winSize, nfft=nfft, detrend=False,
+                    return_onesided=True, boundary=None,
+                    padded=False, axis=-1)[::2]
 
-                fPSD, tPSD, vPSD = scipy.signal.spectrogram(
+                resultsHandler.setValue(
+                    vFFT if resultsHandler.algorithm is "vFFT" else fFFT
+                )
+
+            if resultsHandler.algorithm in ["vPSD", "fPSD"]:
+                fPSD, vPSD = scipy.signal.spectrogram(
                     x=sound, fs=fs, window='hamming', nperseg=winSize,
                     noverlap=winSize-offset, nfft=nfft, detrend=False,
                     return_onesided=True, axis=-1,
-                    mode='psd', scaling="density")
+                    mode='psd', scaling="density")[::2]
 
-                fFFT, tFFT, vFFT = scipy.signal.stft(
-                    x=sound, fs=fs, window='hamming', noverlap=winSize-offset,
-                    nperseg=winSize, nfft=nfft, detrend=False,
-                    return_onesided=True, boundary=None, padded=False, axis=-1)
+                resultsHandler.setValue(
+                    vPSD if resultsHandler.algorithm is "vPSD" else fPSD
+                )
 
+            if resultsHandler.algorithm in ["fWelch", "vWelch", "vTOL"]:
                 fWelch, vWelch = scipy.signal.welch(
                     x=sound, fs=fs, window='hamming',
                     detrend=False, noverlap=winSize-offset,
                     nperseg=winSize, nfft=nfft, return_onesided=True,
                     scaling='density', axis=-1)
 
-                vTOL = tol(psd=vWelch, samplingRate=fs, nfft=nfft,
-                           winSize=winSize, lowFreq=0.2*fs, highFreq=0.4*fs)
-
-                for algo in self.algos:
-                    valueSpace = "real" if algo is not "vFFT" else "comp"
-
-                    if (algo == "vTOL" and nfft < fs):
-                        continue
-
-                    refVal = ReferenceValueParameters(
-                        soundParam=soundParam, algorithm=algo,
-                        winSize=winSize, nfft=nfft, offset=offset,
-                        valueSpace=valueSpace
+                if resultsHandler.algorithm is not "vTOL":
+                    resultsHandler.setValue(
+                        fWelch if resultsHandler.algorithm is "fWelch"
+                        else vWelch
                     )
 
-                    refVal.setValue(locals()[algo])
-                    self.refValuesParameters.append(refVal)
+                else:
+                    vTOL = tol(psd=vWelch, samplingRate=fs,
+                               nfft=nfft, winSize=winSize,
+                               lowFreq=0.2 * fs, highFreq=0.4 * fs)
+
+                    resultsHandler.setValue(vTOL)
 
     def writeAll(self):
-        for refValue in self.refValuesParameters:
-            refValue.write()
+        for resultsHandler in self.resultsHandlers:
+            resultsHandler.write()
 
 
 if __name__ == "__main__":
 
-    soundParam = [("Sound1", 64, 24, 9811, 3906.0, 1)]
+    soundHandler1 = SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1)
+    soundHandler2 = SoundHandler("Sound2", 64, 24, 3120, 2000.0, 1)
 
-    nffts = [256, 128]
-    winSizes = [256, 128]
-    offsets = [128]
+    resultsHandler = ResultsHandler(soundHandler=soundHandler2,
+                                    algorithm="vTOL", nfft=2000,
+                                    winSize=2000, offset=2000)
 
-    algoParams =[(3906, 3906, 3906)]
-    # algoParams = list(product(nffts, winSizes, offsets))
+    generator = FeatureGenerator([resultsHandler])
 
-    algos = ["vPSD", "fFFT", "vFFT", "vWelch", "fWelch", "vTOL"]
+    generator.generate()
 
-    spec = Features(soundParam, algos, algoParams)
+    print(generator)
 
-    spec.generate()
-
-    print(spec)
-
-    spec.writeAll()
+    generator.writeAll()

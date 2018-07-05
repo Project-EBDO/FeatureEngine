@@ -22,7 +22,7 @@
 import soundfile
 
 
-class SoundParameters:
+class SoundHandler:
     def __init__(
         self,
         fileId,
@@ -62,5 +62,5 @@ class SoundParameters:
 
 
 if __name__ == "__main__":
-    s = SoundParameters("Sound1", 64, 24, 9811, 3906.0, 1)
+    s = SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1)
     print(s)

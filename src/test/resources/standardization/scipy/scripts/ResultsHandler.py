@@ -22,34 +22,32 @@ import os
 import pandas
 import numpy as np
 
-from soundParameters import SoundParameters
+from SoundHandler import SoundHandler
 
 
-class ReferenceValueParameters:
+class ResultsHandler:
     def __init__(
         self,
-        soundParam,
+        soundHandler,
         algorithm,
         nfft,
         winSize,
         offset,
-        valueSpace="real",
         vSysBits=64
     ):
 
-        self.soundParam = soundParam
+        self.soundHandler = soundHandler
         self.algorithm = algorithm
         self.nfft = nfft
         self.winSize = winSize
         self.offset = offset
-        self.valueSpace = valueSpace
         self.vSysBits = vSysBits
 
         self.value = None
 
         self.fileName = "_".join(
-            [str(p) for p in [soundParam, algorithm, nfft, winSize, offset,
-                              valueSpace, vSysBits]
+            [str(p) for p in [soundHandler, algorithm, nfft,
+                              winSize, offset, vSysBits]
              ]) + ".csv"
 
     def __str__(self):
@@ -62,7 +60,7 @@ class ReferenceValueParameters:
         if self.value is None:
             raise("No values to write")
 
-        if self.valueSpace is "comp":
+        if self.algorithm is "vFFT":
             initialShape = self.value.shape
 
             nSeg = initialShape[1]
@@ -88,8 +86,8 @@ class ReferenceValueParameters:
 
 
 if __name__ == "__main__":
-    s = SoundParameters("Sound1", 64, 24, 9811, 3906.0, 1)
-    refVal = ReferenceValueParameters(soundParam=s, algorithm="vPSD", nfft=128,
-                                      winSize=128, offset=128)
+    s = SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1)
+    resHandler = ResultsHandler(soundHandler=s, algorithm="vPSD", nfft=128,
+                                winSize=128, offset=128)
 
-    print(refVal)
+    print(resHandler)

@@ -43,42 +43,6 @@ case class Periodogram(
   // compute number of unique samples in the transformed FFT
   private val powerSpectrumSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
 
-  val featureSize = powerSpectrumSize
-
-
-  /**
-   * Function converting a frequency to a index in the periodogram
-   *
-   * @param freq Frequency to be converted
-   * @return Index in spectrum that corresponds to the given frequency
-   */
-  def frequencyToIndex(freq: Double): Int = {
-    if (freq > samplingRate / 2.0 || freq < 0.0) {
-      throw new IllegalArgumentException(
-        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
-      )
-    }
-
-    (freq * nfft / samplingRate).toInt
-  }
-
-  /**
-   * Function converting a index in the periodogram to a frequency
-   *
-   * @param idx Index to be converted
-   * @return Frequency that corresponds to the given index
-   */
-  def indexToFrequency(idx: Int): Double = {
-    if (idx >= powerSpectrumSize || idx < 0) {
-      throw new IllegalArgumentException(
-        s"Incorrect index ($idx) for conversion ($powerSpectrumSize)"
-      )
-    }
-
-    idx.toDouble * samplingRate / nfft
-  }
-
-
   /**
    * Computes one-sided periodograms like in Matlab
    * and Python using the periodogram method (mode 'psd')

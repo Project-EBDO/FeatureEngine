@@ -105,28 +105,12 @@ class TOL
 
   private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
 
-  /**
-   * Function converting a frequency to a index in the welch PSD
-   *
-   * @param freq Frequency to be converted
-   * @return Index in spectrum that corresponds to the given frequency
-   */
-  def frequencyToPowerSpectrumIndex(freq: Double): Int = {
-    if (freq > samplingRate / 2.0 || freq < 0.0) {
-      throw new IllegalArgumentException(
-        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
-      )
-    }
-
-    (freq * nfft / samplingRate).toInt
-  }
-
   // Compute the indices associated with each TOB boundary
   private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
-    bound => (frequencyToPowerSpectrumIndex(bound._1), frequencyToPowerSpectrumIndex(bound._2))
+    bound => (super.frequencyToIndex(bound._1), super.frequencyToIndex(bound._2))
   )
 
-  val featureSize = thirdOctaveBandBounds.length
+  override val featureSize = thirdOctaveBandBounds.length + 1
 
   /**
    * Function converting a frequency to a index in the TOLs
@@ -134,7 +118,7 @@ class TOL
    * @param freq Frequency to be converted
    * @return Index in spectrum that corresponds to the given frequency
    */
-  def frequencyToIndex(freq: Double): Int = {
+  override def frequencyToIndex(freq: Double): Int = {
     if (freq < lowFreq.getOrElse(lowerLimit) || freq > highFreq.getOrElse(upperLimit)) {
       throw new IllegalArgumentException(
         s"Incorrect frequency ($freq) for conversion "
@@ -151,7 +135,7 @@ class TOL
    * @param idx Index to be converted
    * @return Frequency that corresponds to the given index
    */
-  def indexToFrequency(idx: Int): Double = {
+  override def indexToFrequency(idx: Int): Double = {
     if (idx < 0 || idx >= thirdOctaveBandBounds.length) {
       throw new IllegalArgumentException(
         s"Incorrect index ($idx) for conversion (${thirdOctaveBandBounds.length})"

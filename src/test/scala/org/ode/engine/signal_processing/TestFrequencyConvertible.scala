@@ -25,30 +25,7 @@ import org.scalatest.{FlatSpec, Matchers}
  * @author Alexandre Degurse
  */
 
-case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible {
-  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
-  val featureSize = powerSpectrumSize
-
-  def frequencyToIndex(freq: Double): Int = {
-    if (freq > samplingRate / 2.0 || freq < 0.0) {
-      throw new IllegalArgumentException(
-        s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
-      )
-    }
-
-    (freq * nfft / samplingRate).toInt
-  }
-
-  def indexToFrequency(idx: Int): Double = {
-    if (idx >= powerSpectrumSize || idx < 0) {
-      throw new IllegalArgumentException(
-        s"Incorrect index ($idx) for conversion ($powerSpectrumSize)"
-      )
-    }
-
-    idx.toDouble * samplingRate / nfft
-  }
-}
+case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
 
 class TestFrequencyConvertible extends FlatSpec with Matchers {
 

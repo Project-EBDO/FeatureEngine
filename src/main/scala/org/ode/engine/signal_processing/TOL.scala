@@ -146,7 +146,7 @@ class TOL
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
-  override def frequencyVector(): Array[Double] = {
+  override lazy val frequencyVector: Array[Double] = {
     val frequencyVector = new Array[Double](thirdOctaveBandBounds.length + 1)
 
     (0 until thirdOctaveBandBounds.length).foreach(i =>

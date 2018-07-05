@@ -168,7 +168,7 @@ class TestTOL extends FlatSpec with Matchers {
       28.183829312644537, 35.481338923357555, 44.66835921509631 , 56.2341325190349
     )
 
-    val frequencyVector = tolClass.frequencyVector()
+    val frequencyVector = tolClass.frequencyVector
 
     rmse(frequencyVector, expectedFrequencyVector)
   }

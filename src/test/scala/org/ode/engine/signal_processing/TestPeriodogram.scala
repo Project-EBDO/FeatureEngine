@@ -172,7 +172,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
       0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
     )
 
-    val frequencyVector = periodogramClass.frequencyVector()
+    val frequencyVector = periodogramClass.frequencyVector
 
     rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
   }

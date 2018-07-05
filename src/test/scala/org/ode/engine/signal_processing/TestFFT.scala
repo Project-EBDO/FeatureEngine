@@ -362,7 +362,7 @@ class TestFFT extends FlatSpec with Matchers {
       0.0 , 0.0 , 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.5
     )
 
-    val frequencyVector = fftClass.frequencyVector()
+    val frequencyVector = fftClass.frequencyVector
 
     rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
   }
@@ -378,7 +378,7 @@ class TestFFT extends FlatSpec with Matchers {
       0.3636363636363636, 0.4545454545454546, 0.4545454545454546
     )
 
-    val frequencyVector = fftClass.frequencyVector()
+    val frequencyVector = fftClass.frequencyVector
 
     rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
   }

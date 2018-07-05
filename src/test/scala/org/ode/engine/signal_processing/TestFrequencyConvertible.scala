@@ -132,8 +132,8 @@ class TestFrequencyConvertible extends FlatSpec with Matchers {
       22050.0 , 22093.75, 22137.5 , 22181.25, 22225.0 , 22268.75, 22312.5 , 22356.25, 22400.0
     )
 
-    testClass0.frequencyVector() should equal(freqVect0)
-    ErrorMetrics.rmse(testClass1.frequencyVector(), freqVect1) should be < 1.0E-16
+    testClass0.frequencyVector should equal(freqVect0)
+    ErrorMetrics.rmse(testClass1.frequencyVector, freqVect1) should be < 1.0E-16
   }
 
   it should "raise IllegalArgumentException when given a frequency higher than half of samplingRate" in {

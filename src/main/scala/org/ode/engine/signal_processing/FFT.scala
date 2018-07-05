@@ -63,7 +63,7 @@ case class FFT
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
-  override def frequencyVector(): Array[Double] = {
+  override lazy val frequencyVector: Array[Double] = {
     (0 until 2 * spectrumSize).map(idx => indexToFrequency(idx)).toArray
   }
 

@@ -32,7 +32,7 @@ case class FFT
 (
   nfft: Int,
   samplingRate: Float
-) extends Serializable with FrequencyConvertible {
+) extends FrequencyConvertible with Serializable {
 
   // Instantiate the low level class that computes the fft
   // This class needs to be a var in order to be reinitialised

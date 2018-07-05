@@ -39,7 +39,7 @@ case class Periodogram
   nfft: Int,
   normalizationFactor: Double,
   samplingRate: Float
-) extends Serializable  with FrequencyConvertible {
+) extends FrequencyConvertible with Serializable {
 
   /**
    * Computes one-sided periodograms like in Matlab

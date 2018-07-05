@@ -29,7 +29,7 @@ case class WelchSpectralDensity
 (
   nfft: Int,
   samplingRate: Float
-) extends Serializable with FrequencyConvertible {
+) extends FrequencyConvertible with Serializable {
 
   /**
    * Computes Wech estimate of the Power Spectral Density out of

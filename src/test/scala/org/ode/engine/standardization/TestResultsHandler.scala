@@ -21,17 +21,17 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 /**
- * Some tests for ResultFileParameters class
+ * Some tests for ResultsHandler class
  */
 
-class TestResultFileParameters extends FlatSpec with Matchers {
+class TestResultsHandler extends FlatSpec with Matchers {
 
   it should "read a result file when given its parameters" in {
-    val sp = SoundParameters("Sound2", 64, 24, 3120, 2000.0, 1)
+    val sp = SoundHandler("Sound2", 64, 24, 3120, 2000.0, 1)
     val refValuesLocation = "/standardization/scipy/values"
 
 
-    val rp = ResultFileParameters(sp, "vTOL", 2000, 2000, 2000, 64, refValuesLocation)
+    val rp = ResultsHandler(sp, "vTOL", 2000, 2000, 2000, 64, refValuesLocation)
 
     val expectedParametersString = "Sound2_64_24_3120_2000.0_1_vTOL_2000_2000_2000_64"
     val expectedName = "Sound2_64_24_3120_2000.0_1_vTOL_2000_2000_2000_64.csv"

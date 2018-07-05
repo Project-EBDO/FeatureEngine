@@ -16,27 +16,25 @@
 
 package org.ode.engine.standardization
 
-import java.io.{File, FileInputStream, InputStream}
-import scala.io.Source
-
+import java.io.File
 import org.ode.engine.io.WavReader
 
 import org.scalatest.{FlatSpec, Matchers}
 
 
 /**
-  * Class used to abstract Sounds and provide function to use them
-  *
-  * Author: Alexandre Degurse
+ * Class used to facilitate sound files reading through naming convention described in README.md
+ *
+ * @author Alexandre Degurse
+ *
+ * @param fileId - The sound identifier, unique among sounds
+ * @param sysBits - The bytes number the file-writing system used (generally `64`, but could be `32`)
+ * @param wavBits - The number of bits used for sound encoding (`8`, `16` or `24` generally)
+ * @param samplingRate - The sampling rate the sound is using in kHz (usual values are `3.9`, `16.0`, `44.1`, `96.0`...)
+ * @param chanNumber - The number of channels the file contains (`1` for mono, `2` for stereo etc)
+ */
 
-  * @param fileId - The sound identifier, unique among sounds
-  * @param sysBits - The bytes number the file-writing system used (generally `64`, but could be `32`)
-  * @param wavBits - The number of bits used for sound encoding (`8`, `16` or `24` generally)
-  * @param samplingRate - The sampling rate the sound is using in kHz (usual values are `3.9`, `16.0`, `44.1`, `96.0`...)
-  * @param chanNumber - The number of channels the file contains (`1` for mono, `2` for stereo etc)
-  */
-
-case class SoundParameters(
+case class SoundHandler (
   fileId: String,
   sysBits: Int,
   wavBits: Int,
@@ -45,18 +43,18 @@ case class SoundParameters(
   chanNumber: Int
 ) {
 
-  val soundPath: String = "/standardization/sounds"
+  private val soundPath: String = "/standardization/sounds"
 
   val soundParametersString: String = (fileId + "_"  + sysBits.toString
     + "_"  + wavBits.toString + "_" + sampleNumber.toString
     + "_"  + samplingRate.toString + "_" + chanNumber.toString
   )
 
-  val soundName: String = soundParametersString + ".wav"
+  private val soundName: String = soundParametersString + ".wav"
 
-  val wavFile: File = new File(getClass.getResource(soundPath + "/" + soundName).toURI)
+  private val wavFile: File = new File(getClass.getResource(soundPath + "/" + soundName).toURI)
 
-  val wavReader = new WavReader(wavFile)
+  private val wavReader = new WavReader(wavFile)
 
   def readSound(): Array[Double] = {
     wavReader

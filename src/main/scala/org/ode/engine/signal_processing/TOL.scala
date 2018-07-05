@@ -33,13 +33,13 @@ package org.ode.engine.signal_processing
  */
 
 
-class TOL
+case class TOL
 (
-  val nfft: Int,
-  val samplingRate: Float,
-  val lowFreq: Option[Double] = None,
-  val highFreq: Option[Double] = None
-) extends FrequencyConvertible {
+  nfft: Int,
+  samplingRate: Float,
+  lowFreq: Option[Double] = None,
+  highFreq: Option[Double] = None
+) extends Serializable with FrequencyConvertible {
 
   if (nfft < samplingRate) {
     throw new IllegalArgumentException(

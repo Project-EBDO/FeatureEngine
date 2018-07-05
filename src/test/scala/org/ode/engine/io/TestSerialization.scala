@@ -17,6 +17,7 @@
 package org.ode.engine.io
 
 import org.ode.engine.signal_processing._
+import org.ode.engine.workflows._
 
 import java.io.{ByteArrayOutputStream, ObjectOutputStream, ObjectInputStream, ByteArrayInputStream}
 import org.scalatest.{FlatSpec, Matchers}
@@ -44,12 +45,13 @@ class TestSerialization extends FlatSpec with Matchers {
   }
 
   private val serializableObjects: List[(String, Any)] = List(
-    "Energy" -> new Energy(10),
+    "Segmentation" -> new Segmentation(10, Some(5)),
+    "HammingWindow" -> new HammingWindow(10, "symmetric"),
     "FFT" -> new FFT(10),
     "Periodogram" -> new Periodogram(10, 1.0),
-    "Segmentation" -> new Segmentation(10, Some(5)),
     "WelchSpectralDensity" -> new WelchSpectralDensity(10, 1.0f),
-    "HammingWindow" -> new HammingWindow(10, "symmetric")
+    "Energy" -> new Energy(10),
+    "TOL" -> new TOL(10, 1.0f)
   )
 
   for ((objName, obj) <- serializableObjects) {

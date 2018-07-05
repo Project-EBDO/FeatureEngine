@@ -31,8 +31,6 @@ case class WelchSpectralDensity
   samplingRate: Float
 ) extends Serializable with FrequencyConvertible {
 
-  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
-
   /**
    * Computes Wech estimate of the Power Spectral Density out of
    * multiple periodograms on the signal
@@ -44,19 +42,19 @@ case class WelchSpectralDensity
    * @return The Welch Power Spectral Density estimation for the provided periodograms
    */
   def compute(periodograms: Array[Array[Double]]): Array[Double] = {
-    if (!periodograms.forall(_.length == powerSpectrumSize)) {
+    if (!periodograms.forall(_.length == spectrumSize)) {
       throw new IllegalArgumentException(
-        s"Inconsistent periodogram lengths for Welch aggregation ($powerSpectrumSize)"
+        s"Inconsistent periodogram lengths for Welch aggregation ($spectrumSize)"
       )
     }
 
-    val psdAgg: Array[Double] = new Array[Double](powerSpectrumSize)
+    val psdAgg: Array[Double] = new Array[Double](spectrumSize)
 
     // Using while with local variables on purpose -- See performance test
     // scalastyle:off while var.local
     var i: Int = 0
     var j: Int = 0
-    while (i < powerSpectrumSize){
+    while (i < spectrumSize){
       while(j < periodograms.length) {
         psdAgg(i) += periodograms(j)(i)
         j += 1

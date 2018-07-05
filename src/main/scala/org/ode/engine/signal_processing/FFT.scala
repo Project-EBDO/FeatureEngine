@@ -39,7 +39,6 @@ case class FFT(
   @transient
   private var lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
   // scalastyle:on var.field
-  private val nfftEven: Boolean = nfft % 2 == 0
 
   /**
    * Function converting a frequency to a index in the spectrum

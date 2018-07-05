@@ -27,17 +27,14 @@ trait FrequencyConvertible extends Serializable {
    */
   val nfft: Int
 
-  private val nfftEven = nfft % 2 == 0
+  protected val nfftEven = nfft % 2 == 0
+
+  protected val spectrumSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
 
   /**
    * Sampling rate of the sound the FFT is computed upon
    */
   val samplingRate: Float
-
-  /**
-   * The default size of the feature is the size of a Power Spectrum
-   */
-  val featureSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
 
   /**
    * Function converting a frequency to a index in the Power Spectrum
@@ -62,9 +59,9 @@ trait FrequencyConvertible extends Serializable {
    * @return Frequency that corresponds to the given index
    */
   def indexToFrequency(idx: Int): Double = {
-    if (idx >= featureSize || idx < 0) {
+    if (idx >= spectrumSize || idx < 0) {
       throw new IllegalArgumentException(
-        s"Incorrect index ($idx) for conversion ($featureSize)"
+        s"Incorrect index ($idx) for conversion ($spectrumSize)"
       )
     }
 
@@ -77,6 +74,6 @@ trait FrequencyConvertible extends Serializable {
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
   def frequencyVector(): Array[Double] = {
-    (0 until featureSize).map(idx => indexToFrequency(idx)).toArray
+    (0 until spectrumSize).map(idx => indexToFrequency(idx)).toArray
   }
 }

@@ -103,14 +103,10 @@ class TOL
       .toArray
   }
 
-  private val powerSpectrumSize: Int = if (nfft % 2 == 0) nfft / 2 + 1 else (nfft + 1) / 2
-
   // Compute the indices associated with each TOB boundary
   private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
     bound => (super.frequencyToIndex(bound._1), super.frequencyToIndex(bound._2))
   )
-
-  override val featureSize = thirdOctaveBandBounds.length + 1
 
   /**
    * Function converting a frequency to a index in the TOLs
@@ -146,22 +142,31 @@ class TOL
   }
 
   /**
+   * Function computing the frequency vector given a nfft and a samplingRate
+   *
+   * @return The frequency vector that corresponds to the current nfft and samplingRate
+   */
+  override def frequencyVector(): Array[Double] = {
+    (0 to thirdOctaveBandBounds.length).map(idx => indexToFrequency(idx)).toArray
+  }
+
+  /**
    * Function computing the Third Octave Levels over a PSD
    *
    * Default environmentals parameters ensures there is no correction on
    * on the third-octave levels.
    *
    * @param spectrum The one-sided Power Spectral Density
-   * as an Array[Double] of length powerSpectrumSize
+   * as an Array[Double] of length spectrumSize
    * TOL can be computed over a periodogram, although, functionnaly, it makes more sense
    * to compute it over a Welch estimate of PSD
    * @return The Third Octave Levels over the PSD as a Array[Double]
    */
   def compute(spectrum: Array[Double]): Array[Double] = {
 
-    if (spectrum.length != powerSpectrumSize) {
+    if (spectrum.length != spectrumSize) {
       throw new IllegalArgumentException(
-        s"Incorrect PSD size (${spectrum.length}) for TOL ($powerSpectrumSize)"
+        s"Incorrect PSD size (${spectrum.length}) for TOL ($spectrumSize)"
       )
     }
 

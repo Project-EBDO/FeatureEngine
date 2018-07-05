@@ -208,12 +208,13 @@ class SampleWorkflow
       soundSampleSizeInBits)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
-    val fftClass = new FFT(nfft)
+    val fftClass = new FFT(nfft, 1.0f)
     val hammingClass = new HammingWindow(segmentSize, "symmetric")
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
 
-    val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
+    val periodogramClass = new Periodogram(
+      nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), soundSamplingRate)
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
@@ -235,8 +236,7 @@ class SampleWorkflow
 
     val resultMap = Map("ffts" -> Left(ffts),
       "periodograms" -> Left(periodograms),
-      "welchs" -> Right(welchs),
-      "spls" -> Right(spls))
+      "welchs" -> Right(welchs), "spls" -> Right(spls))
 
     if (nfft >= soundSamplingRate.toInt) {
       val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)

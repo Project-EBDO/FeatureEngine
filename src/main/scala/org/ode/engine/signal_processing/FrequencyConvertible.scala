@@ -28,29 +28,30 @@ trait FrequencyConvertible extends Serializable {
   val nfft: Int
 
   /**
+   * Parity of the fft-computation window
+   */
+  val nfftEven = nfft % 2 == 0
+
+  /**
+   * The number of points in a spectrum. An array used to store a spectrum is
+   * twice bigger due to complex numbers.
+   * spectrumSize also equal the size of power spectrum and power spectral density,
+   * hence its use in Periodogram, Welch and TOL classes
+   */
+  val spectrumSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
+
+  /**
    * Sampling rate of the sound the FFT is computed upon
    */
   val samplingRate: Float
 
   /**
-   * Parity of the fft-computation window
-   */
-  protected val nfftEven: Boolean = nfft % 2 == 0
-
-  /**
-   * Size of the spectrum to be expected given nfft
-   */
-  protected val spectrumSize: Int = (if (nfftEven) (nfft + 2) / 2 else (nfft + 1) / 2)
-
-  /**
-   * Function converting a frequency to a index in the spectrum
-   * Spectrum designates either a Periodogram or a Welch, for both have
-   * frequency vector given the same nfft and samplingRate
+   * Function converting a frequency to a index in the Power Spectrum
    *
    * @param freq Frequency to be converted
    * @return Index in spectrum that corresponds to the given frequency
    */
-  def frequencyToSpectrumIndex(freq: Double): Int = {
+  def frequencyToIndex(freq: Double): Int = {
     if (freq > samplingRate / 2.0 || freq < 0.0) {
       throw new IllegalArgumentException(
         s"Incorrect frequency ($freq) for conversion (${samplingRate / 2.0})"
@@ -61,14 +62,12 @@ trait FrequencyConvertible extends Serializable {
   }
 
   /**
-   * Function converting a index in the spectrum to a frequency
-   * Spectrum designates either a Periodogram or a Welch, for both have
-   * frequency vector given the same nfft and samplingRate
+   * Function converting a index in the Power Spectrum to a frequency
    *
    * @param idx Index to be converted
    * @return Frequency that corresponds to the given index
    */
-  def spectrumIndexToFrequency(idx: Int): Double = {
+  def indexToFrequency(idx: Int): Double = {
     if (idx >= spectrumSize || idx < 0) {
       throw new IllegalArgumentException(
         s"Incorrect index ($idx) for conversion ($spectrumSize)"
@@ -83,7 +82,7 @@ trait FrequencyConvertible extends Serializable {
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
-  def frequencyVector(): Array[Double] = {
-    (0 until spectrumSize).map(spectrumIndexToFrequency).toArray
+  lazy val frequencyVector: Array[Double] = {
+    (0 until spectrumSize).map(idx => indexToFrequency(idx)).toArray
   }
 }

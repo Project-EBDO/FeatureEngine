@@ -156,6 +156,23 @@ class TestTOL extends FlatSpec with Matchers {
     rmse(tols, expectedTols) should be < maxRMSE
   }
 
+  it should "compute the right frequency vector on a custom range for TOL" in {
+    val nfft = 128
+    val samplingRate = 128.0f
+    val lowFreq = Some(35.2)
+    val highFreq = Some(50.5)
+
+    val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
+
+    val expectedFrequencyVector: Array[Double] = Array(
+      28.183829312644537, 35.481338923357555, 44.66835921509631 , 56.2341325190349
+    )
+
+    val frequencyVector = tolClass.frequencyVector
+
+    rmse(frequencyVector, expectedFrequencyVector)
+  }
+
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
     val tolClass = new TOL(100, 100.0f)
 

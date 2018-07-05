@@ -115,10 +115,12 @@ class ScalaSampleWorkflow
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val hammingClass = new HammingWindow(segmentSize, "symmetric")
-    val fftClass = new FFT(nfft)
+    val fftClass = new FFT(nfft, soundSamplingRate)
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .foldLeft(0.0)((acc, v) => acc + v*v)
-    val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor))
+    val periodogramClass = new Periodogram(
+      nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), 1.0f
+    )
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
     val energyClass = new Energy(nfft)

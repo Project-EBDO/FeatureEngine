@@ -26,8 +26,13 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
  * @author Paul Nguyen HD, Alexandre Degurse, Joseph Allemandou
  *
  * @param nfft The size of the fft-computation window
+ * @param samplingRate The sampling rate of the signal
  */
-case class FFT(nfft: Int) extends Serializable {
+case class FFT
+(
+  nfft: Int,
+  samplingRate: Float
+) extends FrequencyConvertible with Serializable {
 
   // Instantiate the low level class that computes the fft
   // This class needs to be a var in order to be reinitialised
@@ -36,7 +41,31 @@ case class FFT(nfft: Int) extends Serializable {
   @transient
   private var lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
   // scalastyle:on var.field
-  private val nfftEven: Boolean = nfft % 2 == 0
+
+  /**
+   * Function converting a frequency to a index in the spectrum
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  override def frequencyToIndex(freq: Double): Int = 2 * super.frequencyToIndex(freq)
+
+  /**
+   * Function converting a index in the spectrum to a frequency
+   *
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
+   */
+  override def indexToFrequency(idx: Int): Double = super.indexToFrequency(idx / 2)
+
+  /**
+   * Function computing the frequency vector given a nfft and a samplingRate for FFT
+   *
+   * @return The frequency vector that corresponds to the current nfft and samplingRate
+   */
+  override lazy val frequencyVector: Array[Double] = {
+    (0 until 2 * spectrumSize).map(idx => indexToFrequency(idx)).toArray
+  }
 
   /**
    * Function that computes FFT for an Array

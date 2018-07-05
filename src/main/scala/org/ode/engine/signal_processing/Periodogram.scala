@@ -32,29 +32,31 @@ package org.ode.engine.signal_processing
  *                                to get a power density
  *                              1.0 / windowNormalizationFactor
  *                                to get a power spectrum
+ * @param samplingRate The sampling rate of the signal
  */
-case class Periodogram(nfft: Int, normalizationFactor: Double) extends Serializable {
-
-  private val nfftEven: Boolean = nfft % 2 == 0
-  // compute number of unique samples in the transformed FFT
-  private val uniqueSamples: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
+case class Periodogram
+(
+  nfft: Int,
+  normalizationFactor: Double,
+  samplingRate: Float
+) extends FrequencyConvertible with Serializable {
 
   /**
    * Computes one-sided periodograms like in Matlab
    * and Python using the periodogram method (mode 'psd')
    * An IllegalArgumentException is thrown if
-   * fft.length != 2*uniqueSamples (ie fft is not one-sided)
+   * fft.length != 2*spectrumSize (ie fft is not one-sided)
    *
    * @param fft The one-sided fft used values
    * @return the one-sided periodogram
    */
   def compute(fft: Array[Double]) : Array[Double] = {
-    if (fft.length != 2*uniqueSamples) {
+    if (fft.length != 2*spectrumSize) {
       throw new IllegalArgumentException(s"Incorrect fft length (${fft.length}) for Periodogram" +
-        s"it should be a one-sided (${2*uniqueSamples}) FFT")
+        s"it should be a one-sided (${2*spectrumSize}) FFT")
     }
 
-    val oneSidedPeriodogram: Array[Double] = new Array[Double](uniqueSamples)
+    val oneSidedPeriodogram: Array[Double] = new Array[Double](spectrumSize)
 
     // Precompute first value
     oneSidedPeriodogram(0) = normalizationFactor * (fft(0)*fft(0) + fft(1)*fft(1))
@@ -66,7 +68,7 @@ case class Periodogram(nfft: Int, normalizationFactor: Double) extends Serializa
     var i: Int = 1
     var i2: Int = 2
     var i2p1: Int = 3
-    val last = uniqueSamples - 1
+    val last = spectrumSize - 1
 
     while (i < last) {
       oneSidedPeriodogram(i) = 2.0 * normalizationFactor * (fft(i2)*fft(i2) + fft(i2p1)*fft(i2p1))
@@ -78,7 +80,7 @@ case class Periodogram(nfft: Int, normalizationFactor: Double) extends Serializa
 
     // manually compute last value, depending on even
     // or not numbers of values (presence or not of nyquist frequency)
-    // at the end of the while, i = uniqueSamples-1 = oneSidedPeriodogram.length - 1,
+    // at the end of the while, i = spectrumSize-1 = oneSidedPeriodogram.length - 1,
     // Therefore, i2 and i2p1 are equal to what they should be to compute the last value
     oneSidedPeriodogram(last) = normalizationFactor * (fft(i2)*fft(i2) + fft(i2p1)*fft(i2p1))
 

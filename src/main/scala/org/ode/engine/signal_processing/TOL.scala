@@ -105,8 +105,58 @@ case class TOL
 
   // Compute the indices associated with each TOB boundary
   private val boundIndicies: Array[(Int, Int)] = thirdOctaveBandBounds.map(
-    bound => (frequencyToSpectrumIndex(bound._1), frequencyToSpectrumIndex(bound._2))
+    bound => (super.frequencyToIndex(bound._1), super.frequencyToIndex(bound._2))
   )
+
+  /**
+   * Function converting a frequency to a index in the TOLs
+   *
+   * @param freq Frequency to be converted
+   * @return Index in spectrum that corresponds to the given frequency
+   */
+  override def frequencyToIndex(freq: Double): Int = {
+    if (freq < lowFreq.getOrElse(lowerLimit) || freq > highFreq.getOrElse(upperLimit)) {
+      throw new IllegalArgumentException(
+        s"Incorrect frequency ($freq) for conversion "
+        + s"(${lowFreq.getOrElse(lowerLimit)},${highFreq.getOrElse(upperLimit)})"
+      )
+    }
+
+    thirdOctaveBandBounds.indexWhere(bound => freq >= bound._1 && freq <= bound._2, 0)
+  }
+
+  /**
+   * Function converting a index in the TOLs to a frequency
+   *
+   * @param idx Index to be converted
+   * @return Frequency that corresponds to the given index
+   */
+  override def indexToFrequency(idx: Int): Double = {
+    if (idx < 0 || idx >= thirdOctaveBandBounds.length) {
+      throw new IllegalArgumentException(
+        s"Incorrect index ($idx) for conversion (${thirdOctaveBandBounds.length})"
+      )
+    }
+
+    thirdOctaveBandBounds(idx)._1
+  }
+
+  /**
+   * Function computing the frequency vector given a nfft and a samplingRate for TOL
+   *
+   * @return The frequency vector that corresponds to the current nfft and samplingRate
+   */
+  override lazy val frequencyVector: Array[Double] = {
+    val frequencyVector = new Array[Double](thirdOctaveBandBounds.length + 1)
+
+    (0 until thirdOctaveBandBounds.length).foreach(i =>
+      frequencyVector(i) = indexToFrequency(i)
+    )
+
+    frequencyVector(thirdOctaveBandBounds.length) = thirdOctaveBandBounds.last._2
+
+    frequencyVector
+  }
 
   /**
    * Function computing the Third Octave Levels over a PSD

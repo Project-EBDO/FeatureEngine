@@ -213,7 +213,8 @@ class SampleWorkflow
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
 
-    val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), soundSamplingRate)
+    val periodogramClass = new Periodogram(
+      nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), soundSamplingRate)
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
@@ -235,8 +236,7 @@ class SampleWorkflow
 
     val resultMap = Map("ffts" -> Left(ffts),
       "periodograms" -> Left(periodograms),
-      "welchs" -> Right(welchs),
-      "spls" -> Right(spls))
+      "welchs" -> Right(welchs), "spls" -> Right(spls))
 
     if (nfft >= soundSamplingRate.toInt) {
       val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)

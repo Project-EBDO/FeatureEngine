@@ -27,9 +27,18 @@ trait FrequencyConvertible extends Serializable {
    */
   val nfft: Int
 
-  protected val nfftEven = nfft % 2 == 0
+  /**
+   * Parity of the fft-computation window
+   */
+  val nfftEven = nfft % 2 == 0
 
-  protected val spectrumSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
+  /**
+   * The number of points in a spectrum. An array used to store a spectrum is
+   * twice bigger due to complex numbers.
+   * spectrumSize also equal the size of power spectrum and power spectral density,
+   * hence its use in Periodogram, Welch and TOL classes
+   */
+  val spectrumSize: Int = if (nfftEven) nfft / 2 + 1 else (nfft + 1) / 2
 
   /**
    * Sampling rate of the sound the FFT is computed upon

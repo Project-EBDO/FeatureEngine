@@ -169,7 +169,11 @@ class PerformanceTestWorkflow
     val hammingNormalizationFactor = hammingClass.windowCoefficients
       .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
 
-    val periodogramClass = new Periodogram(nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), soundSamplingRate)
+    val periodogramClass = new Periodogram(
+      nfft,
+      1.0/(soundSamplingRate*hammingNormalizationFactor),
+      soundSamplingRate
+    )
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 

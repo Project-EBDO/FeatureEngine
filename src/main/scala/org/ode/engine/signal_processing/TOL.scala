@@ -142,12 +142,20 @@ class TOL
   }
 
   /**
-   * Function computing the frequency vector given a nfft and a samplingRate
+   * Function computing the frequency vector given a nfft and a samplingRate for TOL
    *
    * @return The frequency vector that corresponds to the current nfft and samplingRate
    */
   override def frequencyVector(): Array[Double] = {
-    (0 to thirdOctaveBandBounds.length).map(idx => indexToFrequency(idx)).toArray
+    val frequencyVector = new Array[Double](thirdOctaveBandBounds.length + 1)
+
+    (0 until thirdOctaveBandBounds.length).foreach(i =>
+      frequencyVector(i) = indexToFrequency(i)
+    )
+
+    frequencyVector(thirdOctaveBandBounds.length) = thirdOctaveBandBounds.last._2
+
+    frequencyVector
   }
 
   /**

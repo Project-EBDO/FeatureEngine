@@ -26,8 +26,10 @@ import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
  * @author Paul Nguyen HD, Alexandre Degurse, Joseph Allemandou
  *
  * @param nfft The size of the fft-computation window
+ * @param samplingRate The sampling rate of the signal
  */
-case class FFT(
+case class FFT
+(
   nfft: Int,
   samplingRate: Float
 ) extends Serializable with FrequencyConvertible {
@@ -55,6 +57,15 @@ case class FFT(
    * @return Frequency that corresponds to the given index
    */
   override def indexToFrequency(idx: Int): Double = super.indexToFrequency(idx / 2)
+
+  /**
+   * Function computing the frequency vector given a nfft and a samplingRate for FFT
+   *
+   * @return The frequency vector that corresponds to the current nfft and samplingRate
+   */
+  override def frequencyVector(): Array[Double] = {
+    (0 until 2 * spectrumSize).map(idx => indexToFrequency(idx)).toArray
+  }
 
   /**
    * Function that computes FFT for an Array

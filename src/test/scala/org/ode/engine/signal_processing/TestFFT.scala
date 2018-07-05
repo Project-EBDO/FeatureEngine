@@ -354,6 +354,35 @@ class TestFFT extends FlatSpec with Matchers {
 
   }
 
+  it should "produce the right frequency vector for FFT when nfft is even" in {
+    val fftClass: FFT = new FFT(10, 1.0f)
+
+    // numpy.fft.fftfreq(10)
+    val expectedFrequencyVector = Array(
+      0.0 , 0.0 , 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.5
+    )
+
+    val frequencyVector = fftClass.frequencyVector()
+
+    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+  }
+
+  it should "produce the right frequency vector for FFT when nfft is odd" in {
+    val fftClass: FFT = new FFT(11, 1.0f)
+
+    // numpy.fft.fftfreq(11)
+    val expectedFrequencyVector = Array(
+      0.0               , 0.0               , 0.0909090909090909,
+      0.0909090909090909, 0.1818181818181818, 0.1818181818181818,
+      0.2727272727272727, 0.2727272727272727, 0.3636363636363636,
+      0.3636363636363636, 0.4545454545454546, 0.4545454545454546
+    )
+
+    val frequencyVector = fftClass.frequencyVector()
+
+    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+  }
+
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](100)
     val fftClass: FFT = new FFT(10, 1.0f)

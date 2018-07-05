@@ -32,8 +32,10 @@ package org.ode.engine.signal_processing
  *                                to get a power density
  *                              1.0 / windowNormalizationFactor
  *                                to get a power spectrum
+ * @param samplingRate The sampling rate of the signal
  */
-case class Periodogram(
+case class Periodogram
+(
   nfft: Int,
   normalizationFactor: Double,
   samplingRate: Float

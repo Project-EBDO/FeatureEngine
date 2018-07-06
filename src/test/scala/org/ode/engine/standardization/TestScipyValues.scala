@@ -38,7 +38,29 @@ class TestScipyValues extends FlatSpec with Matchers {
   )
 
   val refFiles = List[ResultsHandler](
-    ResultsHandler(soundParams(1), "vTOL", 2000, 2000, 2000, 64, refValuesLocation)
+    ResultsHandler(soundParams(0), "vTOL", 3906, 3906, 3906, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vTOL", 2000, 2000, 2000, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vTOL", 9000, 9000, 9000, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vTOL", 3000, 3000, 3000, 64, refValuesLocation),
+
+    ResultsHandler(soundParams(1), "vFFT", 128, 128, 128, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vFFT", 2242, 2047, 2042, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vFFT", 2242, 1984, 1240, 64, refValuesLocation),
+
+
+    ResultsHandler(soundParams(0), "vPSD", 128, 128, 128, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vWelch", 128, 128, 128, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vPSD", 1024, 1024, 1000, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vWelch", 1024, 1024, 1000, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vPSD", 130, 120, 100, 64, refValuesLocation),
+    ResultsHandler(soundParams(0), "vWelch", 130, 120, 100, 64, refValuesLocation),
+
+    ResultsHandler(soundParams(1), "vPSD", 128, 128, 128, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vWelch", 128, 128, 128, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vPSD", 1024, 1024, 1000, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vWelch", 1024, 1024, 1000, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vPSD", 130, 120, 100, 64, refValuesLocation),
+    ResultsHandler(soundParams(1), "vWelch", 130, 120, 100, 64, refValuesLocation)
   )
 
   val maxRMSE = 1.0E-13

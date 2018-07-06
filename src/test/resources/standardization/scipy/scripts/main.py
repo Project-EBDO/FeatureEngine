@@ -97,11 +97,57 @@ if __name__ == "__main__":
     soundHandler1 = SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1)
     soundHandler2 = SoundHandler("Sound2", 64, 24, 3120, 2000.0, 1)
 
-    resultsHandler = ResultsHandler(soundHandler=soundHandler2,
-                                    algorithm="vTOL", nfft=2000,
-                                    winSize=2000, offset=2000)
+    resultsHandlers = []
 
-    generator = FeatureGenerator([resultsHandler])
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler1,
+                                          algorithm="vTOL", nfft=3906,
+                                          winSize=3906, offset=3906))
+
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler2,
+                                          algorithm="vTOL", nfft=2000,
+                                          winSize=2000, offset=2000))
+
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler1,
+                                          algorithm="vTOL", nfft=9000,
+                                          winSize=9000, offset=9000))
+
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler2,
+                                          algorithm="vTOL", nfft=3000,
+                                          winSize=3000, offset=3000))
+
+
+    # FFT only on Sound2  due to FFT weight
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler2,
+                                          algorithm="vFFT", nfft=128,
+                                          winSize=128, offset=128))
+
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler2,
+                                          algorithm="vFFT", nfft=2242,
+                                          winSize=2047, offset=2042))
+
+    resultsHandlers.append(ResultsHandler(soundHandler=soundHandler2,
+                                          algorithm="vFFT", nfft=2242,
+                                          winSize=1984, offset=1240))
+
+    for algo in ["vPSD", "vWelch"]:
+        for soundHanler in [soundHandler1, soundHandler2]:
+
+            resultsHandlers.append(ResultsHandler(soundHandler=soundHanler,
+                                                  algorithm=algo, nfft=128,
+                                                  winSize=128, offset=128))
+
+            resultsHandlers.append(ResultsHandler(soundHandler=soundHanler,
+                                                  algorithm=algo, nfft=1024,
+                                                  winSize=1024, offset=1000))
+
+            resultsHandlers.append(ResultsHandler(soundHandler=soundHanler,
+                                                  algorithm=algo, nfft=130,
+                                                  winSize=120, offset=100))
+
+
+
+
+    generator = FeatureGenerator(resultsHandlers)
 
     generator.generate()
 

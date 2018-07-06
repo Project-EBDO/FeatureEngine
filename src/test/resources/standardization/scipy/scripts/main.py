@@ -53,7 +53,7 @@ class FeatureGenerator:
                     vFFT if resultsHandler.algorithm is "vFFT" else fFFT
                 )
 
-            else if resultsHandler.algorithm in ["vPSD", "fPSD"]:
+            elif resultsHandler.algorithm in ["vPSD", "fPSD"]:
                 fPSD, vPSD = scipy.signal.spectrogram(
                     x=sound, fs=fs, window='hamming', nperseg=winSize,
                     noverlap=winSize-offset, nfft=nfft, detrend=False,
@@ -64,7 +64,7 @@ class FeatureGenerator:
                     vPSD if resultsHandler.algorithm is "vPSD" else fPSD
                 )
 
-            else if resultsHandler.algorithm in ["fWelch", "vWelch", "vTOL"]:
+            elif resultsHandler.algorithm in ["fWelch", "vWelch", "vTOL"]:
                 fWelch, vWelch = scipy.signal.welch(
                     x=sound, fs=fs, window='hamming',
                     detrend=False, noverlap=winSize-offset,

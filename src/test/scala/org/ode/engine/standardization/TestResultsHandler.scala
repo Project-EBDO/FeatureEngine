@@ -27,7 +27,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TestResultsHandler extends FlatSpec with Matchers {
 
   it should "read a result file when given its parameters" in {
-    val sp = SoundHandler("Sound2", 64, 24, 3120, 2000.0, 1)
+    val sp = SoundHandler("Sound2", 64, 24, 3120, 2000.0f, 1)
     val refValuesLocation = "/standardization/scipy/values"
 
 

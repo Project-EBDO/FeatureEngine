@@ -56,15 +56,19 @@ case class ResultsHandler (
   private val hammingPeriodic = new HammingWindow(winSize, "periodic")
   private val hammingScalingSymmetric = hammingSymmetric.normalizationFactor(1.0)
 
-  private val fftClass = new FFT(nfft)
-  private val periodogramClassNormInDensity = new Periodogram(nfft, 1 / (sound.samplingRate * hammingScalingSymmetric))
-  private val welchClass = new WelchSpectralDensity(nfft, sound.samplingRate.toFloat)
+  private val fftClass = new FFT(nfft, sound.samplingRate)
+  private val periodogramClassNormInDensity = new Periodogram(
+    nfft,
+    1 / (sound.samplingRate.toDouble * hammingScalingSymmetric),
+    sound.samplingRate
+  )
+  private val welchClass = new WelchSpectralDensity(nfft, sound.samplingRate)
 
   /**
    * We're using a convention for TOL, the study frequency range is conventionnaly [0.2 * samplingRate, 0.4 * samplingRate]
    */
   private val tolClass = if (winSize >= sound.samplingRate) {
-    new TOL(nfft, sound.samplingRate.toFloat, Some(0.2 * sound.samplingRate), Some(0.4 * sound.samplingRate))
+    new TOL(nfft, sound.samplingRate, Some(0.2 * sound.samplingRate.toDouble), Some(0.4 * sound.samplingRate.toDouble))
   } else null
 
   /**
@@ -107,7 +111,7 @@ case class ResultsHandler (
         Array(tolClass.compute(welch))
       }
 
-      case "fWelch" => Array(welchClass.frequencyVector())
+      case "fWelch" => Array(welchClass.frequencyVector)
     }
   }
 

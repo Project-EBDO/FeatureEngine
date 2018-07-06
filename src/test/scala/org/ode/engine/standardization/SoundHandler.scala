@@ -39,7 +39,7 @@ case class SoundHandler (
   sysBits: Int,
   wavBits: Int,
   sampleNumber: Int,
-  samplingRate: Double,
+  samplingRate: Float,
   chanNumber: Int
 ) {
 

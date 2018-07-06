@@ -33,8 +33,8 @@ class TestScipyValues extends FlatSpec with Matchers {
   val refValuesLocation = "/standardization/scipy/values"
 
   val soundParams = List(
-    SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1),
-    SoundHandler("Sound2", 64, 24, 3120, 2000.0, 1)
+    SoundHandler("Sound1", 64, 24, 9811, 3906.0f, 1),
+    SoundHandler("Sound2", 64, 24, 3120, 2000.0f, 1)
   )
 
   val refFiles = List[ResultsHandler](

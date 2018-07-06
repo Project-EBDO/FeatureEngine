@@ -26,7 +26,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TestSoundHandler extends FlatSpec with Matchers {
 
   it should "read a wav file when given its parameters" in {
-    val sp = SoundHandler("Sound1", 64, 24, 9811, 3906.0, 1)
+    val sp = SoundHandler("Sound1", 64, 24, 9811, 3906.0f, 1)
 
     val expectedParametersString = "Sound1_64_24_9811_3906.0_1"
     val expectedSoundLength = 9811

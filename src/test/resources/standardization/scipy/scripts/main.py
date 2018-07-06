@@ -53,7 +53,7 @@ class FeatureGenerator:
                     vFFT if resultsHandler.algorithm is "vFFT" else fFFT
                 )
 
-            if resultsHandler.algorithm in ["vPSD", "fPSD"]:
+            else if resultsHandler.algorithm in ["vPSD", "fPSD"]:
                 fPSD, vPSD = scipy.signal.spectrogram(
                     x=sound, fs=fs, window='hamming', nperseg=winSize,
                     noverlap=winSize-offset, nfft=nfft, detrend=False,
@@ -64,7 +64,7 @@ class FeatureGenerator:
                     vPSD if resultsHandler.algorithm is "vPSD" else fPSD
                 )
 
-            if resultsHandler.algorithm in ["fWelch", "vWelch", "vTOL"]:
+            else if resultsHandler.algorithm in ["fWelch", "vWelch", "vTOL"]:
                 fWelch, vWelch = scipy.signal.welch(
                     x=sound, fs=fs, window='hamming',
                     detrend=False, noverlap=winSize-offset,
@@ -83,6 +83,9 @@ class FeatureGenerator:
                                lowFreq=0.2 * fs, highFreq=0.4 * fs)
 
                     resultsHandler.setValue(vTOL)
+
+            else:
+                raise("Unsupported algorithm: " + resultsHandler.algorithm)
 
     def writeAll(self):
         for resultsHandler in self.resultsHandlers:

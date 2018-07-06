@@ -56,24 +56,33 @@ class ResultsHandler:
     def setValue(self, value):
         self.value = value
 
+    def formatComplexResults(self):
+        """
+        Results containing complex values are reformatted following
+        the same convention as in FeatureEngine, ie:
+        [z_0, z_1, ... , z_n] => [Re(z_0), Im(z_0), Re(z_1), ... Im(z_n)]
+        """
+        initialShape = self.value.shape
+
+        nSeg = initialShape[1]
+        segLength = initialShape[0]
+
+        valueAsScalaFormat = np.zeros((nSeg, 2*segLength), dtype=float)
+        valueAsComplex = self.value.transpose()
+
+        for i in range(nSeg):
+            valueAsScalaFormat[i, ::2] = valueAsComplex[i].real
+            valueAsScalaFormat[i, 1::2] = valueAsComplex[i].imag
+
+        self.value = valueAsScalaFormat.transpose()
+
+
     def write(self):
         if self.value is None:
             raise("No values to write")
 
         if self.algorithm is "vFFT":
-            initialShape = self.value.shape
-
-            nSeg = initialShape[1]
-            segLength = initialShape[0]
-
-            valueAsScalaFormat = np.zeros((nSeg, 2*segLength), dtype=float)
-            valueAsComplex = self.value.transpose()
-
-            for i in range(nSeg):
-                valueAsScalaFormat[i, ::2] = valueAsComplex[i].real
-                valueAsScalaFormat[i, 1::2] = valueAsComplex[i].imag
-
-            self.value = valueAsScalaFormat.transpose()
+            self.formatComplexResults()
 
         valueDataFrame = pandas.DataFrame(self.value)
 

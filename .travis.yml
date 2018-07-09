@@ -14,8 +14,10 @@ scala:
 
 script:
   - sbt compile
-  - sbt test
+  - sbt coverage test
   - sbt scalastyle
+
+after_success: "sbt coverageReport coveralls"
 
 # Send notifs to slack
 notifications:

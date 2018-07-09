@@ -23,6 +23,7 @@ In the *FeatureEngine* directory, start sbt, then compile and test:
 ```sh
 sbt
 compile
+coverage
 test
 ```
 

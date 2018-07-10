@@ -19,7 +19,7 @@ package org.ode.engine.standardization
 import java.io.File
 
 import org.ode.engine.io.WavReader
-import org.ode.engine.signal_processing.{FFT, HammingWindow, Periodogram, Segmentation}
+import org.ode.engine.signal_processing.{FFT, HammingFunction, Periodogram, Segmentation}
 
 import org.ode.utils.test.ErrorMetrics
 import org.scalatest.{FlatSpec, Matchers}

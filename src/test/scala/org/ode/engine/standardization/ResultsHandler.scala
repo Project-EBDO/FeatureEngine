@@ -52,9 +52,9 @@ case class ResultsHandler (
   // instanciate the signal_processing classes
   private val segmentation = new Segmentation(winSize, Some(offset))
 
-  private val hammingSymmetric = new HammingWindow(winSize, "symmetric")
-  private val hammingPeriodic = new HammingWindow(winSize, "periodic")
-  private val hammingScalingSymmetric = hammingSymmetric.normalizationFactor(1.0)
+  private val hammingSymmetric = new HammingFunction(winSize, "symmetric")
+  private val hammingPeriodic = new HammingFunction(winSize, "periodic")
+  private val hammingScalingSymmetric = hammingSymmetric.densityNormalizationFactor(1.0)
 
   private val fftClass = new FFT(nfft, sound.samplingRate)
   private val periodogramClassNormInDensity = new Periodogram(

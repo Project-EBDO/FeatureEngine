@@ -18,7 +18,7 @@ package org.ode.engine.signal_processing
 
 
 /**
- * SpectrogramWindow defined as a trait
+ * WindowFunction defined as a trait
  *
  * @author Joseph Allemandou
  *
@@ -26,7 +26,7 @@ package org.ode.engine.signal_processing
  * leaving the actual coefficients computation to the implementations.
  * An IllegalArgumentException is thrown if signal.length != windowSize
  */
-trait SpectrogramWindow extends Serializable {
+trait WindowFunction extends Serializable {
 
   /**
    * The size of the window
@@ -34,19 +34,46 @@ trait SpectrogramWindow extends Serializable {
   val windowSize: Int
 
   /**
-   *  The coefficients of the window (an array of size windowSize)
+   *  The coefficients of the window function (an array of size windowSize)
    */
   val windowCoefficients: Array[Double]
 
   /**
-   * Compute the the raw normalization factor which is sum(W_i ^ 2)
-   * lazy val so to have windowCoefficients instanciated before
+   * Compute the the raw density normalization factor for power spectral density
+   * which is sum(W_i ^ 2). lazy val so to have windowCoefficients instanciated before
    */
-  lazy val rawNormalizationFactor: Double = windowCoefficients
+  lazy val densityRawNormFactor: Double = windowCoefficients
     .foldLeft(0.0)((acc, v) => acc + math.pow(v,2))
 
   /**
-   * Function applying a SpectrogramWindow implementation to a signal portion
+   * Compute the the raw spectrum normalization factor
+   * which is sum(w_i)^2. lazy val so to have windowCoefficients instanciated before
+   */
+  lazy val spectrumRawNormFactor: Double = math.pow(windowCoefficients.sum, 2)
+
+  /**
+   * Function used to compute the density normalization factor of the window.
+   * It used densityRawNormFactor factor which is pre-computed.
+   *
+   * @param alpha User definied normalization factor for the window
+   * With the default value of 1.0, the returned normalization factor is the energy of the windows
+   * @return The density normalization factor of the window
+   */
+  def densityNormalizationFactor(alpha: Double = 1.0): Double = densityRawNormFactor / math.pow(alpha, 2)
+
+  /**
+   * Function used to compute the spectrum normalization factor of the window.
+   * It used spectrumRawNormFactor factor which is pre-computed.
+   *
+   * @param alpha User definied normalization factor for the window
+   * With the default value of 1.0, the returned normalization factor is the energy of the windows
+   * @return The spectrum normalization factor of the window
+   */
+  def spectrumNormalizationFactor(alpha: Double = 1.0): Double = spectrumRawNormFactor / math.pow(alpha, 2)
+
+
+  /**
+   * Function applying a WindowFunction implementation to a signal portion
    *
    * @param signal The signal portion to transform
    * @return the transformed signal
@@ -67,14 +94,4 @@ trait SpectrogramWindow extends Serializable {
     // scalastyle:on while var.local
     res
   }
-
-  /**
-   * Function used to compute the normalization factor of the window.
-   * It used rawNormalization factor which is pre-computed.
-   *
-   * @param alpha User definied normalization factor for the window
-   * With the default value of 1.0, the returned normalization factor is the energy of the windows
-   * @return The normalization factor of the window
-   */
-  def normalizationFactor(alpha: Double = 1.0): Double = rawNormalizationFactor / math.pow(alpha, 2)
 }

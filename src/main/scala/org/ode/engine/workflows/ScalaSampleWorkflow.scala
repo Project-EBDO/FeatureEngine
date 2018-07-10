@@ -114,10 +114,10 @@ class ScalaSampleWorkflow
       soundStartDate)
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
-    val hammingClass = new HammingWindow(segmentSize, "symmetric")
+    val hammingClass = new HammingFunction(segmentSize, "symmetric")
+    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
+
     val fftClass = new FFT(nfft, soundSamplingRate)
-    val hammingNormalizationFactor = hammingClass.windowCoefficients
-      .foldLeft(0.0)((acc, v) => acc + v*v)
     val periodogramClass = new Periodogram(
       nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), 1.0f
     )

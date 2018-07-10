@@ -16,7 +16,7 @@
 
 package org.ode.perf
 
-import org.ode.engine.signal_processing.TestWindow
+import org.ode.engine.signal_processing.TestFunction
 
 /**
  * Performance test for mutables-spectrogramWindow vs functional-spectrogramWindow
@@ -45,11 +45,11 @@ class PerfTestSpectrogramWindowFunctional
   val d1 = (dataStart to dataEnd by dataStep).toArray
   val d2 = (dataStart to dataEnd by dataStep).toArray
 
-  private val testWindow = new TestWindow(d1.length)
+  private val testFunction = new TestFunction(d1.length)
 
-  val f1 = (array: Array[Double]) => testWindow.applyToSignal(array)
+  val f1 = (array: Array[Double]) => testFunction.applyToSignal(array)
   val f2 = (array: Array[Double]) => {
-    applyWindowToSignalFunctional(array, testWindow.windowCoefficients, array.length)
+    applyWindowToSignalFunctional(array, testFunction.windowCoefficients, array.length)
   }
   val f1Desc = "mutables-SpectrogramWindow"
   val f2Desc = "functional-SpectrogramWindow"

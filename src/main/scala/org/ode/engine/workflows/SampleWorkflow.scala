@@ -209,9 +209,8 @@ class SampleWorkflow
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft, 1.0f)
-    val hammingClass = new HammingWindow(segmentSize, "symmetric")
-    val hammingNormalizationFactor = hammingClass.windowCoefficients
-      .map(x => x*x).foldLeft(0.0)((acc, v) => acc + v)
+    val hammingClass = new HammingFunction(segmentSize, "symmetric")
+    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
     val periodogramClass = new Periodogram(
       nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), soundSamplingRate)

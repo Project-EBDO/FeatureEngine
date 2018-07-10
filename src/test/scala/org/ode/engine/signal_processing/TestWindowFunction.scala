@@ -20,29 +20,30 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 /**
- * SpectrogramWindow test implementation
+ * WindowFunction test implementation
  * @param windowSize the window size for the test implementation
  *
  * @author Alexandre Degurse
  */
-class TestWindow(val windowSize: Int) extends SpectrogramWindow {
-  val windowCoefficients: Array[Double] =
-    (1 to windowSize).map(_.toDouble).toArray
+class TestFunction(val windowSize: Int) extends WindowFunction {
+  val windowCoefficients: Array[Double] = (1 to windowSize).map(_.toDouble).toArray
 }
 
 /**
- * Test of SpectrogramWindow test implementation
+ * Test of WindowFunction test implementation
  *
- * @author Alexandre Degurse
+ * @author Joseph Allemandou, Alexandre Degurse
  */
-class TestSpectrogramWindow extends FlatSpec with Matchers {
+class TestWindowFunction extends FlatSpec with Matchers {
 
   private val testWindowSize = 1024
-  private val testWindow = new TestWindow(testWindowSize)
+  private val testWindow = new TestFunction(testWindowSize)
   private val testSignal = (1 to testWindowSize).map(1.0 / _.toDouble).toArray
 
-  it should "fail applying with mutables when signal doesn't match window size" in {
-    an [IllegalArgumentException] should be thrownBy testWindow.applyToSignal(testSignal.take(10))
+  it should "raise an IllegalArgumentException when applying with mutables when signal doesn't match window size" in {
+    the[IllegalArgumentException] thrownBy {
+      testWindow.applyToSignal(testSignal.take(10))
+    } should have message "Incorrect signal length (10) for SpectrogramWindow (1024)"
   }
 
   it should "apply with mutables" in {

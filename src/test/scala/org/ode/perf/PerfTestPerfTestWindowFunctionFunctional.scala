@@ -19,11 +19,11 @@ package org.ode.perf
 import org.ode.engine.signal_processing.windowfunctions.TestFunction
 
 /**
- * Performance test for mutables-spectrogramWindow vs functional-spectrogramWindow
+ * Performance test for mutables-windowFunction vs functional-windowFunction
  *
  * @author Alexandre Degurse, Joseph Allemandou
  */
-class PerfTestSpectrogramWindowFunctional
+class PerfTestWindowFunctionFunctional
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]
   with ArraySizeSpec {
 
@@ -35,7 +35,7 @@ class PerfTestSpectrogramWindowFunctional
     // Here to match code in class
     if (signal.length != windowSize) {
       throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) " +
-        s"for SpectrogramWindow ($windowSize)")
+        s"for WindowFunction ($windowSize)")
     }
 
     signal.zip(windowCoefficients).map{ case (s, c) => s * c}
@@ -51,7 +51,7 @@ class PerfTestSpectrogramWindowFunctional
   val f2 = (array: Array[Double]) => {
     applyWindowToSignalFunctional(array, testFunction.windowCoefficients, array.length)
   }
-  val f1Desc = "mutables-SpectrogramWindow"
-  val f2Desc = "functional-SpectrogramWindow"
+  val f1Desc = "mutables-WindowFunction"
+  val f2Desc = "functional-WindowFunction"
 
 }

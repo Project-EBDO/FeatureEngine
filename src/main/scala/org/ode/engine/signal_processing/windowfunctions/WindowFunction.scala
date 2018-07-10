@@ -22,7 +22,7 @@ package org.ode.engine.signal_processing.windowfunctions
  *
  * @author Joseph Allemandou
  *
- * Provides a function to apply a spectrogram window to a signal,
+ * Provides a function to apply a window function to a signal,
  * leaving the actual coefficients computation to the implementations.
  * An IllegalArgumentException is thrown if signal.length != windowSize
  */

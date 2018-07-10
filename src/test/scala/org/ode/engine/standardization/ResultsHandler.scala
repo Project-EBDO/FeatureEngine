@@ -20,6 +20,7 @@ import java.io.{File, FileInputStream, InputStream}
 import scala.io.Source
 
 import org.ode.engine.signal_processing._
+import org.ode.engine.signal_processing.windowfunctions._
 
 import org.scalatest.{FlatSpec, Matchers}
 

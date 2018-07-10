@@ -31,6 +31,7 @@ import org.joda.time.Days
 import java.sql.Timestamp
 
 import org.ode.engine.signal_processing._
+import org.ode.engine.signal_processing.windowfunctions._
 
 /**
  * Simple signal processing workflow in Spark.

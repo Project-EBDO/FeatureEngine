@@ -18,6 +18,7 @@ package org.ode.engine.io
 
 import org.ode.engine.signal_processing._
 import org.ode.engine.workflows._
+import org.ode.engine.signal_processing.windowfunctions._
 
 import java.io.{ByteArrayOutputStream, ObjectOutputStream, ObjectInputStream, ByteArrayInputStream}
 import org.scalatest.{FlatSpec, Matchers}

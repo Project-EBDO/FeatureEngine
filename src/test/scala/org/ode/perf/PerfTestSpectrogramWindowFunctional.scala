@@ -16,7 +16,7 @@
 
 package org.ode.perf
 
-import org.ode.engine.signal_processing.TestFunction
+import org.ode.engine.signal_processing.windowfunctions.TestFunction
 
 /**
  * Performance test for mutables-spectrogramWindow vs functional-spectrogramWindow

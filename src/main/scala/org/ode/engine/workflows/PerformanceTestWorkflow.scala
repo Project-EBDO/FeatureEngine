@@ -43,6 +43,7 @@ import org.ode.engine.signal_processing._
  * @param segmentSize The size of the segments to be generated
  * @param segmentOffset The offset used to segment the signal
  * @param nfft The size of the fft-computation window
+ * @param numPartitions The number of partitions of the RDD returned by apply method
  * @param lastRecordAction The action to perform when a partial record is encountered
  *
  */
@@ -53,6 +54,7 @@ class PerformanceTestWorkflow
   val segmentSize: Int,
   val segmentOffset: Int,
   val nfft: Int,
+  val numPartitions: Option[Int] = None,
   val lastRecordAction: String = "skip"
 ) {
 
@@ -193,7 +195,9 @@ class PerformanceTestWorkflow
     }
 
     spark.createDataFrame(
-      results.map{ case (ts, welch, spls) => Row(new Timestamp(ts), welch, spls)},
+      results
+      .sortBy(t => t._1, true, numPartitions.getOrElse(results.getNumPartitions))
+      .map{ case (ts, welch, spls) => Row(new Timestamp(ts), welch, spls)},
       schema
     )
   }

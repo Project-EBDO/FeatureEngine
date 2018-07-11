@@ -91,7 +91,7 @@ class SampleWorkflow
 
     if (recordSizeInFrame % 1 != 0.0f) {
       throw new IllegalArgumentException(
-        s"Computed record size $recordSizeInFrame should not have a decimal part.")}
+        s"Computed record size ($recordSizeInFrame) should not have a decimal part.")}
 
     val soundNames = soundsNameAndStartDate.map(_._1)
     if (soundNames.length != soundNames.distinct.length) {
@@ -210,7 +210,7 @@ class SampleWorkflow
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft, 1.0f)
-    val hammingClass = new HammingWindowFunction(segmentSize, "symmetric")
+    val hammingClass = new HammingWindowFunction(segmentSize, "periodic")
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
     val periodogramClass = new Periodogram(

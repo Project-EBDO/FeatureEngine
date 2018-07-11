@@ -16,24 +16,16 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import java.net.URI
-import scala.io.Source
-import scala.collection.mutable.WrappedArray
-
-import org.oceandataexplorer.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
-import org.apache.hadoop.conf.Configuration
-
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{SparkConf, SparkContext}
 
-import com.github.nscala_time.time.Imports._
 import org.joda.time.Days
+import com.github.nscala_time.time.Imports._
 
-import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
+import org.apache.spark.SparkException
+import org.scalatest.{FlatSpec, Matchers}
 import org.oceandataexplorer.utils.test.ErrorMetrics
-import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
+import com.holdenkarau.spark.testing.SharedSparkContext
 
 /**
  * Tests for PerformanceTestWorkflow that compares its computations with ScalaPerformanceTestWorkflow
@@ -92,21 +84,20 @@ class TestPerformanceTestWorkflow
     val sparkWelchs = results.select("welchs").collect()
     val sparkSPL = results.select("spls").collect()
 
-    sparkWelchs.size should equal(expectedRecordNumber)
-    sparkSPL.size should equal(expectedRecordNumber)
+    sparkWelchs should have size expectedRecordNumber
+    sparkSPL should have size expectedRecordNumber
 
     sparkWelchs.map{channels =>
-      channels.size should equal(1)
+      channels should have size 1
       val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
-      chans.map(channel => channel.length should equal(expectedFFTSize / 2))
+      chans.map(channel => channel should have length (expectedFFTSize / 2))
     }
 
     sparkSPL.map{channels =>
-      channels.size should equal(1)
+      channels should have size 1
       val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
-      chans.map(channel => channel.length should equal(1))
+      chans.map(channel => channel should have length 1 )
     }
-
   }
 
   it should "generate the same results as the pure scala workflow" in {
@@ -245,15 +236,30 @@ class TestPerformanceTestWorkflow
     val startDate = new DateTime(soundStartDate)
 
     val duration = lastRecordStartDate.instant.millis - startDate.instant.millis
-
-    duration should equal(1000)
-
     val expectedLastRecordDate = new DateTime("1978-04-11T13:14:21.200Z")
 
-    lastRecordStartDate should equal(expectedLastRecordDate)
+    duration shouldEqual 1000
+    lastRecordStartDate shouldEqual expectedLastRecordDate
   }
 
-  it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
+  it should "raise an IllegalArgumentException when record size is not round" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 100, 100)
+
+    the[IllegalArgumentException] thrownBy {
+      perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+    } should have message "Computed record size (0.1) should not have a decimal part."
+  }
+
+  it should "raise an IOException/SparkException when given a wrong sample rate" in {
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -264,8 +270,64 @@ class TestPerformanceTestWorkflow
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
 
 
-    val perfTestWorkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 100, 100)
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
 
-    an[IllegalArgumentException] should be thrownBy perfTestWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+    // even though test succeeds, a missive amount of log is displayed
+    spark.sparkContext.setLogLevel("OFF")
+
+    val thrown = the[SparkException] thrownBy {
+      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      df.take(1)
+    }
+
+    spark.sparkContext.setLogLevel("WARN")
+
+    thrown.getMessage should include("sample rate (16000.0) doesn't match configured one (1.0)")
+  }
+
+  it should "raise an IllegalArgumentException when given list of files with duplicates" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(
+      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)),
+      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate))
+    )
+
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
+
+    the[IllegalArgumentException] thrownBy {
+      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      df.take(1)
+    } should have message "Sounds list contains duplicate filename entries"
+  }
+
+  it should "raise an IllegalArgumentException/SparkException when a unexpected wav file is encountered" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
+
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
+
+    // even though test succeeds, a missive amount of log is displayed
+    spark.sparkContext.setLogLevel("OFF")
+
+    val thrown = the[SparkException] thrownBy {
+      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 16000.0f, 1, 16)
+      df.take(1)
+    }
+
+    spark.sparkContext.setLogLevel("WARN")
+
+    thrown.getMessage should include("Read file sin_16kHz_2.5s.wav has no startDate in given list")
   }
 }

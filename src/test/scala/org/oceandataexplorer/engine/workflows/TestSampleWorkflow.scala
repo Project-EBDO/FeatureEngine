@@ -16,23 +16,16 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import java.net.URI
-import scala.io.Source
-
-import org.oceandataexplorer.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
-import org.apache.hadoop.conf.Configuration
-
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{SparkConf, SparkContext}
 
-import com.github.nscala_time.time.Imports._
 import org.joda.time.Days
+import com.github.nscala_time.time.Imports._
 
-import org.scalatest.{Matchers, BeforeAndAfterEach, FlatSpec}
+import org.apache.spark.SparkException
+import org.scalatest.{FlatSpec, Matchers}
 import org.oceandataexplorer.utils.test.ErrorMetrics
-import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
+import com.holdenkarau.spark.testing.SharedSparkContext
 
 /**
  * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
@@ -41,9 +34,9 @@ import com.holdenkarau.spark.testing.{RDDComparisons, SharedSparkContext}
  */
 
 class TestSampleWorkflow
-    extends FlatSpec
-    with Matchers
-    with SharedSparkContext
+  extends FlatSpec
+  with Matchers
+  with SharedSparkContext
 {
 
   val maxRMSE = 1.0E-16
@@ -99,31 +92,31 @@ class TestSampleWorkflow
 
     resultMap.size should equal(5)
 
-    sparkFFT.count should equal(expectedRecordNumber)
+    sparkFFT.count shouldEqual expectedRecordNumber
     sparkFFT.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedWindowsPerRecord)
-      channels(0)(0).length should equal(expectedFFTSize)
+      channels(0) should have length expectedWindowsPerRecord.toLong
+      channels(0)(0) should have length expectedFFTSize
     }
 
-    sparkPeriodograms.count should equal(expectedRecordNumber)
+    sparkPeriodograms.count shouldEqual expectedRecordNumber
     sparkPeriodograms.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedWindowsPerRecord)
-      channels(0)(0).length should equal(expectedFFTSize / 2)
+      channels(0) should have length expectedWindowsPerRecord.toLong
+      channels(0)(0) should have length expectedFFTSize / 2
     }
 
     sparkWelchs.count should equal(expectedRecordNumber)
     sparkWelchs.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(expectedFFTSize / 2)
+      channels(0) should have length expectedFFTSize / 2
     }
 
-    sparkTOLs.count should equal(expectedRecordNumber)
+    sparkTOLs.count shouldEqual expectedRecordNumber
     sparkTOLs.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(4)
+      channels(0) should have length 4
     }
 
     sparkSPL.count should equal(expectedRecordNumber)
     sparkSPL.take(1).map{case (idx, channels) =>
-      channels(0).length should equal(1)
+      channels(0) should have length 1
     }
   }
 
@@ -251,15 +244,128 @@ class TestSampleWorkflow
     val startDate = new DateTime(soundStartDate)
 
     val duration = lastRecordStartTime - startDate.instant.millis
-
-    duration should equal(1000)
-
     val expectedLastRecordDate = new DateTime("1978-04-11T13:14:21.200Z")
 
-    lastRecordStartDate should equal(expectedLastRecordDate)
+    duration shouldEqual 1000
+    lastRecordStartDate shouldEqual expectedLastRecordDate
   }
 
-  it should "raise an IllegalArgumentException when a unexpected wav file is encountered" in {
+  it should "compute tols when given parameters compatible with tol computation" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val recordSizeInSec = 1.0f
+    val soundSamplingRate = 16000.0f
+    val segmentSize = 16000
+    val segmentOffset = 16000
+    val nfft = 16000
+    val lowFreq = Some(1000.0)
+    val highFreq = Some(6000.0)
+
+    // Sound parameters
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    // Usefull for testing
+    val soundDurationInSecs= 2.5f
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+
+    val sampleWorkflow = new SampleWorkflow(
+      spark,
+      recordSizeInSec,
+      segmentSize,
+      segmentOffset,
+      nfft,
+      lowFreq,
+      highFreq
+    )
+
+    val resultMap = sampleWorkflow.apply(
+      soundUri.toString,
+      soundsNameAndStartDate,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits
+    )
+
+    val sparkTOL = resultMap("tols").right.get.cache().collect()
+
+    // obtained by applying tol.py from standardization on the first
+    // second of the wav file (xin) with:
+    /**
+     * f, psd = scipy.signal.welch(xin, fs=16000.0, noverlap=0,
+     *   window='hamming', nperseg=16000, nfft=16000, detrend=False,
+     *   return_onesided=True, scaling='density')
+     * tols = tol(psd, 16000.0, 16000, 16000, 1000.0, 6000.0)
+     */
+
+    val expectedTOL = Array(
+      -3.01037283204366, -111.24321821043127, -109.45049617502617,
+      -107.59120472415702, -106.35238654048527, -101.20437081472288,
+      -103.64721324107055,  -98.0696920300183 ,  -88.42937775219258
+    )
+
+    val tols: Array[Double] = sparkTOL(0)._2(0)
+
+    ErrorMetrics.rmse(tols, expectedTOL) should be < 1.0E-11
+  }
+
+  it should "read a single wav file" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI.toString
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+    val soundSamplingRate = 16000.0f
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsStartTime = new DateTime(soundStartDate)
+
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+    val readRecords = sampleWorkflow.readWavRecords(
+      soundUri,
+      soundsStartTime,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits
+    ).collect()
+
+    readRecords should have length 2
+    readRecords.foreach(segment =>
+      segment._2 should have length 1
+    )
+
+    val firstWavValues = Array(
+      0.00000000000000e+00,  3.82690429687500e-01,
+      7.07122802734375e-01,  9.23858642578125e-01,
+      9.99969482421875e-01,  9.23889160156250e-01,
+      7.07061767578125e-01,  3.82781982421875e-01,
+      -9.15527343750000e-05, -3.82629394531250e-01
+    )
+
+    ErrorMetrics.rmse(readRecords(0)._2(0).take(10), firstWavValues) should be < maxRMSE
+  }
+
+  it should "raise an IllegalArgumentException when record size is not round" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+
+    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
+
+    the[IllegalArgumentException] thrownBy {
+      sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+    } should have message "Computed record size (0.1) should not have a decimal part."
+  }
+
+  it should "raise an IOException/SparkException when given a wrong sample rate" in {
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -270,8 +376,64 @@ class TestSampleWorkflow
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
 
 
-    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
 
-    an[IllegalArgumentException] should be thrownBy sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+    // even though test succeeds, a missive amount of log is displayed
+    spark.sparkContext.setLogLevel("OFF")
+
+    val thrown = the[SparkException] thrownBy {
+      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      resultMap("ffts").left.get.cache().take(1)
+    }
+
+    spark.sparkContext.setLogLevel("WARN")
+
+    thrown.getMessage should include("sample rate (16000.0) doesn't match configured one (1.0)")
+  }
+
+  it should "raise an IllegalArgumentException when given list of files with duplicates" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(
+      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)),
+      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate))
+    )
+
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+
+    the[IllegalArgumentException] thrownBy {
+      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      resultMap("ffts").left.get.cache().take(1)
+    } should have message "Sounds list contains duplicate filename entries"
+  }
+
+  it should "raise an IllegalArgumentException/SparkException when a unexpected wav file is encountered" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
+
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+
+    // even though test succeeds, a missive amount of log is displayed
+    spark.sparkContext.setLogLevel("OFF")
+
+    val thrown = the[SparkException] thrownBy {
+      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 16000.0f, 1, 16)
+      resultMap("ffts").left.get.cache().take(1)
+    }
+
+    spark.sparkContext.setLogLevel("WARN")
+
+    thrown.getMessage should include("Read file sin_16kHz_2.5s.wav has no startDate in given list")
   }
 }

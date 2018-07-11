@@ -39,37 +39,41 @@ trait WindowFunction extends Serializable {
   val windowCoefficients: Array[Double]
 
   /**
-   * Compute the the raw density normalization factor for power spectral density
+   * Compute the raw density normalization factor for power spectral density
    * which is sum(W_i ^ 2). lazy val so to have windowCoefficients instanciated before
    */
   lazy val densityRawNormFactor: Double = windowCoefficients
     .foldLeft(0.0)((acc, v) => acc + math.pow(v,2))
 
   /**
-   * Compute the the raw spectrum normalization factor
+   * Compute the raw spectrum normalization factor
    * which is sum(w_i)^2. lazy val so to have windowCoefficients instanciated before
    */
   lazy val spectrumRawNormFactor: Double = math.pow(windowCoefficients.sum, 2)
 
   /**
-   * Function used to compute the density normalization factor of the window.
-   * It used densityRawNormFactor factor which is pre-computed.
+   * Function computing a density normalization factor
+   * as densityRawNormFactor / math/pow(alpha, 2)
    *
    * @param alpha User definied normalization factor for the window
    * With the default value of 1.0, the returned normalization factor is the energy of the windows
    * @return The density normalization factor of the window
    */
-  def densityNormalizationFactor(alpha: Double = 1.0): Double = densityRawNormFactor / math.pow(alpha, 2)
+  def densityNormalizationFactor(alpha: Double = 1.0): Double = {
+    densityRawNormFactor / math.pow(alpha, 2)
+  }
 
   /**
-   * Function used to compute the spectrum normalization factor of the window.
-   * It used spectrumRawNormFactor factor which is pre-computed.
+   * Function computing a spectrum normalization factor
+   * as spectrumRawNormFactor / math.pow(alpha, 2)
    *
    * @param alpha User definied normalization factor for the window
    * With the default value of 1.0, the returned normalization factor is the energy of the windows
    * @return The spectrum normalization factor of the window
    */
-  def spectrumNormalizationFactor(alpha: Double = 1.0): Double = spectrumRawNormFactor / math.pow(alpha, 2)
+  def spectrumNormalizationFactor(alpha: Double = 1.0): Double = {
+    spectrumRawNormFactor / math.pow(alpha, 2)
+  }
 
 
   /**

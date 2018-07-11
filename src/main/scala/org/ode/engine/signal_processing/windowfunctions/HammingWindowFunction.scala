@@ -18,7 +18,7 @@ package org.ode.engine.signal_processing.windowfunctions
 
 
 /**
- * HammingFunction, extending the [[WindowFunction]] trait
+ * HammingWindowFunction, extending the [[WindowFunction]] trait
  * A hamming window can be compute in two ways:
  *  - symmetric used for filter design,
  *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where 0 <= n <= N and N = windowLength - 1
@@ -33,27 +33,27 @@ package org.ode.engine.signal_processing.windowfunctions
  * @param windowSize The size of the window to be computed
  * @param hammingType The type of hamming window to compute, either periodic or symmetric
  */
-case class HammingFunction(windowSize: Int, hammingType: String) extends WindowFunction {
+case class HammingWindowFunction(windowSize: Int, hammingType: String) extends WindowFunction {
 
   /**
    * Eagerly instantiated array of coefficients
    */
   val windowCoefficients: Array[Double] = hammingType match {
     case "periodic" => (0 until windowSize).map(idx => {
-      HammingFunction.coefficientPeriodic(idx, windowSize)
+      HammingWindowFunction.coefficientPeriodic(idx, windowSize)
     }).toArray
     case "symmetric" => (0 until windowSize).map(idx => {
-      HammingFunction.coefficientSymmetric(idx, windowSize)
+      HammingWindowFunction.coefficientSymmetric(idx, windowSize)
     }).toArray
     case _ => throw new IllegalArgumentException(
-      s"Unknown HammingFunction type ($hammingType), it should be 'periodic' or 'symmetric'")
+      s"Unknown HammingWindowFunction type ($hammingType), it should be 'periodic' or 'symmetric'")
   }
 }
 
 /**
- * Companion object of the HammingFunction class
+ * Companion object of the HammingWindowFunction class
  */
-object HammingFunction {
+object HammingWindowFunction {
   /**
    * Generate the i-th coefficient of a N-point periodic Hamming window
    *

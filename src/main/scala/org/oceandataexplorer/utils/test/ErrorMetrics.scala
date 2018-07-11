@@ -86,20 +86,20 @@ object ErrorMetrics {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
       // records should have the same number of channels
-      if ((actual(r)._2.length != numChannels) && (expected(r)._2.length != numChannels)) {
-        throw new IllegalArgumentException("The given records' keys don't match")
+      if ((actual(r)._2.length != numChannels) || (expected(r)._2.length != numChannels)) {
+        throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
       while (c < numChannels) {
         // each record should have the same number of segments
-        if ((actual(r)._2(c).length != numSegments) && (expected(r)._2(c).length != numSegments)) {
+        if ((actual(r)._2(c).length != numSegments) || (expected(r)._2(c).length != numSegments)) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
         while (s < numSegments) {
           // segments should have the same length, rmse on them ensures it
           // finally compare values
-          mse += math.pow(rmse(expected(r)._2(c)(s), actual(r)._2(c)(s)), 2) / segmentLength
+          mse += math.pow(rmse(expected(r)._2(c)(s), actual(r)._2(c)(s)), 2)
           s += 1
         }
         c += 1
@@ -107,7 +107,7 @@ object ErrorMetrics {
       r += 1
     }
     // scalastyle:on while var.local
-    math.sqrt(mse / (numChannels * numRecords * numSegments))
+    math.sqrt(mse)
   }
 
   /**
@@ -140,22 +140,22 @@ object ErrorMetrics {
       }
 
       // records should have the same number of channels
-      if ((actual(r)._2.length != numChannels) && (expected(r)._2.length != numChannels)) {
-        throw new IllegalArgumentException("The given records' keys don't match")
+      if ((actual(r)._2.length != numChannels) || (expected(r)._2.length != numChannels)) {
+        throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
       while (c < numChannels) {
         // each record should have the same number of segments
-        if ((actual(r)._2(c).length != recordLength) && (expected(r)._2(c).length != recordLength)){
+        if ((actual(r)._2(c).length != recordLength) || (expected(r)._2(c).length != recordLength)){
           throw new IllegalArgumentException("The given records' length don't match")
         }
 
-        mse += math.pow(rmse(expected(r)._2(c), actual(r)._2(c)), 2) / recordLength
+        mse += math.pow(rmse(expected(r)._2(c), actual(r)._2(c)), 2)
         c += 1
       }
       r += 1
     }
     // scalastyle:on while var.local
-    math.sqrt(mse / (numChannels * numRecords))
+    math.sqrt(mse)
   }
 }

@@ -16,10 +16,8 @@
 
 package org.oceandataexplorer.utils.test
 
+import org.oceandataexplorer.engine.workflows.{SegmentedRecord, AggregatedRecord}
 import org.scalatest.{FlatSpec, Matchers}
-
-import scala.math.abs
-
 
 /**
  * Tests for Metric error functions
@@ -42,9 +40,9 @@ class TestErrorMetrics extends FlatSpec with Matchers {
       0.1368780976139283
     )
     val expectedRMSE = 0.41475327309957516
-    val rmseComputed = ErrorMetrics.rmse(seqA,seqB)
+    val rmseComputed = ErrorMetrics.rmse(seqA, seqB)
 
-    abs(rmseComputed - expectedRMSE) should be < 1e-10
+    math.abs(rmseComputed - expectedRMSE) should be < 1e-10
   }
 
   it should "compute the rmse for two doubles" in {
@@ -54,14 +52,154 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     val expectedRMSE = 0.440244917193507
     val rmseComputed = ErrorMetrics.rmse(a,b)
 
-    abs(rmseComputed - expectedRMSE) should be < 1e-10
+    math.abs(rmseComputed - expectedRMSE) should be < 1e-10
   }
 
-  it should "fail when sequences size don't match" in {
+  it should "compute the rmse for two AggregatedRecord" in {
+    val aggRecA: Array[AggregatedRecord] = Array(
+      (
+        100L,
+        Array(
+          Array(
+            0.1221174368357885, 0.8030612655311997, 0.8732426284336273,
+            0.8000925604778708, 0.6351656368136573, 0.323284190497698 ,
+            0.6192489942098376, 0.9573403084388671, 0.7101131243855894,
+            0.0232360227774637
+          )
+        )
+      )
+    )
+
+    val aggRecB: Array[AggregatedRecord] = Array(
+      (
+        100L,
+        Array(
+          Array(
+            0.7363374103655478, 0.352353350406777 , 0.7134586729011047,
+            0.0323479482933672, 0.9458845231585757, 0.7822982947818798,
+            0.844976605688674 , 0.5908107704086722, 0.570884102351707 ,
+            0.1368780976139283
+          )
+        )
+      )
+    )
+
+    val expectedRMSE = 0.41475327309957516
+    val rmseComputed = ErrorMetrics.rmse(aggRecA, aggRecB)
+
+    math.abs(rmseComputed - expectedRMSE) should be < 1e-10
+  }
+
+  it should "compute the rmse for two Record" in {
+    val segRecA: Array[SegmentedRecord] = Array(
+      (
+        100L,
+        Array(
+          Array(
+            Array(
+              0.1221174368357885, 0.8030612655311997, 0.8732426284336273,
+              0.8000925604778708, 0.6351656368136573, 0.323284190497698 ,
+              0.6192489942098376, 0.9573403084388671, 0.7101131243855894,
+              0.0232360227774637
+            )
+          )
+        )
+      )
+    )
+
+    val segRecB: Array[SegmentedRecord] = Array(
+      (
+        100L,
+        Array(
+          Array(
+            Array(
+              0.7363374103655478, 0.352353350406777 , 0.7134586729011047,
+              0.0323479482933672, 0.9458845231585757, 0.7822982947818798,
+              0.844976605688674 , 0.5908107704086722, 0.570884102351707 ,
+              0.1368780976139283
+            )
+          )
+        )
+      )
+    )
+
+    val expectedRMSE = 0.41475327309957516
+    val rmseComputed = ErrorMetrics.rmse(segRecA, segRecB)
+
+    math.abs(rmseComputed - expectedRMSE) should be < 1e-10
+  }
+
+  it should "raise an IllegalArgumentException when sequences with differente sizes" in {
     val seqA = Seq(0.1221174368357885, 0.8030612655311997, 0.8732426284336273)
     val seqB = Seq(0.7363374103655478, 0.352353350406777)
 
-    an [IllegalArgumentException] should be thrownBy ErrorMetrics.rmse(seqA,seqB)
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(seqA,seqB)
+    } should have message "The given sequences' sizes don't match"
   }
 
+  it should "raise an IllegalArgumentException when the given SegmentedRecord keys don't match" in {
+    val segRecA: Array[SegmentedRecord] = Array((101L, Array(Array(Array(1.0)))))
+    val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(segRecA, segRecB)
+    } should have message "The given records' keys don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given SegmentedRecord segment length don't match" in {
+    val segRecA: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
+    val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0, 2.0)))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(segRecA, segRecB)
+    } should have message "The given sequences' sizes don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given SegmentedRecord number of channels don't match" in {
+    val segRecA: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
+    val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)), Array(Array(1.0)))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(segRecA, segRecB)
+    } should have message "The given records' number of channels don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given SegmentedRecord number of segments don't match" in {
+    val segRecA: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
+    val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0), Array(2.0)))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(segRecA, segRecB)
+    } should have message "The given records' number of segment don't match"
+  }
+
+
+
+  it should "raise an IllegalArgumentException when the given AggregatedRecord keys don't match" in {
+    val aggRecA: Array[AggregatedRecord] = Array((101L, Array(Array(1.0))))
+    val aggRecB: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(aggRecA, aggRecB)
+    } should have message "The given records' keys don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given AggregatedRecord number of channels don't match" in {
+    val aggRecA: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))))
+    val aggRecB: Array[AggregatedRecord] = Array((100L, Array(Array(1.0), Array(2.0))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(aggRecA, aggRecB)
+    } should have message "The given records' number of channels don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given AggregatedRecord segment length don't match" in {
+    val aggRecA: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))))
+    val aggRecB: Array[AggregatedRecord] = Array((100L, Array(Array(1.0, 2.0))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(aggRecA, aggRecB)
+    } should have message "The given records' length don't match"
+  }
 }

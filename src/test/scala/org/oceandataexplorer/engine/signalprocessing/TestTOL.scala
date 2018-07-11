@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics.rmse;
+import org.oceandataexplorer.utils.test.ErrorMetrics
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -24,8 +24,6 @@ import org.scalatest.{FlatSpec, Matchers}
   *
   * @author Alexandre Degurse
   */
-
-
 class TestTOL extends FlatSpec with Matchers {
 
   private val maxRMSE = 3.0E-14
@@ -81,17 +79,16 @@ class TestTOL extends FlatSpec with Matchers {
       (35.481338923357555, 44.66835921509632),
       (44.66835921509631 , 56.2341325190349)
     )
-    tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
 
-    val zippedResults: Array[(Array[Double], Array[Double])] =
-      tolClass.thirdOctaveBandBounds.zip(expectedBoudaries)
-      .map(bound => (bound._1.productIterator.toArray.map(_.asInstanceOf[Double]),
-        bound._2.productIterator.toArray.map(_.asInstanceOf[Double])))
+    tolClass.thirdOctaveBandBounds should have length expectedBoudaries.length
 
+    ErrorMetrics.rmse(
+      tolClass.thirdOctaveBandBounds.map(_._1), expectedBoudaries.map(_._1)
+    ) should be < maxRMSE
 
-    zippedResults.foreach(
-        bound => rmse(bound._1, bound._2) should be < maxRMSE
-      )
+    ErrorMetrics.rmse(
+      tolClass.thirdOctaveBandBounds.map(_._2), expectedBoudaries.map(_._2)
+    ) should be < maxRMSE
   }
 
   it should "compute Third Octabe Levels when studying default frequency range" in {
@@ -109,7 +106,7 @@ class TestTOL extends FlatSpec with Matchers {
       14.345791328130584, 14.408636676307502
     )
 
-    rmse(tols, expectedTols) should be < maxRMSE
+    ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
   }
 
   it should "compute Third Octave Band Boundaries when studying custom frequency range" in {
@@ -126,17 +123,15 @@ class TestTOL extends FlatSpec with Matchers {
       (44.66835921509631 , 56.2341325190349 )
     )
 
-    tolClass.thirdOctaveBandBounds.length should be(expectedBoudaries.length)
+    tolClass.thirdOctaveBandBounds should have length expectedBoudaries.length
 
-    val zippedResults: Array[(Array[Double], Array[Double])] =
-      tolClass.thirdOctaveBandBounds.zip(expectedBoudaries)
-      .map(bound => (bound._1.productIterator.toArray.map(_.asInstanceOf[Double]),
-        bound._2.productIterator.toArray.map(_.asInstanceOf[Double])))
+    ErrorMetrics.rmse(
+      tolClass.thirdOctaveBandBounds.map(_._1), expectedBoudaries.map(_._1)
+    ) should be < maxRMSE
 
-
-    zippedResults.foreach(
-        bound => rmse(bound._1, bound._2) should be < maxRMSE
-      )
+    ErrorMetrics.rmse(
+      tolClass.thirdOctaveBandBounds.map(_._2), expectedBoudaries.map(_._2)
+    ) should be < maxRMSE
   }
 
   it should "compute Third Octave Levels when studying custom frequency range" in {
@@ -153,7 +148,7 @@ class TestTOL extends FlatSpec with Matchers {
       8.714892243362911, 8.325191414850961, 8.388036763027877
     )
 
-    rmse(tols, expectedTols) should be < maxRMSE
+    ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
   }
 
   it should "compute the right frequency vector on a custom range for TOL" in {
@@ -170,36 +165,66 @@ class TestTOL extends FlatSpec with Matchers {
 
     val frequencyVector = tolClass.frequencyVector
 
-    rmse(frequencyVector, expectedFrequencyVector)
+    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector)
   }
 
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
     val tolClass = new TOL(100, 100.0f)
 
-    an[IllegalArgumentException] should be thrownBy tolClass.compute(Array(1.0))
+    the[IllegalArgumentException] thrownBy {
+      tolClass.compute(Array(1.0))
+    } should have message "Incorrect PSD size (1) for TOL (51)"
   }
 
   it should "raise IllegalArgumentException when given windows that are smaller than 1 second" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 1000.0f)
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 1000.0f)
+    } should have message "Incorrect window size (100) for TOL (1000.0)"
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than sampling rate / 2" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f, Some(200.0))
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 100.0f, Some(200.0))
+    } should have message "Incorrect low frequency (200.0) for TOL (smaller than 1.0 or bigger than 50.0)"
   }
 
-  it should "raise IllegalArgumentException when given high frequency is higher than sampling rate / 2" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(100.0))
-  }
-
-  it should "raise IllegalArgumentException when given high frequency is smaller than 25 Hz" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f, Some(25.0), Some(0.0))
-  }
-
-  it should "raise IllegalArgumentException when given low frequency is smaller than 25 Hz" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(0.0))
+  it should "raise IllegalArgumentException when given low frequency is smaller than 1.0 Hz" in {
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 100.0f, Some(0.0))
+    } should have message "Incorrect low frequency (0.0) for TOL (smaller than 1.0 or bigger than 50.0)"
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than high frequency" in {
-    an[IllegalArgumentException] should be thrownBy new TOL(100, 100.0f,  Some(40.0), Some(30.0))
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 100.0f,  Some(40.0), Some(30.0))
+    } should have message "Incorrect low frequency (40.0) for TOL (smaller than 1.0 or bigger than 30.0)"
+  }
+
+  it should "raise IllegalArgumentException when given high frequency is higher than sampling rate / 2" in {
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 100.0f, Some(10.0), Some(100.0))
+    } should have message "Incorrect high frequency (100.0) for TOL (higher than 50.0 or smaller than 10.0)"
+  }
+
+  it should "raise IllegalArgumentException when given high frequency is smaller than 1.0 Hz" in {
+    the[IllegalArgumentException] thrownBy {
+      new TOL(100, 100.0f, highFreq=Some(0.0))
+    } should have message "Incorrect high frequency (0.0) for TOL (higher than 50.0 or smaller than 1.0)"
+  }
+
+  it should "raise IllegalArgumentExcpetion when converting an index outside of the frequency range" in {
+    val tolClass = new TOL(100, 100.0f)
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.indexToFrequency(1000)
+    } should have message "Incorrect index (1000) for conversion (17)"
+  }
+
+  it should "raise IllegalArgumentExcpetion when converting a negative index" in {
+    val tolClass = new TOL(100, 100.0f)
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.indexToFrequency(-1)
+    } should have message "Incorrect index (-1) for conversion (17)"
   }
 }

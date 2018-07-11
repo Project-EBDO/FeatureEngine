@@ -55,7 +55,7 @@ case class TOL
   private val lowerLimit = 1.0
   // and the highest is the minimum of samplingRate / 2 and the 60th band.
   private val upperLimit = math.min(
-    samplingRate / (2.0 ),
+    samplingRate / (2.0),
     math.pow(10, 0.1 * 60)
   )
 

@@ -18,7 +18,7 @@ package org.oceandataexplorer.engine.io
 
 import java.io.File
 
-import org.oceandataexplorer.utils.test.ErrorMetrics.rmse
+import org.oceandataexplorer.utils.test.ErrorMetrics
 import org.scalatest.{FlatSpec, Matchers}
 
 
@@ -58,16 +58,16 @@ class TestWavReader extends FlatSpec with Matchers {
     val chunkSize = 16 // Length of sin signal without repetition
 
     val chunks = wavReader.readChunks(chunkSize, 0)
-    chunks.size should equal(math.ceil(2.5 * 16000 / chunkSize))
-    chunks.head.length should equal(1) // single channel
+    chunks should have size math.ceil(2.5 * 16000 / chunkSize).toLong
+    chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
     val firstWave = chunks.head.head.toSeq
-    rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, math.floor(2.5 * 16000 / chunkSize).toInt, 1).foreach((chunkIdx: Int) => {
-      rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
     })
 
   }
@@ -80,16 +80,16 @@ class TestWavReader extends FlatSpec with Matchers {
     val nbChunks = 10
 
     val chunks = wavReader.readChunks(chunkSize, 0, nbChunks)
-    chunks.size should equal(nbChunks)
-    chunks.head.length should equal(1) // single channel
+    chunks should have size nbChunks
+    chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
     val firstWave = chunks.head.head.toSeq
-    rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
     })
 
   }
@@ -103,18 +103,24 @@ class TestWavReader extends FlatSpec with Matchers {
     val nbChunks = 10
 
     val chunks = wavReader.readChunks(chunkSize, offset, nbChunks)
-    chunks.size should equal(nbChunks)
-    chunks.head.length should equal(1) // single channel
+    chunks should have size nbChunks
+    chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
     val firstWave = chunks.head.head.toSeq
-    rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
     })
-
   }
 
+  it should "raise an IllegalArgumentException when the given wav file is corrupted" in {
+    val file: File = new File(getClass.getResource("/wav/sin_16kHz_2.5s_corrupted.wav").toURI)
+
+    the[IllegalArgumentException] thrownBy {
+      new WavReader(file)
+    } should have message "Input file length doesn't match computed one - probably corrupted"
+  }
 }

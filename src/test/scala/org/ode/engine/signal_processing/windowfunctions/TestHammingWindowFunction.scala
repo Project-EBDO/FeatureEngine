@@ -33,8 +33,10 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
   //    - "np.set_printoptions(precision=16)" for numpy
   //    - "format long" for Matlab
 
-  "HammingWindowFunction" should "rmse-match scipy hamming window" in {
-    // signal.get_window("hamming", 32)
+  "HammingWindowFunction" should "rmse-match scipy periodic hamming window" in {
+    // scipy.signal.get_window("hamming", 32)
+    // or
+    // scipy.signal.hamming(32, False)
     val expectedWindow = Array(
       0.08              , 0.088838771014514 , 0.1150154150448081,
       0.1575239783408292, 0.2147308806541882, 0.2844376928109831,
@@ -55,20 +57,21 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
     ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
   }
 
-  it should "rmse-match a transformed signal as in scipy" in {
+  it should "rmse-match a transformed signal as in scipy with a periodic hamming window" in {
     // signal.get_window("hamming", 32) * np.arange(1,33)
     val expectedWindowedSignal = Array(
-        0.08              ,  0.1776775420290281,  0.3450462451344243,
-        0.6300959133633166,  1.073654403270941 ,  1.706626156865899 ,
-        2.547759347784411 ,  3.6020676149806485,  4.86              ,
-        6.297415481274191 ,  7.8763781677673546,  9.546747686268205 ,
-       11.248498551495555 , 12.914664303228394 , 14.47476877432788  ,
-       15.858579663767777 , 17.0               , 17.84090212173875  ,
-       18.334707114148646 , 18.44952043318342  , 18.17065150626205  ,
-       17.502370758158374 , 16.468790714422656 , 15.113797155058059 ,
-       13.5               , 11.706719748687105 ,  9.827071770025581 ,
-        7.964255398707528 ,  6.227195538971459 ,  4.725719350224875 ,
-        3.5654778663890547,  2.8428406724644493)
+      0.08               ,  0.1776775420290281,  0.3450462451344243,
+      0.6300959133633166 ,  1.073654403270941 ,  1.706626156865899 ,
+      2.547759347784411  ,  3.6020676149806485,  4.86              ,
+      6.297415481274191  ,  7.8763781677673546,  9.546747686268205 ,
+      11.248498551495555 , 12.914664303228394 , 14.47476877432788  ,
+      15.858579663767777 , 17.0               , 17.84090212173875  ,
+      18.334707114148646 , 18.44952043318342  , 18.17065150626205  ,
+      17.502370758158374 , 16.468790714422656 , 15.113797155058059 ,
+      13.5               , 11.706719748687105 ,  9.827071770025581 ,
+      7.964255398707528  ,  6.227195538971459 ,  4.725719350224875 ,
+      3.5654778663890547 ,  2.8428406724644493
+    )
 
     val hammingClass = new HammingWindowFunction(32, "periodic")
     val signal = (1.0 to 32.0 by 1.0).toArray
@@ -77,8 +80,10 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
     ErrorMetrics.rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
   }
 
-  it should "rmse-match numpy hamming window" in {
+  it should "rmse-match numpy hamming window (symmetric)" in {
     // numpy.hamming(32)
+    // or
+    // scipy.signal.hamming(32, True)
     val expectedWindow = Array(
       0.08              , 0.0894162270238525, 0.1172794066546939,
       0.1624488170446529, 0.2230752172251842, 0.2966765552495972,
@@ -197,7 +202,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
     ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
   }
 
-  it should "rmse-match a transformed signal as in matlab" in {
+  it should "rmse-match a transformed signal as in matlab with a symmetric hamming window" in {
     // hamming(32) .* [1:32](:)
     val expectedWindowedSignal = Array(
       0.080000000000000016,0.178832454047705092,0.351838219964081822,
@@ -214,6 +219,45 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
     )
 
     val hammingClass = new HammingWindowFunction(32, "symmetric")
+    val signal = (1.0 to 32.0 by 1.0).toArray
+    val windowedSignal = hammingClass.applyToSignal(signal)
+
+    ErrorMetrics.rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
+  }
+
+  it should "rmse-match a periodic matlab hamming window" in {
+    // hamming(32)
+    val expectedWindow = Array(
+      0.080000000000000, 0.088838771014514, 0.115015415044808, 0.157523978340829,
+      0.214730880654188, 0.284437692810983, 0.363965621112059, 0.450258451872581,
+      0.540000000000000, 0.629741548127419, 0.716034378887941, 0.795562307189017,
+      0.865269119345812, 0.922476021659171, 0.964984584955192, 0.991161228985486,
+      1.000000000000000, 0.991161228985486, 0.964984584955192, 0.922476021659171,
+      0.865269119345812, 0.795562307189017, 0.716034378887941, 0.629741548127419,
+      0.540000000000000, 0.450258451872581, 0.363965621112059, 0.284437692810983,
+      0.214730880654188, 0.157523978340829, 0.115015415044808, 0.088838771014514
+    )
+
+    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val window = hammingClass.windowCoefficients
+
+    ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
+  }
+
+  it should "rmse-match a transformed signal as in matlab with a periodic hamming window" in {
+    // hamming(32) .* [1:32](:)
+    val expectedWindowedSignal = Array(
+      0.080000000000000, 0.177677542029028, 0.345046245134424, 0.630095913363317,
+      1.073654403270941, 1.706626156865898, 2.547759347784411, 3.602067614980648,
+      4.860000000000000, 6.297415481274190, 7.876378167767355, 9.546747686268205,
+      11.248498551495555, 12.914664303228394, 14.474768774327879, 15.858579663767777,
+      17.000000000000000, 17.840902121738750, 18.334707114148646, 18.449520433183419,
+      18.170651506262050, 17.502370758158374, 16.468790714422649, 15.113797155058055,
+      13.500000000000000, 11.706719748687107, 9.827071770025585, 7.964255398707524,
+      6.227195538971457, 4.725719350224876, 3.565477866389052, 2.842840672464449
+    )
+
+    val hammingClass = new HammingWindowFunction(32, "periodic")
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hammingClass.applyToSignal(signal)
 

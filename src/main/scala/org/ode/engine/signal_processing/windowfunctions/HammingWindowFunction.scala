@@ -62,7 +62,7 @@ object HammingWindowFunction {
    * @return The idx-th coefficient for a windowSize window
    */
   def coefficientPeriodic(idx: Int, windowSize: Int): Double =
-    0.54 - 0.46 * math.cos(2 * math.Pi * idx / (windowSize - 1))
+    0.54 + 0.46 * math.cos(math.Pi * (2 * idx - windowSize) / windowSize)
 
   /**
    * Generate the i-th coefficient of a N-point symmetric Hamming window
@@ -72,5 +72,5 @@ object HammingWindowFunction {
    * @return The idx-th coefficient for a windowSize window
    */
   def coefficientSymmetric(idx: Int, windowSize: Int): Double =
-    0.54 + 0.46 * math.cos(math.Pi * (2 * idx - windowSize) / windowSize)
+    0.54 - 0.46 * math.cos(2 * math.Pi * idx / (windowSize - 1))
 }

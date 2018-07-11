@@ -49,7 +49,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
       0.1150154150448082, 0.088838771014514 )
 
 
-    val hammingClass = new HammingWindowFunction(32, "symmetric")
+    val hammingClass = new HammingWindowFunction(32, "periodic")
     val window = hammingClass.windowCoefficients
 
     ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
@@ -70,7 +70,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
         7.964255398707528 ,  6.227195538971459 ,  4.725719350224875 ,
         3.5654778663890547,  2.8428406724644493)
 
-    val hammingClass = new HammingWindowFunction(32, "symmetric")
+    val hammingClass = new HammingWindowFunction(32, "periodic")
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hammingClass.applyToSignal(signal)
 
@@ -93,18 +93,18 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
       0.0894162270238525, 0.08 )
 
 
-    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
     val window = hammingClass.windowCoefficients
 
     ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
   }
 
-  it should "compute the right density normalization factor for hamming window" in {
-    val hammingClass = new HammingWindowFunction(32, "periodic")
+  it should "compute the right density normalization factor for a symmetric hamming window" in {
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
     val normalizationFactor = hammingClass.densityNormalizationFactor(1.75)
 
     /**
-     * h = scipy.signal.hamming(32, "periodic")
+     * h = scipy.signal.hamming(32, True)
      * numpy.sum(h * h) / (1.75 ** 2)
      */
     val expectedNormFactor = 4.024751020408163
@@ -112,12 +112,39 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
     ErrorMetrics.rmse(expectedNormFactor,normalizationFactor) should be < maxRMSE
   }
 
-  it should "compute the right spectrum normalization factor for hamming window" in {
+  it should "compute the right density normalization factor for a periodic hamming window" in {
+    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val normalizationFactor = hammingClass.densityNormalizationFactor(1.75)
+
+    /**
+     * h = scipy.signal.hamming(32, False)
+     * numpy.sum(h * h) / (1.75 ** 2)
+     */
+    val expectedNormFactor = 4.152424489795918
+
+    ErrorMetrics.rmse(expectedNormFactor,normalizationFactor) should be < maxRMSE
+  }
+
+  it should "compute the right spectrum normalization factor for a periodic hamming window" in {
     val hammingClass = new HammingWindowFunction(32, "periodic")
     val normalizationFactor = hammingClass.spectrumNormalizationFactor(1.75)
 
     /**
-     * h = scipy.signal.hamming(32, "periodic")
+     * h = scipy.signal.hamming(32, True)
+     * (numpy.sum(h) / 1.75) ** 2
+     */
+    val expectedNormFactor = 97.50151836734696
+
+    // spectrum normalization factor are large values => large absolute error
+    ErrorMetrics.rmse(expectedNormFactor,normalizationFactor) should be < 2.1E-14
+  }
+
+  it should "compute the right spectrum normalization factor for a symmetric hamming window" in {
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
+    val normalizationFactor = hammingClass.spectrumNormalizationFactor(1.75)
+
+    /**
+     * h = scipy.signal.hamming(32, False)
      * (numpy.sum(h) / 1.75) ** 2
      */
     val expectedNormFactor = 92.37955918367348
@@ -141,14 +168,14 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
       6.2461060823051575,  4.711015694294934 ,  3.5183821996408184,
       2.771903037739429 ,  2.5600000000000005)
 
-    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hammingClass.applyToSignal(signal)
 
     ErrorMetrics.rmse(expectedWindowedSignal,windowedSignal) should be < maxRMSE
   }
 
-  it should "rmse-match matlab hamming window" in {
+  it should "rmse-match a symmetric matlab hamming window" in {
     // hamming(32)
     val expectedWindow = Array(
       0.080000000000000016,0.089416227023852546,0.117279406654693941,
@@ -164,7 +191,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
       0.089416227023852546,0.080000000000000016
     )
 
-    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
     val window = hammingClass.windowCoefficients
 
     ErrorMetrics.rmse(expectedWindow,window) should be < maxRMSE
@@ -186,7 +213,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
       2.771903037739428921,2.560000000000000497
     )
 
-    val hammingClass = new HammingWindowFunction(32, "periodic")
+    val hammingClass = new HammingWindowFunction(32, "symmetric")
     val signal = (1.0 to 32.0 by 1.0).toArray
     val windowedSignal = hammingClass.applyToSignal(signal)
 
@@ -200,7 +227,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers {
   }
 
   it should "raise IllegalArgumentException when applying to a signal of the wrong size" in {
-    val hammingClass = new HammingWindowFunction(10, "periodic")
+    val hammingClass = new HammingWindowFunction(10, "symmetric")
     val signal = new Array[Double](100)
 
     the[IllegalArgumentException] thrownBy {

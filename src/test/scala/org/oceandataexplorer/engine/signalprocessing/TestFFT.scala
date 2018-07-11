@@ -16,9 +16,8 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics.rmse
+import org.oceandataexplorer.utils.test.ErrorMetrics
 import org.scalatest.{FlatSpec, Matchers}
-import scala.math.cos
 
 
 /**
@@ -73,8 +72,8 @@ class TestFFT extends FlatSpec with Matchers {
 
     fft.length should equal(eventNfft + 2)
     // No imaginary part for first value not last values
-    fft(1) should equal(0)
-    fft(5) should equal(0)
+    fft(1) shouldEqual 0
+    fft(5) shouldEqual 0
 
   }
 
@@ -84,9 +83,9 @@ class TestFFT extends FlatSpec with Matchers {
     val fftClass: FFT = new FFT(eventNfft + 1, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
-    fft.length should equal(eventNfft + 2)
+    fft should have length eventNfft + 2
     // No imaginary part for first value
-    fft(1) should equal(0)
+    fft(1) shouldEqual 0
 
   }
 
@@ -99,8 +98,8 @@ class TestFFT extends FlatSpec with Matchers {
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft)
     val fft2: Array[Double] = fft2Class.compute(signal)
 
-    fft.length should equal(eventNfft + 2)
-    fft2.length should equal(eventNfft * 2)
+    fft should have length eventNfft + 2
+    fft2 should have length eventNfft * 2
 
     // Check values as complex numbers (nfft / 2 + 1 values)
     // with conjugate complex symetry:
@@ -108,17 +107,17 @@ class TestFFT extends FlatSpec with Matchers {
     //   and symetry point is middle complex value
     (0 until eventNfft / 2 + 1).foreach(i => {
       // Real part
-      fft(2 * i) should equal (fft2(2 * i))
+      fft(2 * i) shouldEqual fft2(2 * i)
       // Imaginary part
-      fft(2 * i + 1) should equal (fft2(2 * i + 1))
+      fft(2 * i + 1) shouldEqual fft2(2 * i + 1)
 
       // Conjugate complex symetry (no dc, symetry over nyquist freq)
       if (i > 0 && i < eventNfft / 2) {
         val ci = eventNfft - i
         // Real part
-        fft(2 * i) should equal (fft2(2 * ci))
+        fft(2 * i) shouldEqual fft2(2 * ci)
         // conjugate imaginary part
-        fft(2 * i + 1) should equal (- fft2(2 * ci + 1))
+        fft(2 * i + 1) shouldEqual -fft2(2 * ci + 1)
       }
     })
   }
@@ -132,8 +131,8 @@ class TestFFT extends FlatSpec with Matchers {
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft + 1)
     val fft2: Array[Double] = fft2Class.compute(signal)
 
-    fft.length should equal(eventNfft + 2)
-    fft2.length should equal((eventNfft + 1) * 2)
+    fft should have length eventNfft + 2
+    fft2 should have length (eventNfft + 1) * 2
 
     // Check values as complex numbers ((nfft + 1) / 2 values)
     // with conjugate complex symetry:
@@ -141,17 +140,17 @@ class TestFFT extends FlatSpec with Matchers {
     //   and symetry point is middle complex value
     (0 until (eventNfft + 1) / 2).foreach(i => {
       // Real part
-      fft(2 * i) should equal (fft2(2 * i))
+      fft(2 * i) shouldEqual fft2(2 * i)
       // Imaginary part
-      fft(2 * i + 1) should equal (fft2(2 * i + 1))
+      fft(2 * i + 1) shouldEqual fft2(2 * i + 1)
 
       // Conjugate complex symetry (no dc, symetry over nyquist freq)
       if (i > 0 && i < eventNfft / 2) {
         val ci = (eventNfft + 1) - i
         // Real part
-        fft(2 * i) should equal (fft2(2 * ci))
+        fft(2 * i) shouldEqual fft2(2 * ci)
         // conjugate imaginary part
-        fft(2 * i + 1) should equal (- fft2(2 * ci + 1))
+        fft(2 * i + 1) shouldEqual - fft2(2 * ci + 1)
       }
     })
   }
@@ -160,7 +159,7 @@ class TestFFT extends FlatSpec with Matchers {
 
   it should "compute the same fft as numpy on a fake signal" in {
 
-    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(math.cos).toArray
     val fftClass: FFT = new FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
@@ -268,14 +267,14 @@ class TestFFT extends FlatSpec with Matchers {
       -9.3015054823533401e+00, -1.8079330752013401e+01
     )
 
-    rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
+    ErrorMetrics.rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
 
   }
 
     // The expected fft is computed with numpy
   it should "compute the same fft as Matlab on a fake signal" in {
 
-    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(cos).toArray
+    val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(math.cos).toArray
     val fftClass: FFT = new FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
@@ -350,7 +349,7 @@ class TestFFT extends FlatSpec with Matchers {
       -18.079330752013444084
     )
 
-    rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
+    ErrorMetrics.rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
 
   }
 
@@ -364,7 +363,7 @@ class TestFFT extends FlatSpec with Matchers {
 
     val frequencyVector = fftClass.frequencyVector
 
-    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
   }
 
   it should "produce the right frequency vector for FFT when nfft is odd" in {
@@ -380,14 +379,23 @@ class TestFFT extends FlatSpec with Matchers {
 
     val frequencyVector = fftClass.frequencyVector
 
-    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+  }
+
+  it should "produce the index when given a frequency" in {
+    val fftClass: FFT = new FFT(11, 1.0f)
+
+    fftClass.frequencyToIndex(0.183) shouldEqual 4
+    fftClass.frequencyToIndex(0.5) shouldEqual 10
   }
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](100)
     val fftClass: FFT = new FFT(10, 1.0f)
 
-    an [IllegalArgumentException] should be thrownBy fftClass.compute(signal)
+    the[IllegalArgumentException] thrownBy {
+      fftClass.compute(signal)
+    } should have message "Incorrect signal length (100) for FFT (10)"
   }
 
 }

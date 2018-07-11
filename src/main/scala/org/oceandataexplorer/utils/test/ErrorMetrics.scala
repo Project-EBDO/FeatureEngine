@@ -86,13 +86,13 @@ object ErrorMetrics {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
       // records should have the same number of channels
-      if ((actual(r)._2.length != numChannels) || (expected(r)._2.length != numChannels)) {
+      if (actual(r)._2.length != numChannels) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
       while (c < numChannels) {
         // each record should have the same number of segments
-        if ((actual(r)._2(c).length != numSegments) || (expected(r)._2(c).length != numSegments)) {
+        if (actual(r)._2(c).length != numSegments) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
@@ -140,13 +140,13 @@ object ErrorMetrics {
       }
 
       // records should have the same number of channels
-      if ((actual(r)._2.length != numChannels) || (expected(r)._2.length != numChannels)) {
+      if (actual(r)._2.length != numChannels) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
       while (c < numChannels) {
         // each record should have the same number of segments
-        if ((actual(r)._2(c).length != recordLength) || (expected(r)._2(c).length != recordLength)){
+        if (actual(r)._2(c).length != recordLength) {
           throw new IllegalArgumentException("The given records' length don't match")
         }
 

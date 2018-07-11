@@ -25,6 +25,14 @@ import org.oceandataexplorer.engine.workflows.{SegmentedRecord, AggregatedRecord
  */
 object ErrorMetrics {
 
+  private def aggregatedResultFlattener(result: Array[AggregatedRecord]): Array[Double] = {
+    result.flatMap(segRec => segRec._2.flatMap(chans => chans))
+  }
+
+  private def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
+    result.flatMap(segRec => segRec._2.flatMap(chans => chans.flatMap(chan => chan)))
+  }
+
   /**
    * Root-mean-square deviation of two doubles.
    * This error metric is symmetric.
@@ -68,46 +76,40 @@ object ErrorMetrics {
       throw new IllegalArgumentException("The given sequences' sizes don't match")
     }
 
-    // scalastyle:off while var.local
-    var mse = 0.0
-
-    val numRecords = expected.length
-    val numChannels = expected(0)._2.length
-    val numSegments = expected(0)._2(0).length
+    val recordNumber = expected.length
+    val channelNumber = expected(0)._2.length
+    val segmentNumber = expected(0)._2(0).length
     val segmentLength = expected(0)._2(0)(0).length
 
-    var r = 0
-    var c = 0
-    var s = 0
-
-    while (r < numRecords) {
+    Range(0, recordNumber).foreach{r =>
       // records keys should be equal
       if (expected(r)._1 != actual(r)._1) {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
       // records should have the same number of channels
-      if (actual(r)._2.length != numChannels) {
+      if (actual(r)._2.length != channelNumber) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      while (c < numChannels) {
+      Range(0, channelNumber).foreach{c =>
         // each record should have the same number of segments
-        if (actual(r)._2(c).length != numSegments) {
+        if (actual(r)._2(c).length != segmentNumber) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
-        while (s < numSegments) {
-          // segments should have the same length, rmse on them ensures it
-          // finally compare values
-          mse += math.pow(rmse(expected(r)._2(c)(s), actual(r)._2(c)(s)), 2)
-          s += 1
+        Range(0, segmentNumber).foreach{s =>
+          // segments should have the same length,
+          if (actual(r)._2(c)(s).length != segmentLength) {
+            throw new IllegalArgumentException("The given sequences' sizes don't match")
+          }
         }
-        c += 1
       }
-      r += 1
     }
-    // scalastyle:on while var.local
-    math.sqrt(mse)
+
+    val expectedFlattenResult = segmentedResultFlattener(expected)
+    val actualFlattentResult = segmentedResultFlattener(actual)
+
+    rmse(expectedFlattenResult, actualFlattentResult)
   }
 
   /**
@@ -123,39 +125,34 @@ object ErrorMetrics {
       throw new IllegalArgumentException("The given sequences' sizes don't match")
     }
 
-    // scalastyle:off while var.local
-    var mse = 0.0
-
-    val numRecords = expected.length
-    val numChannels = expected(0)._2.length
+    val recordNumber = expected.length
+    val channelNumber = expected(0)._2.length
     val recordLength = expected(0)._2(0).length
 
-    var r = 0
-    var c = 0
 
-    while (r < numRecords) {
+    // records dimensions should match
+    Range(0, recordNumber).foreach{r =>
       // records keys should be equal
       if (expected(r)._1 != actual(r)._1) {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
 
       // records should have the same number of channels
-      if (actual(r)._2.length != numChannels) {
+      if (actual(r)._2.length != channelNumber) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      while (c < numChannels) {
+      Range(0, channelNumber).foreach{c =>
         // each record should have the same number of segments
         if (actual(r)._2(c).length != recordLength) {
           throw new IllegalArgumentException("The given records' length don't match")
         }
-
-        mse += math.pow(rmse(expected(r)._2(c), actual(r)._2(c)), 2)
-        c += 1
       }
-      r += 1
     }
-    // scalastyle:on while var.local
-    math.sqrt(mse)
+
+    val expectedFlattenResult = aggregatedResultFlattener(expected)
+    val actualFlattentResult = aggregatedResultFlattener(actual)
+
+    rmse(expectedFlattenResult, actualFlattentResult)
   }
 }

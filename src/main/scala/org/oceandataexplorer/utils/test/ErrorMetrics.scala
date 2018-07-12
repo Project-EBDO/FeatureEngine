@@ -25,11 +25,23 @@ import org.oceandataexplorer.engine.workflows.{SegmentedRecord, AggregatedRecord
  */
 object ErrorMetrics {
 
-  private def aggregatedResultFlattener(result: Array[AggregatedRecord]): Array[Double] = {
+  /**
+   * Function used to flatten an aggregated result for rmse comparison
+   *
+   * @param result The aggregated result to be flattened as an array of AggregatedRecord
+   * @return The flattened aggregated result as a Array[Double]
+   */
+  def aggregatedResultFlattener(result: Array[AggregatedRecord]): Array[Double] = {
     result.flatMap(segRec => segRec._2.flatMap(chans => chans))
   }
 
-  private def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
+  /**
+   * Function used to flatten an aggregated result for rmse comparison
+   *
+   * @param result The aggregated result to be flattened as an array of AggregatedRecord
+   * @return The flattened aggregated result as a Array[Double]
+   */
+  def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
     result.flatMap(segRec => segRec._2.flatMap(chans => chans.flatMap(chan => chan)))
   }
 

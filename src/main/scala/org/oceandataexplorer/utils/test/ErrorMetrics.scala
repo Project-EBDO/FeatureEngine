@@ -90,14 +90,14 @@ object ErrorMetrics {
     actualResult: => Array[SegmentedRecord]
   ): Double = {
 
-    if (expectedResult.length != actualResult.length) {
-      throw new IllegalArgumentException("The given sequences' sizes don't match")
-    }
-
     val recordNumber = expectedResult.length
     val channelNumber = expectedResult(0)._2.length
     val segmentNumber = expectedResult(0)._2(0).length
     val segmentLength = expectedResult(0)._2(0)(0).length
+
+    if (actualResult.length != recordNumber) {
+      throw new IllegalArgumentException("The given sequences' sizes don't match")
+    }
 
     expectedResult.zip(actualResult).map{ case (expectedRecord, actualRecord) =>
       // records keys should be equal
@@ -110,7 +110,7 @@ object ErrorMetrics {
       }
 
       actualRecord._2.map{ actualChannel =>
-        // each record should have the same number of segments
+        // each channel should have the same number of segments
         if (actualChannel.length != segmentNumber) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
@@ -143,13 +143,13 @@ object ErrorMetrics {
     actualResult: Array[AggregatedRecord]
   ): Double = {
 
-    if (expectedResult.length != actualResult.length) {
-      throw new IllegalArgumentException("The given sequences' sizes don't match")
-    }
-
     val recordNumber = expectedResult.length
     val channelNumber = expectedResult(0)._2.length
-    val recordLength = expectedResult(0)._2(0).length
+    val channelLength = expectedResult(0)._2(0).length
+
+    if (actualResult.length != recordNumber) {
+      throw new IllegalArgumentException("The given sequences' sizes don't match")
+    }
 
     expectedResult.zip(actualResult).map{ case (expectedRecord, actualRecord) =>
       // records keys should be equal
@@ -163,8 +163,8 @@ object ErrorMetrics {
       }
 
       actualRecord._2.map{ actualChannel =>
-        // each record should have the same number of segments
-        if (actualChannel.length != recordLength) {
+        // each channel should have the same length
+        if (actualChannel.length != channelLength) {
           throw new IllegalArgumentException("The given records' length don't match")
         }
       }

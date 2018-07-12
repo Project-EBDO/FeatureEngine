@@ -56,7 +56,7 @@ object ErrorMetrics {
    * @return The root-mean-square deviation of the doubles
    */
   def rmse(expected: Double, actual: Double): Double = {
-    math.sqrt(math.pow(expected - actual,2) / 2)
+    math.sqrt(math.pow(expected - actual, 2) / 2)
   }
 
   /**
@@ -104,24 +104,25 @@ object ErrorMetrics {
       if (expectedRecord._1 != actualRecord._1) {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
+
       // records should have the same number of channels
       if (actualRecord._2.length != channelNumber) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      actualRecord._2.map{ actualChannel =>
+      actualRecord._2.map(actualChannel => {
         // each channel should have the same number of segments
         if (actualChannel.length != segmentNumber) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
-        actualChannel.map{ actualSegment =>
+        actualChannel.map(actualSegment => {
           // segments should have the same length,
           if (actualSegment.length != segmentLength) {
             throw new IllegalArgumentException("The given sequences' sizes don't match")
           }
-        }
-      }
+        })
+      })
     }
 
     val expectedFlattenResult = segmentedResultFlattener(expectedResult)
@@ -162,12 +163,12 @@ object ErrorMetrics {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      actualRecord._2.map{ actualChannel =>
+      actualRecord._2.map(actualChannel => {
         // each channel should have the same length
         if (actualChannel.length != channelLength) {
           throw new IllegalArgumentException("The given records' length don't match")
         }
-      }
+      })
     }
 
     val expectedFlattenResult = aggregatedResultFlattener(expectedResult)

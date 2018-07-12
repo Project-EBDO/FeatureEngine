@@ -109,13 +109,13 @@ object ErrorMetrics {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      expectedRecord._2.zip(actualRecord._2).map{ case (expectedChannel, actualChannel) =>
+      actualRecord._2.map{ actualChannel =>
         // each record should have the same number of segments
         if (actualChannel.length != segmentNumber) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
-        expectedChannel.zip(actualChannel).map{ case (expectedSegment, actualSegment) =>
+        actualChannel.map{ actualSegment =>
           // segments should have the same length,
           if (actualSegment.length != segmentLength) {
             throw new IllegalArgumentException("The given sequences' sizes don't match")
@@ -124,7 +124,7 @@ object ErrorMetrics {
       }
     }
 
-  val expectedFlattenResult = segmentedResultFlattener(expectedResult)
+    val expectedFlattenResult = segmentedResultFlattener(expectedResult)
     val actualFlattentResult = segmentedResultFlattener(actualResult)
 
     rmse(expectedFlattenResult, actualFlattentResult)
@@ -162,7 +162,7 @@ object ErrorMetrics {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      expectedRecord._2.zip(actualRecord._2).map{ case (expectedChannel, actualChannel) =>
+      actualRecord._2.map{ actualChannel =>
         // each record should have the same number of segments
         if (actualChannel.length != recordLength) {
           throw new IllegalArgumentException("The given records' length don't match")

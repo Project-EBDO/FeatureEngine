@@ -32,6 +32,7 @@ import java.sql.Timestamp
 
 import org.oceandataexplorer.engine.signalprocessing._
 import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
+import WindowFunctionTypes.{symmetric, periodic}
 
 /**
  * Performance test workflow for Spark over Datarmor.
@@ -168,7 +169,7 @@ class PerformanceTestWorkflow
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft, 1.0f)
-    val hammingClass = new HammingWindowFunction(segmentSize, "periodic")
+    val hammingClass = new HammingWindowFunction(segmentSize, periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
     val periodogramClass = new Periodogram(

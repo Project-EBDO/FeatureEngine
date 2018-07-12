@@ -21,6 +21,7 @@ import scala.io.Source
 
 import org.oceandataexplorer.engine.signalprocessing._
 import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
+import WindowFunctionTypes.{symmetric, periodic}
 
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -53,9 +54,9 @@ case class ResultsHandler (
   // instanciate the signalprocessing classes
   private val segmentation = new Segmentation(winSize, Some(offset))
 
-  private val hammingSymmetric = new HammingWindowFunction(winSize, "symmetric")
+  private val hammingSymmetric = new HammingWindowFunction(winSize, symmetric)
 
-  private val hammingPeriodic = new HammingWindowFunction(winSize, "periodic")
+  private val hammingPeriodic = new HammingWindowFunction(winSize, periodic)
   private val hammingDensityPeriodicNormFactor = hammingPeriodic.densityNormalizationFactor(1.0)
   private val hammingSpectrumPeriodicNormFactor = hammingPeriodic.spectrumNormalizationFactor(1.0)
 

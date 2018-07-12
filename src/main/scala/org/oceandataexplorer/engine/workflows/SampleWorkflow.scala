@@ -32,6 +32,7 @@ import java.sql.Timestamp
 
 import org.oceandataexplorer.engine.signalprocessing._
 import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
+import WindowFunctionTypes.{symmetric, periodic}
 
 /**
  * Simple signal processing workflow in Spark.
@@ -210,7 +211,7 @@ class SampleWorkflow
 
     val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
     val fftClass = new FFT(nfft, 1.0f)
-    val hammingClass = new HammingWindowFunction(segmentSize, "periodic")
+    val hammingClass = new HammingWindowFunction(segmentSize, periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
     val periodogramClass = new Periodogram(

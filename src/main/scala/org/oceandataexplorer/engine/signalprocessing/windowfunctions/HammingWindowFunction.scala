@@ -33,20 +33,22 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
  * @param windowSize The size of the window to be computed
  * @param hammingType The type of hamming window to compute, either periodic or symmetric
  */
-case class HammingWindowFunction(windowSize: Int, hammingType: String) extends WindowFunction {
+case class HammingWindowFunction
+(
+  windowSize: Int,
+  hammingType: WindowFunctionTypes.WindowFunctionType
+) extends WindowFunction {
 
   /**
    * Eagerly instantiated array of coefficients
    */
   val windowCoefficients: Array[Double] = hammingType match {
-    case "periodic" => (0 until windowSize).map(idx => {
+    case WindowFunctionTypes.periodic => (0 until windowSize).map(idx => {
       HammingWindowFunction.coefficientPeriodic(idx, windowSize)
     }).toArray
-    case "symmetric" => (0 until windowSize).map(idx => {
+    case WindowFunctionTypes.symmetric => (0 until windowSize).map(idx => {
       HammingWindowFunction.coefficientSymmetric(idx, windowSize)
     }).toArray
-    case _ => throw new IllegalArgumentException(
-      s"Unknown HammingWindowFunction type ($hammingType), it should be 'periodic' or 'symmetric'")
   }
 }
 

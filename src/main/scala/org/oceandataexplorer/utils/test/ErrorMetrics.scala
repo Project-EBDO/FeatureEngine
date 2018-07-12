@@ -26,7 +26,8 @@ import org.oceandataexplorer.engine.workflows.{SegmentedRecord, AggregatedRecord
 object ErrorMetrics {
 
   /**
-   * Function used to flatten an aggregated result for rmse comparison
+   * Function flattening an aggregated-result into a simple Array
+   * to reuse the rmse computation function
    *
    * @param result The aggregated result to be flattened as an array of AggregatedRecord
    * @return The flattened aggregated result as a Array[Double]
@@ -36,10 +37,11 @@ object ErrorMetrics {
   }
 
   /**
-   * Function used to flatten an aggregated result for rmse comparison
+   * Function flattening an segmented-result into a simple Array
+   * to reuse the rmse computation function
    *
-   * @param result The aggregated result to be flattened as an array of AggregatedRecord
-   * @return The flattened aggregated result as a Array[Double]
+   * @param result The segmented result to be flattened as an array of SegmentedRecord
+   * @return The flattened segmented result as a Array[Double]
    */
   def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
     result.flatMap(segRec => segRec._2.flatMap(chans => chans.flatMap(chan => chan)))
@@ -76,94 +78,100 @@ object ErrorMetrics {
   }
 
   /**
-   * Root-mean-square deviation of two records.
+   * Root-mean-square deviation of two result of segmented records.
    * This error metric is symmetric.
    *
-   * @param expected The expected Record
-   * @param actual The actual Record
-   * @return The root-mean-square deviation of the records
+   * @param expectedResult The expected result as segmented records
+   * @param actualResult The actual result as segmented records
+   * @return The root-mean-square deviation of the results
    */
-  def rmse(expected: => Array[SegmentedRecord], actual: => Array[SegmentedRecord]): Double = {
-    if (expected.length != actual.length) {
+  def rmse(
+    expectedResult: => Array[SegmentedRecord],
+    actualResult: => Array[SegmentedRecord]
+  ): Double = {
+
+    if (expectedResult.length != actualResult.length) {
       throw new IllegalArgumentException("The given sequences' sizes don't match")
     }
 
-    val recordNumber = expected.length
-    val channelNumber = expected(0)._2.length
-    val segmentNumber = expected(0)._2(0).length
-    val segmentLength = expected(0)._2(0)(0).length
+    val recordNumber = expectedResult.length
+    val channelNumber = expectedResult(0)._2.length
+    val segmentNumber = expectedResult(0)._2(0).length
+    val segmentLength = expectedResult(0)._2(0)(0).length
 
-    Range(0, recordNumber).foreach{r =>
+    expectedResult.zip(actualResult).map{ case (expectedRecord, actualRecord) =>
       // records keys should be equal
-      if (expected(r)._1 != actual(r)._1) {
+      if (expectedRecord._1 != actualRecord._1) {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
       // records should have the same number of channels
-      if (actual(r)._2.length != channelNumber) {
+      if (actualRecord._2.length != channelNumber) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      Range(0, channelNumber).foreach{c =>
+      expectedRecord._2.zip(actualRecord._2).map{ case (expectedChannel, actualChannel) =>
         // each record should have the same number of segments
-        if (actual(r)._2(c).length != segmentNumber) {
+        if (actualChannel.length != segmentNumber) {
           throw new IllegalArgumentException("The given records' number of segment don't match")
         }
 
-        Range(0, segmentNumber).foreach{s =>
+        expectedChannel.zip(actualChannel).map{ case (expectedSegment, actualSegment) =>
           // segments should have the same length,
-          if (actual(r)._2(c)(s).length != segmentLength) {
+          if (actualSegment.length != segmentLength) {
             throw new IllegalArgumentException("The given sequences' sizes don't match")
           }
         }
       }
     }
 
-    val expectedFlattenResult = segmentedResultFlattener(expected)
-    val actualFlattentResult = segmentedResultFlattener(actual)
+  val expectedFlattenResult = segmentedResultFlattener(expectedResult)
+    val actualFlattentResult = segmentedResultFlattener(actualResult)
 
     rmse(expectedFlattenResult, actualFlattentResult)
   }
 
   /**
-   * Root-mean-square deviation of two AggregatedRecords.
+   * Root-mean-square deviation of two results of AggregatedRecords.
    * This error metric is symmetric.
    *
-   * @param expected The expected AggregatedRecord
-   * @param actual The actual AggregatedRecord
-   * @return The root-mean-square deviation of the AggregatedRecords.
+   * @param expectedResult The expected results as AggregatedRecords
+   * @param actualResult The actual results as AggregatedRecords
+   * @return The root-mean-square deviation of the results.
    */
-  def rmse(expected: Array[AggregatedRecord], actual: Array[AggregatedRecord]): Double = {
-    if (expected.length != actual.length) {
+  def rmse(
+    expectedResult: Array[AggregatedRecord],
+    actualResult: Array[AggregatedRecord]
+  ): Double = {
+
+    if (expectedResult.length != actualResult.length) {
       throw new IllegalArgumentException("The given sequences' sizes don't match")
     }
 
-    val recordNumber = expected.length
-    val channelNumber = expected(0)._2.length
-    val recordLength = expected(0)._2(0).length
+    val recordNumber = expectedResult.length
+    val channelNumber = expectedResult(0)._2.length
+    val recordLength = expectedResult(0)._2(0).length
 
-
-    // records dimensions should match
-    Range(0, recordNumber).foreach{r =>
+    expectedResult.zip(actualResult).map{ case (expectedRecord, actualRecord) =>
       // records keys should be equal
-      if (expected(r)._1 != actual(r)._1) {
+      if (expectedRecord._1 != actualRecord._1) {
         throw new IllegalArgumentException("The given records' keys don't match")
       }
 
       // records should have the same number of channels
-      if (actual(r)._2.length != channelNumber) {
+      if (actualRecord._2.length != channelNumber) {
         throw new IllegalArgumentException("The given records' number of channels don't match")
       }
 
-      Range(0, channelNumber).foreach{c =>
+      expectedRecord._2.zip(actualRecord._2).map{ case (expectedChannel, actualChannel) =>
         // each record should have the same number of segments
-        if (actual(r)._2(c).length != recordLength) {
+        if (actualChannel.length != recordLength) {
           throw new IllegalArgumentException("The given records' length don't match")
         }
       }
     }
 
-    val expectedFlattenResult = aggregatedResultFlattener(expected)
-    val actualFlattentResult = aggregatedResultFlattener(actual)
+    val expectedFlattenResult = aggregatedResultFlattener(expectedResult)
+    val actualFlattentResult = aggregatedResultFlattener(actualResult)
 
     rmse(expectedFlattenResult, actualFlattentResult)
   }

@@ -30,7 +30,9 @@ package object windowfunctions {
     type WindowFunctionType = Value
 
     /**
-     * The available types for window functions
+     * The available types for window functions:
+     * - symmetric is usually used for filter design
+     * - periodic is usually used for spectral analysis
      */
     val symmetric, periodic = Value
   }

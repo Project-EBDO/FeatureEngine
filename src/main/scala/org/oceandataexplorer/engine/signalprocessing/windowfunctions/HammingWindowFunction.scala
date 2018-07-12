@@ -31,12 +31,13 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
  * @author Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
  * @param windowSize The size of the window to be computed
- * @param hammingType The type of hamming window to compute, either periodic or symmetric
+ * @param hammingType The type of hamming window to compute (periodic or symmetric),
+ * default is periodic for spectral analysis
  */
 case class HammingWindowFunction
 (
   windowSize: Int,
-  hammingType: WindowFunctionTypes.WindowFunctionType
+  hammingType: WindowFunctionTypes.WindowFunctionType = WindowFunctionTypes.periodic
 ) extends WindowFunction {
 
   /**

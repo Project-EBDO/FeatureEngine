@@ -32,7 +32,7 @@ object ErrorMetrics {
    * @param result The aggregated result to be flattened as an array of AggregatedRecord
    * @return The flattened aggregated result as a Array[Double]
    */
-  def aggregatedResultFlattener(result: Array[AggregatedRecord]): Array[Double] = {
+  private def aggregatedResultFlattener(result: Array[AggregatedRecord]): Array[Double] = {
     result.flatMap(segRec => segRec._2.flatMap(chans => chans))
   }
 
@@ -43,7 +43,7 @@ object ErrorMetrics {
    * @param result The segmented result to be flattened as an array of SegmentedRecord
    * @return The flattened segmented result as a Array[Double]
    */
-  def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
+  private def segmentedResultFlattener(result: Array[SegmentedRecord]): Array[Double] = {
     result.flatMap(segRec => segRec._2.flatMap(chans => chans.flatMap(chan => chan)))
   }
 

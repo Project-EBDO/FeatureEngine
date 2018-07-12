@@ -37,17 +37,17 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
 case class HammingWindowFunction
 (
   windowSize: Int,
-  hammingType: WindowFunctionTypes.WindowFunctionType = WindowFunctionTypes.periodic
+  hammingType: WindowFunctionTypes.WindowFunctionType = WindowFunctionTypes.Periodic
 ) extends WindowFunction {
 
   /**
    * Eagerly instantiated array of coefficients
    */
   val windowCoefficients: Array[Double] = hammingType match {
-    case WindowFunctionTypes.periodic => (0 until windowSize).map(idx => {
+    case WindowFunctionTypes.Periodic => (0 until windowSize).map(idx => {
       HammingWindowFunction.coefficientPeriodic(idx, windowSize)
     }).toArray
-    case WindowFunctionTypes.symmetric => (0 until windowSize).map(idx => {
+    case WindowFunctionTypes.Symmetric => (0 until windowSize).map(idx => {
       HammingWindowFunction.coefficientSymmetric(idx, windowSize)
     }).toArray
   }

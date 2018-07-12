@@ -23,17 +23,21 @@ package object windowfunctions {
   /**
    * Enumeration providing types for window functions
    */
-  object WindowFunctionTypes extends Enumeration {
+  object WindowFunctionTypes {
     /**
-     * The type for the window functions
+     * The trait for the window functions types
      */
-    type WindowFunctionType = Value
+    sealed trait WindowFunctionType
 
     /**
      * The available types for window functions:
      * - symmetric is usually used for filter design
+     */
+    case object Symmetric extends WindowFunctionType
+
+    /**
      * - periodic is usually used for spectral analysis
      */
-    val symmetric, periodic = Value
+    case object Periodic extends WindowFunctionType
   }
 }

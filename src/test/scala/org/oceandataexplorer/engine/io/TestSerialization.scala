@@ -19,7 +19,7 @@ package org.oceandataexplorer.engine.io
 import org.oceandataexplorer.engine.signalprocessing._
 import org.oceandataexplorer.engine.workflows._
 import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
-import WindowFunctionTypes.{symmetric, periodic}
+import WindowFunctionTypes.{Symmetric, Periodic}
 
 import java.io.{ByteArrayOutputStream, ObjectOutputStream, ObjectInputStream, ByteArrayInputStream}
 import org.scalatest.{FlatSpec, Matchers}
@@ -48,7 +48,7 @@ class TestSerialization extends FlatSpec with Matchers {
 
   private val serializableObjects: List[(String, Any)] = List(
     "Segmentation" -> new Segmentation(10, Some(5)),
-    "HammingWindow" -> new HammingWindowFunction(10, symmetric),
+    "HammingWindow" -> new HammingWindowFunction(10, Symmetric),
     "FFT" -> new FFT(10, 1.0f),
     "Periodogram" -> new Periodogram(10, 1.0, 1.0f),
     "WelchSpectralDensity" -> new WelchSpectralDensity(10, 1.0f),

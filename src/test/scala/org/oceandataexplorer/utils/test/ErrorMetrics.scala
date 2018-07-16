@@ -123,8 +123,8 @@ object ErrorMetrics {
    * @return The root-mean-square deviation of the results
    */
   def rmseSegmentedResults(
-    expectedResult: => Array[SegmentedRecord],
-    actualResult: => Array[SegmentedRecord]
+    expectedResult: Array[SegmentedRecord],
+    actualResult: Array[SegmentedRecord]
   ): Double = {
 
     val recordNumber = expectedResult.length

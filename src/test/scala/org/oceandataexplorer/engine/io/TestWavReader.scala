@@ -31,7 +31,7 @@ class TestWavReader extends FlatSpec with Matchers {
 
   private val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
   private val maxRMSEDiff = 0.001
-  private val expectedFirstWave = Seq(
+  private val expectedFirstWave = Array(
     0.0d,
     0.3826904296875d,
     0.707122802734375d,
@@ -62,12 +62,12 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks.head.head.toSeq
+    val firstWave = chunks.head.head.toArray
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, math.floor(2.5 * 16000 / chunkSize).toInt, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toArray) should be < maxRMSEDiff
     })
 
   }
@@ -84,12 +84,12 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks.head.head.toSeq
+    val firstWave = chunks.head.head.toArray
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toArray) should be < maxRMSEDiff
     })
 
   }
@@ -107,12 +107,12 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks.head should have length 1 // single channel
 
     // Chek the first wave of sin signal
-    val firstWave = chunks.head.head.toSeq
+    val firstWave = chunks.head.head.toArray
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
     // Use repetitve aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toSeq) should be < maxRMSEDiff
+      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0).toArray) should be < maxRMSEDiff
     })
   }
 

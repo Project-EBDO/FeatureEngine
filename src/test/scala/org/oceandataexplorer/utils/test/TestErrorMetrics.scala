@@ -26,21 +26,21 @@ import org.scalatest.{FlatSpec, Matchers}
  */
 class TestErrorMetrics extends FlatSpec with Matchers {
 
-  "ErrorMetrics" should "compute the rmse for two sequences" in {
-    val seqA = Seq(
+  "ErrorMetrics" should "compute the rmse for two arrays" in {
+    val arrA = Array(
       0.1221174368357885, 0.8030612655311997, 0.8732426284336273,
       0.8000925604778708, 0.6351656368136573, 0.323284190497698 ,
       0.6192489942098376, 0.9573403084388671, 0.7101131243855894,
       0.0232360227774637
     )
-    val seqB = Seq(
+    val arrB = Array(
       0.7363374103655478, 0.352353350406777 , 0.7134586729011047,
       0.0323479482933672, 0.9458845231585757, 0.7822982947818798,
       0.844976605688674 , 0.5908107704086722, 0.570884102351707 ,
       0.1368780976139283
     )
     val expectedRMSE = 0.41475327309957516
-    val rmseComputed = ErrorMetrics.rmse(seqA, seqB)
+    val rmseComputed = ErrorMetrics.rmse(arrA, arrB)
 
     math.abs(rmseComputed - expectedRMSE) should be < 1e-10
   }
@@ -130,11 +130,11 @@ class TestErrorMetrics extends FlatSpec with Matchers {
   }
 
   it should "raise an IllegalArgumentException when sequences with differente sizes" in {
-    val seqA = Seq(0.1221174368357885, 0.8030612655311997, 0.8732426284336273)
-    val seqB = Seq(0.7363374103655478, 0.352353350406777)
+    val arrA = Array(0.1221174368357885, 0.8030612655311997, 0.8732426284336273)
+    val arrB = Array(0.7363374103655478, 0.352353350406777)
 
     the[IllegalArgumentException] thrownBy {
-      ErrorMetrics.rmse(seqA,seqB)
+      ErrorMetrics.rmse(arrA, arrB)
     } should have message "The given sequences' sizes don't match"
   }
 

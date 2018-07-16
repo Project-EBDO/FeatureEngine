@@ -51,8 +51,11 @@ case class ResultsHandler (
   val fileName = paramsString + ".csv"
   private val file = new File(getClass.getResource(location + "/" + fileName).toURI)
 
+  // for now, offset is specified by the file names
+  private val overlap = winSize - offset
+
   // instanciate the signalprocessing classes
-  private val segmentation = new Segmentation(winSize, Some(offset))
+  private val segmentation = new Segmentation(winSize, overlap)
 
   private val hammingSymmetric = new HammingWindowFunction(winSize, Symmetric)
 

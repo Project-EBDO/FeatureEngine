@@ -25,19 +25,25 @@ package org.oceandataexplorer.engine.signalprocessing
  * @author Alexandre Degurse
  *
  * @param windowSize The size of a window
- * @param offset The offset used to slide the window over the signal (in number of values).
+ * @param overlap The overlap used to slide the window over the signal (in number of samples).
  */
-case class Segmentation(windowSize: Int, offset: Option[Int] = None) extends Serializable {
+case class Segmentation(windowSize: Int, overlap: Int = 0) extends Serializable {
 
   if (windowSize < 0) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation ($windowSize)")
   }
 
-  if (offset.getOrElse(windowSize) > windowSize || offset.getOrElse(windowSize) <= 0) {
+  if (overlap < 0 || overlap >= windowSize) {
     throw new IllegalArgumentException(
-      s"Incorrect offset for segmentation (${offset.getOrElse(windowSize)})"
+      s"Incorrect overlap for segmentation "
+      + s"($overlap is either negative or higher or equal to $windowSize)"
     )
   }
+
+  /**
+   * The used offset for segmentation
+   */
+  val offset = windowSize - overlap
 
   /**
    * Funtion segmenting a signal and droping incomplete windows
@@ -54,11 +60,11 @@ case class Segmentation(windowSize: Int, offset: Option[Int] = None) extends Ser
       )
     }
     // nWindows is the number of complete windows that will be generated
-    val nWindows: Int = 1 + (signal.length - windowSize) / offset.getOrElse(windowSize)
+    val nWindows: Int = 1 + (signal.length - windowSize) / offset
     val segmentedSignal: Array[Array[Double]] = Array.ofDim[Double](nWindows, windowSize)
 
     Range(0, nWindows).foreach(i => {
-      Array.copy(signal, i * offset.getOrElse(windowSize), segmentedSignal(i), 0, windowSize)
+      Array.copy(signal, i * offset, segmentedSignal(i), 0, windowSize)
     })
 
     segmentedSignal

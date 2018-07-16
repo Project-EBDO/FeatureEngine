@@ -42,8 +42,8 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  *
  * @param spark The SparkSession to use to build resulting RDDs
  * @param recordDurationInSec The duration of a record in the workflow in seconds
- * @param segmentSize The size of the segments to be generated
- * @param segmentOffset The offset used to segment the signal
+ * @param windowSize The size of the segments to be generated
+ * @param windowOverlap The overlap used to segment the signal
  * @param nfft The size of the fft-computation window
  * @param numPartitions The number of partitions of the RDD returned by apply method
  * @param lastRecordAction The action to perform when a partial record is encountered
@@ -53,8 +53,8 @@ class PerformanceTestWorkflow
 (
   val spark: SparkSession,
   val recordDurationInSec: Float,
-  val segmentSize: Int,
-  val segmentOffset: Int,
+  val windowSize: Int,
+  val windowOverlap: Int,
   val nfft: Int,
   val numPartitions: Option[Int] = None,
   val lastRecordAction: String = "skip"
@@ -167,9 +167,9 @@ class PerformanceTestWorkflow
       soundChannels,
       soundSampleSizeInBits)
 
-    val segmentationClass = new Segmentation(segmentSize, Some(segmentOffset))
+    val segmentationClass = new Segmentation(windowSize, windowOverlap)
     val fftClass = new FFT(nfft, 1.0f)
-    val hammingClass = new HammingWindowFunction(segmentSize, Periodic)
+    val hammingClass = new HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
     val periodogramClass = new Periodogram(

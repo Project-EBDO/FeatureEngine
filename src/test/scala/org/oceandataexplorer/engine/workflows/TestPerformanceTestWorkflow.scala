@@ -48,8 +48,8 @@ class TestPerformanceTestWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
 
     // Sound parameters
@@ -63,8 +63,8 @@ class TestPerformanceTestWorkflow
     val perfTestWorkflow = new PerformanceTestWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft
     )
 
@@ -77,7 +77,7 @@ class TestPerformanceTestWorkflow
     )
 
     val expectedRecordNumber = (soundDurationInSecs / recordSizeInSec).toInt
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / segmentSize
+    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / windowSize
     val expectedFFTSize = nfft + 2 // nfft is even
 
 
@@ -106,8 +106,8 @@ class TestPerformanceTestWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
     val lowFreq = Some(3000.0)
     val highFreq = Some(7000.0)
@@ -124,8 +124,8 @@ class TestPerformanceTestWorkflow
     val perfTestWorkflow = new PerformanceTestWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft
     )
 
@@ -169,8 +169,8 @@ class TestPerformanceTestWorkflow
 
     val scalaWorkflow = new ScalaSampleWorkflow(
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -197,8 +197,8 @@ class TestPerformanceTestWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
 
     // Sound parameters
@@ -215,8 +215,8 @@ class TestPerformanceTestWorkflow
     val perfTestWorkflow = new PerformanceTestWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft
     )
 
@@ -252,7 +252,7 @@ class TestPerformanceTestWorkflow
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
-    val perfTestworkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 100, 100)
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
       perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
@@ -270,7 +270,7 @@ class TestPerformanceTestWorkflow
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
 
 
-    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 0, 100)
 
     // even though test succeeds, a missive amount of log is displayed
     spark.sparkContext.setLogLevel("OFF")
@@ -298,7 +298,7 @@ class TestPerformanceTestWorkflow
       ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate))
     )
 
-    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
       val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
@@ -316,7 +316,7 @@ class TestPerformanceTestWorkflow
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
 
-    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 100, 100)
+    val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 0, 100)
 
     // even though test succeeds, a missive amount of log is displayed
     spark.sparkContext.setLogLevel("OFF")

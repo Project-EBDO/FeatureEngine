@@ -47,7 +47,7 @@ class TestSerialization extends FlatSpec with Matchers {
   }
 
   private val serializableObjects: List[(String, Any)] = List(
-    "Segmentation" -> new Segmentation(10, Some(5)),
+    "Segmentation" -> new Segmentation(10, 5),
     "HammingWindow" -> new HammingWindowFunction(10, Symmetric),
     "FFT" -> new FFT(10, 1.0f),
     "Periodogram" -> new Periodogram(10, 1.0, 1.0f),

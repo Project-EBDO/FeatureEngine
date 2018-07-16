@@ -48,8 +48,8 @@ class TestSampleWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
     val lowFreq = Some(3000.0)
     val highFreq = Some(7000.0)
@@ -65,8 +65,8 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -87,7 +87,7 @@ class TestSampleWorkflow
     val sparkSPL = resultMap("spls").right.get.cache()
 
     val expectedRecordNumber = (soundDurationInSecs / recordSizeInSec).toInt
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / segmentSize
+    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / windowSize
     val expectedFFTSize = nfft + 2 // nfft is even
 
     resultMap.size should equal(5)
@@ -126,8 +126,8 @@ class TestSampleWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
     val lowFreq = Some(3000.0)
     val highFreq = Some(7000.0)
@@ -144,8 +144,8 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -167,8 +167,8 @@ class TestSampleWorkflow
 
     val scalaWorkflow = new ScalaSampleWorkflow(
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -201,8 +201,8 @@ class TestSampleWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
     val lowFreq = Some(3000.0)
     val highFreq = Some(7000.0)
@@ -221,8 +221,8 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -256,8 +256,8 @@ class TestSampleWorkflow
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val segmentSize = 16000
-    val segmentOffset = 16000
+    val windowSize = 16000
+    val windowOverlap = 0
     val nfft = 16000
     val lowFreq = Some(1000.0)
     val highFreq = Some(6000.0)
@@ -275,8 +275,8 @@ class TestSampleWorkflow
     val sampleWorkflow = new SampleWorkflow(
       spark,
       recordSizeInSec,
-      segmentSize,
-      segmentOffset,
+      windowSize,
+      windowOverlap,
       nfft,
       lowFreq,
       highFreq
@@ -323,7 +323,7 @@ class TestSampleWorkflow
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsStartTime = new DateTime(soundStartDate)
 
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
     val readRecords = sampleWorkflow.readWavRecords(
       soundUri,
       soundsStartTime,
@@ -358,7 +358,7 @@ class TestSampleWorkflow
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
-    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
       sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
@@ -376,7 +376,7 @@ class TestSampleWorkflow
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
 
 
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
 
     // even though test succeeds, a missive amount of log is displayed
     spark.sparkContext.setLogLevel("OFF")
@@ -404,7 +404,7 @@ class TestSampleWorkflow
       ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate))
     )
 
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
       val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
@@ -422,7 +422,7 @@ class TestSampleWorkflow
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
 
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 100, 100)
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
 
     // even though test succeeds, a missive amount of log is displayed
     spark.sparkContext.setLogLevel("OFF")

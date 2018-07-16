@@ -25,7 +25,7 @@ of `windowSize`. If the signal is segmented only once, the produced objects are 
 
 ### Signal processing definitions
 
-- `WindowFunction` - windowing function for short-term analysis (eg `HammingFunction`)
+- `WindowFunction` - windowing function for short-term analysis (eg `HammingWindowFunction`)
 - `spectrum` - Fourier spectrum computed with a Short-Term Fast Fourier Transform
 - `powerSpectrum`
 - `powerSpectralDensity`
@@ -51,15 +51,12 @@ The Segmentation class is used to segment a signal into smaller chunks of signal
 user-defined size with or without using overlap/**windowOffset**. These smaller chunks of signal
 are called **windows**.
 
-An `windowOffset: Int` can be given to the class, it specifies the distance in samples between
-two consecutive windows where as overlap is the number of samples two
-consecutive windows have in common whereas overlap is the number of samples
+An `windowOverlap: Int` can be given to the class, it specifies the number of samples
 that two consecutive segments have in common.
 
-If the user intends to specify an overlap instead, `windowSize - overlap` is the equivalent windowOffset.
 
 Here is a simple representation of how a signal is segmented without overlap.
-To do so, `windowOffset` must be equal to `windowSize`.
+To do so, `windowOverlap` must be equal to `0`.
 
 ```raw
           segmented signal without overlap
@@ -68,7 +65,7 @@ To do so, `windowOffset` must be equal to `windowSize`.
 --------------------------------------------------------------
 ```
 
-Here is a representation of how the signal is segmented when `windowOffset != windowSize`.
+Here is a representation of how the signal is segmented when `windowOverlap > 0`.
 
 ```raw
           segmented signal with overlap
@@ -83,12 +80,12 @@ Here is a representation of how the signal is segmented when `windowOffset != wi
 
 _All variables are defined in units, it can't be specified in seconds for instance_
 
-Segmentation parameters, `windowSize` and `windowOffset`, are passed upon instantiation.
+Segmentation parameters, `windowSize` and `windowOverlap`, are passed upon instantiation.
 
 Here is an example of how to use this class:
 
 ```scala
-val segmentationClass = new Segmentation(windowSize, windowOffset)
+val segmentationClass = new Segmentation(windowSize, windowOverlap)
 val windows: Array[Double] = segmentationClass.compute(signal)
 ```
 
@@ -103,20 +100,20 @@ The windows must implement the computation of `windowCoefficients`.
 
 The WindowFunction class provides methods to compute normalization factors for it:
 
-- `powerSpectumNormFactor` computes the window function normalization factor for power spectrum
+- `densityNormFactor` computes the window function normalization factor for power spectral density
   given alpha (`sum((windowCoefficients / alpha) ^ 2)`)
-- `powerSpectumNormFactor` computes the window function normalization factor for power spectrum
+- `spectumNormFactor` computes the window function normalization factor for spectrum
 
-HammingWindow is the only SpectralWindow implemented, there are two kinds of
-hamming windows, symmetric and periodic, both kin are implemented.
+HammingWindow is the only SpectralWindow implemented, there are two types of
+hamming windows, symmetric and periodic, both are implemented.
 HammingWindow takes **signalSize** and **hammingType** as parameters.
 
 Here is an example of how to use it:
 
 ```scala
-val hammingClass = new HammingWindow(signalSize, "symmetric")
+val hammingClass = new HammingWindow(signalSize, Symmetric)
 val windowedSignal: Array[Double] = hammingClass.applyToSignal(signal)
-val hammingNormalizationFactor: Double = hammingClass.normalizationFactor(alpha)
+val hammingDensityNormalizationFactor: Double = hammingClass.densityNormalizationFactor(alpha)
 ```
 
 ### FFT

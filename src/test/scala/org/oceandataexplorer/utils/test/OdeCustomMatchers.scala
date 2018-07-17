@@ -29,15 +29,19 @@ import matchers._
 trait OdeCustomMatchers {
 
   /**
+   * Maximum error allow for RMSE match
+   */
+  val maxRMSE: Double
+
+  /**
    * Class providing matcher over RMSE
    *
-   * @param maxRMSE The maximum rmse error allow for the test
    * @param expected The expected result for the test
-   * @param tag The TypeTag over generic type T
+   * @param tag The TypeTag of the generic type T
    * @tparam T The type of data RMSE is computed upon,
    * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
    */
-  class RmseMatcher[T](maxRMSE: Double, expected: T)(implicit tag: TypeTag[T]) extends Matcher[T] {
+  class RmseMatcher[T](expected: T)(implicit tag: TypeTag[T]) extends Matcher[T] {
 
     /**
      * apply method for the matcher used to run the test
@@ -56,33 +60,15 @@ trait OdeCustomMatchers {
   }
 
   /**
-   * Wrapper function for RmseMatcher instantiation
+   * Wrapper function for [[RmseMatcher]] instantiation
    *
-   * @param maxRMSE The maximum rmse error allow for the test
    * @param expected The expected result for the test
-   * @param tag The TypeTag over generic type T
+   * @param tag The TypeTag of the generic type T
    * @tparam T The type of data RMSE is computed upon,
    * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
    * @return A new instance of RmseMatcher
    */
-  def rmseMatch[T](
-    expected: T, maxRMSE: Double = 1.0E-10
-  )(
-    implicit tag: TypeTag[T]
-  ): RmseMatcher[T] = {
-    new RmseMatcher[T](maxRMSE, expected)(tag)
-  }
-
-  /**
-   * Wrapper function over newRmseMatcher
-   *
-   * @param maxRMSE The maximum rmse error allow for the test
-   * @param tag The TypeTag over generic type T
-   * @tparam T The type of data RMSE is computed upon,
-   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
-   * @return A wrapper lambda function over newRmseMatcher
-   */
-  def rmseMatcher[T](maxRMSE: Double)(implicit tag: TypeTag[T]): T => RmseMatcher[T] = {
-    expected: T => new RmseMatcher[T](maxRMSE, expected)(tag)
+  def rmseMatch[T](expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {
+    new RmseMatcher[T](expected)(tag)
   }
 }

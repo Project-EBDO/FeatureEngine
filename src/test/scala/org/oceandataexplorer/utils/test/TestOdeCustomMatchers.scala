@@ -26,46 +26,35 @@ import org.oceandataexplorer.engine.workflows.{AggregatedRecord, SegmentedRecord
  */
 class TestOdeCustomMatchers extends FlatSpec with Matchers with OdeCustomMatchers {
 
-  private val maxRMSE = 1.0E-10
+/**
+ * Maximum error allowed for RMSE match
+ * This implements [[maxRMSE]] value for [[OdeCustomMatchers]]
+ */
+  val maxRMSE = 1.0E-16
+
   // scalastyle:off
 
   "rmseMatcher" should "should find match when given the same array" in {
-    val rmseMatchWrapper = rmseMatcher[Array[Double]](maxRMSE)
     val data = Array(0.1221174368357885, 0.8030612655311997)
 
-    data should new RmseMatcher[Array[Double]](maxRMSE, data)
-    data should rmseMatchWrapper(data)
-    data should rmseMatch(data, maxRMSE)
     data should rmseMatch(data)
   }
 
   "rmseMatcher" should "should find match when given the same double" in {
-    val rmseMatchWrapper = rmseMatcher[Double](maxRMSE)
     val data = 0.1
 
-    data should new RmseMatcher[Double](maxRMSE, data)
-    data should rmseMatchWrapper(data)
-    data should rmseMatch(data, maxRMSE)
     data should rmseMatch(data)
   }
 
   "rmseMatcher" should "should find match when given the same segmented result record" in {
-    val rmseMatchWrapper = rmseMatcher[Array[SegmentedRecord]](maxRMSE)
     val data: Array[SegmentedRecord] = Array((1L, Array(Array(Array(1.0)))))
 
-    data should new RmseMatcher[Array[SegmentedRecord]](maxRMSE, data)
-    data should rmseMatchWrapper(data)
-    data should rmseMatch(data, maxRMSE)
     data should rmseMatch(data)
   }
 
   "rmseMatcher" should "should find match when given the same aggregated result record" in {
-    val rmseMatchWrapper = rmseMatcher[Array[AggregatedRecord]](maxRMSE)
-    val data = Array((1L, Array(Array(1.0))))
+    val data: Array[AggregatedRecord] = Array((1L, Array(Array(1.0))))
 
-    data should new RmseMatcher[Array[AggregatedRecord]](maxRMSE, data)
-    data should rmseMatchWrapper(data)
-    data should rmseMatch(data, maxRMSE)
     data should rmseMatch(data)
   }
   // scalastyle:on

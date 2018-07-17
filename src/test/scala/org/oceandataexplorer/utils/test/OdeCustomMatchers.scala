@@ -29,17 +29,19 @@ import matchers._
 trait OdeCustomMatchers {
 
   /**
-   * Maximum error allow for RMSE match
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
    */
   val maxRMSE: Double
 
   /**
    * Class providing matcher over RMSE
+   * This class uses the maxRMSE value defined above
    *
    * @param expected The expected result for the test
    * @param tag The TypeTag of the generic type T
    * @tparam T The type of data RMSE is computed upon,
-   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
+   *           accepted types are Double, Array[Double],
+   *           Array[SegmentedRecord], Array[AggregatedRecord]
    */
   class RmseMatcher[T](expected: T)(implicit tag: TypeTag[T]) extends Matcher[T] {
 

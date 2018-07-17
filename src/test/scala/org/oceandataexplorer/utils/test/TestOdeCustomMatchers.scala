@@ -26,13 +26,10 @@ import org.oceandataexplorer.engine.workflows.{AggregatedRecord, SegmentedRecord
  */
 class TestOdeCustomMatchers extends FlatSpec with Matchers with OdeCustomMatchers {
 
-/**
- * Maximum error allowed for RMSE match
- * This implements [[maxRMSE]] value for [[OdeCustomMatchers]]
- */
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
   val maxRMSE = 1.0E-16
-
-  // scalastyle:off
 
   "rmseMatcher" should "should find match when given the same array" in {
     val data = Array(0.1221174368357885, 0.8030612655311997)
@@ -57,5 +54,4 @@ class TestOdeCustomMatchers extends FlatSpec with Matchers with OdeCustomMatcher
 
     data should rmseMatch(data)
   }
-  // scalastyle:on
 }

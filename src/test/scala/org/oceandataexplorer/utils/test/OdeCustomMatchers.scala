@@ -1,0 +1,97 @@
+/** Copyright (C) 2017-2018 Project-ODE
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.oceandataexplorer.utils.test
+
+import reflect.runtime.universe._
+import org.scalatest._
+import matchers._
+
+/**
+ * ODE Custom matchers for tests
+ *
+ * @author Alexandre Degurse
+ */
+
+trait OdeCustomMatchers {
+
+  /**
+   * Class providing matcher over RMSE
+   *
+   * @param maxRMSE The maximum rmse error allow for the test
+   * @param expected The expected result for the test
+   * @param tag Type
+   * @tparam T The type of data RMSE is computed upon
+   */
+  class RmseMatcher[T](maxRMSE: Double, expected: T)(implicit tag: TypeTag[T]) extends Matcher[T] {
+
+    /**
+     * apply method for the matcher used to run the test
+     *
+     * @param actual The actual result
+     * @return The result of the test as a MatchResult
+     */
+    def apply(actual: T): MatchResult = {
+      val rmseValue = ErrorMetrics.rmse(actual, expected)
+      MatchResult(
+        rmseValue < maxRMSE,
+        s"The arrays did not rmse-match ($rmseValue > $maxRMSE)",
+        s"The arrays did rmse-match (with rmse of $rmseValue)"
+      )
+    }
+  }
+
+
+  /**
+   * Function used to intantiate a new RmseMatcher
+   *
+   * @param maxRMSE The maximum rmse error allow for the test
+   * @param expected The expected result for the test
+   * @param tag Type
+   * @tparam T The type of data RMSE is computed upon
+   * @return A new instance of RmseMatcher
+   */
+  def newRmseMatcher[T]
+  (maxRMSE: Double)
+  (expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {
+    new RmseMatcher[T](maxRMSE, expected)(tag)
+  }
+
+  /**
+   * Wrapper function for RmseMatcher instantiation
+   *
+   * @param maxRMSE The maximum rmse error allow for the test
+   * @param expected The expected result for the test
+   * @param tag Type
+   * @tparam T The type of data RMSE is computed upon
+   * @return A new instance of RmseMatcher
+   */
+  def rmseMatch[T](maxRMSE: Double, expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {
+    new RmseMatcher[T](maxRMSE, expected)(tag)
+  }
+
+  /**
+   * Wrapper function over newRmseMatcher
+   *
+   * @param maxRMSE The maximum rmse error allow for the test
+   * @tparam T The type of data RMSE is computed upon
+   * @param tag Type
+   * @return A wrapper lambda function over newRmseMatcher
+   */
+  def newRmseMatcherGenerator[T](maxRMSE: Double)(implicit tag: TypeTag[T]): T => RmseMatcher[T] = {
+    newRmseMatcher[T](maxRMSE)(_: T)(tag)
+  }
+}

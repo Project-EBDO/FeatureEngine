@@ -67,7 +67,8 @@ trait OdeCustomMatchers {
    * @param expected The expected result for the test
    * @param tag The TypeTag of the generic type T
    * @tparam T The type of data RMSE is computed upon,
-   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
+   *           accepted types are Double, Array[Double],
+   *           Array[SegmentedRecord], Array[AggregatedRecord]
    * @return A new instance of RmseMatcher
    */
   def rmseMatch[T](expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {

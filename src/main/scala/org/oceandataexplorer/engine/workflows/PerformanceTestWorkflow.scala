@@ -43,7 +43,7 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  * @param spark The SparkSession to use to build resulting RDDs
  * @param recordDurationInSec The duration of a record in the workflow in seconds
  * @param windowSize The size of the segments to be generated
- * @param windowOverlap The overlap used to segment the signal
+ * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
  * @param numPartitions The number of partitions of the RDD returned by apply method
  * @param lastRecordAction The action to perform when a partial record is encountered

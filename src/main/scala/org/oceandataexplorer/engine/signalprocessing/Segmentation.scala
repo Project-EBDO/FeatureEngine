@@ -25,25 +25,25 @@ package org.oceandataexplorer.engine.signalprocessing
  * @author Alexandre Degurse
  *
  * @param windowSize The size of a window
- * @param overlap The overlap used to slide the window over the signal (in number of samples).
+ * @param windowOverlap The overlap used to slide the window over the signal (in number of samples).
  */
-case class Segmentation(windowSize: Int, overlap: Int = 0) extends Serializable {
+case class Segmentation(windowSize: Int, windowOverlap: Int = 0) extends Serializable {
 
   if (windowSize < 0) {
     throw new IllegalArgumentException(s"Incorrect winSize for segmentation ($windowSize)")
   }
 
-  if (overlap < 0 || overlap >= windowSize) {
+  if (windowOverlap < 0 || windowOverlap >= windowSize) {
     throw new IllegalArgumentException(
       s"Incorrect overlap for segmentation "
-      + s"($overlap is either negative or higher or equal to $windowSize)"
+      + s"($windowOverlap shouldn't be negative or higher (or equal) than $windowSize)"
     )
   }
 
   /**
-   * The used offset for segmentation
+   * The window offset, derived from windowSize and overlap
    */
-  val offset = windowSize - overlap
+  val offset = windowSize - windowOverlap
 
   /**
    * Funtion segmenting a signal and droping incomplete windows

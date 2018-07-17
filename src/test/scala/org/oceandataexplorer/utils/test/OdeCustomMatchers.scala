@@ -33,8 +33,9 @@ trait OdeCustomMatchers {
    *
    * @param maxRMSE The maximum rmse error allow for the test
    * @param expected The expected result for the test
-   * @param tag Type
-   * @tparam T The type of data RMSE is computed upon
+   * @param tag The TypeTag over generic type T
+   * @tparam T The type of data RMSE is computed upon,
+   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
    */
   class RmseMatcher[T](maxRMSE: Double, expected: T)(implicit tag: TypeTag[T]) extends Matcher[T] {
 
@@ -54,32 +55,21 @@ trait OdeCustomMatchers {
     }
   }
 
-
-  /**
-   * Function used to intantiate a new RmseMatcher
-   *
-   * @param maxRMSE The maximum rmse error allow for the test
-   * @param expected The expected result for the test
-   * @param tag Type
-   * @tparam T The type of data RMSE is computed upon
-   * @return A new instance of RmseMatcher
-   */
-  def newRmseMatcher[T]
-  (maxRMSE: Double)
-  (expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {
-    new RmseMatcher[T](maxRMSE, expected)(tag)
-  }
-
   /**
    * Wrapper function for RmseMatcher instantiation
    *
    * @param maxRMSE The maximum rmse error allow for the test
    * @param expected The expected result for the test
-   * @param tag Type
-   * @tparam T The type of data RMSE is computed upon
+   * @param tag The TypeTag over generic type T
+   * @tparam T The type of data RMSE is computed upon,
+   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
    * @return A new instance of RmseMatcher
    */
-  def rmseMatch[T](maxRMSE: Double, expected: T)(implicit tag: TypeTag[T]): RmseMatcher[T] = {
+  def rmseMatch[T](
+    expected: T, maxRMSE: Double = 1.0E-10
+  )(
+    implicit tag: TypeTag[T]
+  ): RmseMatcher[T] = {
     new RmseMatcher[T](maxRMSE, expected)(tag)
   }
 
@@ -87,11 +77,12 @@ trait OdeCustomMatchers {
    * Wrapper function over newRmseMatcher
    *
    * @param maxRMSE The maximum rmse error allow for the test
-   * @tparam T The type of data RMSE is computed upon
-   * @param tag Type
+   * @param tag The TypeTag over generic type T
+   * @tparam T The type of data RMSE is computed upon,
+   * accepted types are Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord]
    * @return A wrapper lambda function over newRmseMatcher
    */
-  def newRmseMatcherGenerator[T](maxRMSE: Double)(implicit tag: TypeTag[T]): T => RmseMatcher[T] = {
-    newRmseMatcher[T](maxRMSE)(_: T)(tag)
+  def rmseMatcher[T](maxRMSE: Double)(implicit tag: TypeTag[T]): T => RmseMatcher[T] = {
+    expected: T => new RmseMatcher[T](maxRMSE, expected)(tag)
   }
 }

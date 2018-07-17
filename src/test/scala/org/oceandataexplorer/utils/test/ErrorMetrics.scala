@@ -79,6 +79,11 @@ object ErrorMetrics {
       rmseAggregatedResults(
         expected.asInstanceOf[Array[AggregatedRecord]], actual.asInstanceOf[Array[AggregatedRecord]]
       )
+
+    case tag: TypeTag[T] => throw new IllegalArgumentException(
+      s"Unsupported type (${tag.tpe}) for RMSE "
+        + "(must be either Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord])"
+    )
   }
 
   /**

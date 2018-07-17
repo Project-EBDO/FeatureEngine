@@ -61,11 +61,11 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks should have size math.ceil(2.5 * 16000 / chunkSize).toLong
     chunks.head should have length 1 // single channel
 
-    // Chek the first wave of sin signal
+    // Check the first wave of sin signal
     val firstWave = chunks.head.head
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
-    // Use repetitve aspect of signal to check reading correctness
+    // Use repetitive aspect of signal to check reading correctness
     Range.Int(1, math.floor(2.5 * 16000 / chunkSize).toInt, 1).foreach((chunkIdx: Int) => {
       ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0)) should be < maxRMSEDiff
     })
@@ -83,7 +83,7 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks should have size nbChunks
     chunks.head should have length 1 // single channel
 
-    // Chek the first wave of sin signal
+    // Check the first wave of sin signal
     val firstWave = chunks.head.head
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
@@ -106,11 +106,11 @@ class TestWavReader extends FlatSpec with Matchers {
     chunks should have size nbChunks
     chunks.head should have length 1 // single channel
 
-    // Chek the first wave of sin signal
+    // Check the first wave of sin signal
     val firstWave = chunks.head.head
     ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
 
-    // Use repetitve aspect of signal to check reading correctness
+    // Use repetitive aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
       ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0)) should be < maxRMSEDiff
     })

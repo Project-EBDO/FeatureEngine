@@ -202,4 +202,13 @@ class TestErrorMetrics extends FlatSpec with Matchers {
       ErrorMetrics.rmse(aggRecA, aggRecB)
     } should have message "The given records' length don't match"
   }
+
+  it should "raise an IllegalArgumentException when given unsupported result type" in {
+    val result = Array("Definitely a wrong type for RMSE")
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(result, result)
+    } should have message "Unsupported type (Array[java.lang.String]) for RMSE " +
+      "(must be either Double, Array[Double], Array[SegmentedRecord], Array[AggregatedRecord])"
+  }
 }

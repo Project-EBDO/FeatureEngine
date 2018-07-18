@@ -18,8 +18,6 @@ package org.oceandataexplorer.utils.test
 
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.math.abs
-
 
 /**
  * Tests showing interesting behavior using floating-point collections
@@ -30,18 +28,18 @@ class TestFloatingPointRounding extends FlatSpec with Matchers {
 
   "FloatingPointRounding" should "have exactly same values if sequences are created " +
     "with the same first class" in {
-    val d = (0.0d to 1.0d by 0.1d)
+    val d = 0.0d to 1.0d by 0.1d
     val d1 = d.toArray
     val d2 = d.toArray.toVector
-    d1.toSeq should equal(d2.toSeq)
+    d1.toSeq should equal(d2)
   }
 
   "FloatingPointRounding" should "not have exactly same values if sequences are created " +
     "with different first classes" in {
-    val d = (0.0d to 1.0d by 0.1d)
+    val d = 0.0d to 1.0d by 0.1d
     val d1 = d.toArray
     val d2 = d.toVector
-    d1.toSeq should not equal(d2.toSeq)
+    d1.toSeq should not equal d2
   }
 
 }

@@ -16,8 +16,6 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import scala.math._
-
 import org.scalatest.{FlatSpec, Matchers}
 
 
@@ -69,8 +67,6 @@ class TestEnergy extends FlatSpec with Matchers {
   )
 
   private val nfftOdd = signalOdd.length
-  private val oneSidedLengthOdd = nfftOdd + (if (nfftOdd % 2 == 0) 2 else 1)
-
   private val energyClassOdd = new Energy(nfftOdd)
 
   it should "compute the energy of the signal when given a raw even signal, its FFT or its PSD" in {
@@ -80,9 +76,9 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val eExpected = 385.0
 
-    abs((eSig - eExpected) / eExpected) should be < maxError
-    abs((eFFT - eSig) / eSig) should be < maxError
-    abs((ePSD - eSig) / eSig) should be < maxError
+    math.abs((eSig - eExpected) / eExpected) should be < maxError
+    math.abs((eFFT - eSig) / eSig) should be < maxError
+    math.abs((ePSD - eSig) / eSig) should be < maxError
   }
 
   it should "compute the energy of the signal when given a raw odd signal, its FFT or its PSD" in {
@@ -92,9 +88,9 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val eExpected = 506.0
 
-    abs((eSig - eExpected) / eExpected) should be < maxError
-    abs((eFFT - eSig) / eSig) should be < maxError
-    abs((ePSD - eSig) / eSig) should be < maxError
+    math.abs((eSig - eExpected) / eExpected) should be < maxError
+    math.abs((eFFT - eSig) / eSig) should be < maxError
+    math.abs((ePSD - eSig) / eSig) should be < maxError
   }
 
   it should "compute the Sound Pressure Level of the signal " +
@@ -105,9 +101,9 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val splExpected = 25.854607295085007
 
-    abs((splSig - splExpected) / splExpected) should be < maxError
-    abs((splFFT - splSig) / splSig) should be < maxError
-    abs((splPSD - splSig) / splSig) should be < maxError
+    math.abs((splSig - splExpected) / splExpected) should be < maxError
+    math.abs((splFFT - splSig) / splSig) should be < maxError
+    math.abs((splPSD - splSig) / splSig) should be < maxError
   }
 
   it should "compute the Sound Pressure Level of the signal " +
@@ -118,31 +114,31 @@ class TestEnergy extends FlatSpec with Matchers {
 
     val splExpected = 27.041505168397993
 
-    abs((splSig - splExpected) / splExpected) should be < maxError
-    abs((splFFT - splSig) / splSig) should be < maxError
-    abs((splPSD - splSig) / splSig) should be < maxError
+    math.abs((splSig - splExpected) / splExpected) should be < maxError
+    math.abs((splFFT - splSig) / splSig) should be < maxError
+    math.abs((splPSD - splSig) / splSig) should be < maxError
   }
 
   it should "raise an IllegalArgumentException when given a mishaped FFT" in {
     val energyClass = new Energy(101)
 
-    an [IllegalArgumentException] should be thrownBy energyClass.computeRawFromFFT(Array(1.0))
-    an [IllegalArgumentException] should be thrownBy energyClass.computeSPLFromFFT(Array(1.0))
+    an[IllegalArgumentException] should be thrownBy energyClass.computeRawFromFFT(Array(1.0))
+    an[IllegalArgumentException] should be thrownBy energyClass.computeSPLFromFFT(Array(1.0))
   }
 
   it should "raise an IllegalArgumentException when given a mishaped raw signal" in {
     val energyClass = new Energy(5)
     val signal = (1.0 to 10.0 by 1.0).toArray
 
-    an [IllegalArgumentException] should be thrownBy energyClass.computeRawFromRawSignal(signal)
-    an [IllegalArgumentException] should be thrownBy energyClass.computeSPLFromRawSignal(signal)
+    an[IllegalArgumentException] should be thrownBy energyClass.computeRawFromRawSignal(signal)
+    an[IllegalArgumentException] should be thrownBy energyClass.computeSPLFromRawSignal(signal)
   }
 
   it should "raise an IllegalArgumentException when given a mishaped PSD" in {
     val energyClass = new Energy(1000)
 
-    an [IllegalArgumentException] should be thrownBy energyClass.computeRawFromPSD(Array(1.0))
-    an [IllegalArgumentException] should be thrownBy energyClass.computeSPLFromPSD(Array(1.0))
+    an[IllegalArgumentException] should be thrownBy energyClass.computeRawFromPSD(Array(1.0))
+    an[IllegalArgumentException] should be thrownBy energyClass.computeSPLFromPSD(Array(1.0))
   }
 
 }

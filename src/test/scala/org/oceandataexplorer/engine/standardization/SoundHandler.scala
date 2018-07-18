@@ -19,8 +19,6 @@ package org.oceandataexplorer.engine.standardization
 import java.io.File
 import org.oceandataexplorer.engine.io.WavReader
 
-import org.scalatest.{FlatSpec, Matchers}
-
 
 /**
  * Class used to facilitate sound files reading through naming convention described in README.md
@@ -58,7 +56,6 @@ case class SoundHandler (
 
   def readSound(): Array[Double] = {
     wavReader
-      .readChunks(sampleNumber, 0)(0)(0)
-      .toArray
+      .readChunks(sampleNumber).head.head
   }
 }

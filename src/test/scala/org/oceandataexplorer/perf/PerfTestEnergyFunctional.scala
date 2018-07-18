@@ -18,8 +18,6 @@ package org.oceandataexplorer.perf
 
 import org.oceandataexplorer.engine.signalprocessing.Energy
 
-import scala.math._
-
 /**
  * Performance tests for mutables-energy vs functional-energy -- From Signal
  *
@@ -38,7 +36,7 @@ class PerfTestMutablesEnergyFromSignalVsFunctionalEnergyFromSignal
         s"Incorrect signal size (${signal.length}) for Energy ($nfft)"
       )
     }
-    signal.foldLeft(0.0d)((e, v) => e + pow(v, 2))
+    signal.foldLeft(0.0d)((e, v) => e + math.pow(v, 2))
   }
 
   val d1 = (dataStart to dataEnd by dataStep).toArray
@@ -84,12 +82,12 @@ class PerfTestMutablesEnergyFromFFTVsFunctionalEnergyFromFFT
       val i2 = i * 2
       val i2p1 = i2 + 1
       e +
-        2.0 * pow(fft(i2), 2) +
-        2.0 * pow(fft(i2p1), 2)
+        2.0 * math.pow(fft(i2), 2) +
+        2.0 * math.pow(fft(i2p1), 2)
     }) +
-      pow(fft(0), 2) +
-      pow(fft(fft.length - 2), 2) * (if (nfftEven) 1.0 else 2.0) +
-      pow(fft(fft.length - 1), 2) * (if (nfftEven) 1.0 else 2.0)) / nfft.toDouble
+      math.pow(fft(0), 2) +
+      math.pow(fft(fft.length - 2), 2) * (if (nfftEven) 1.0 else 2.0) +
+      math.pow(fft(fft.length - 1), 2) * (if (nfftEven) 1.0 else 2.0)) / nfft.toDouble
 
   }
 

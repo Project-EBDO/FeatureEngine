@@ -18,7 +18,7 @@ package org.oceandataexplorer.engine.io
 
 import java.io.File
 
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 
@@ -27,10 +27,14 @@ import org.scalatest.{FlatSpec, Matchers}
  *
  * @author Joseph Allemandou
  */
-class TestWavReader extends FlatSpec with Matchers {
+class TestWavReader extends FlatSpec with Matchers with OdeCustomMatchers {
+
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 0.001
 
   private val soundFilePath1 = "/wav/sin_16kHz_2.5s.wav"
-  private val maxRMSEDiff = 0.001
   private val expectedFirstWave = Array(
     0.0d,
     0.3826904296875d,
@@ -63,11 +67,12 @@ class TestWavReader extends FlatSpec with Matchers {
 
     // Check the first wave of sin signal
     val firstWave = chunks.head.head
-    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+
+    firstWave should rmseMatch(expectedFirstWave)
 
     // Use repetitive aspect of signal to check reading correctness
     Range.Int(1, math.floor(2.5 * 16000 / chunkSize).toInt, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0)) should be < maxRMSEDiff
+      firstWave should rmseMatch(chunks(chunkIdx).head)
     })
 
   }
@@ -85,11 +90,12 @@ class TestWavReader extends FlatSpec with Matchers {
 
     // Check the first wave of sin signal
     val firstWave = chunks.head.head
-    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+
+    firstWave should rmseMatch(expectedFirstWave)
 
     // Use repetitive aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0)) should be < maxRMSEDiff
+      firstWave should rmseMatch(chunks(chunkIdx).head)
     })
 
   }
@@ -108,11 +114,12 @@ class TestWavReader extends FlatSpec with Matchers {
 
     // Check the first wave of sin signal
     val firstWave = chunks.head.head
-    ErrorMetrics.rmse(firstWave, expectedFirstWave) should be < maxRMSEDiff
+
+    firstWave should rmseMatch(expectedFirstWave)
 
     // Use repetitive aspect of signal to check reading correctness
     Range.Int(1, nbChunks, 1).foreach((chunkIdx: Int) => {
-      ErrorMetrics.rmse(firstWave, chunks(chunkIdx)(0)) should be < maxRMSEDiff
+      firstWave should rmseMatch(chunks(chunkIdx).head)
     })
   }
 

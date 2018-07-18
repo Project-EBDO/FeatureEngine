@@ -16,15 +16,13 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
 
-import org.joda.time.Days
 import com.github.nscala_time.time.Imports._
 
 import org.apache.spark.SparkException
 import org.scalatest.{FlatSpec, Matchers}
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import com.holdenkarau.spark.testing.SharedSparkContext
 
 /**
@@ -33,12 +31,12 @@ import com.holdenkarau.spark.testing.SharedSparkContext
  * @author Alexandre Degurse, Joseph Allemandou
  */
 
-class TestPerformanceTestWorkflow
-    extends FlatSpec
-    with Matchers
-    with SharedSparkContext
-{
+class TestPerformanceTestWorkflow extends FlatSpec
+  with Matchers with SharedSparkContext with OdeCustomMatchers {
 
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
   val maxRMSE = 1.0E-16
 
   "PerformanceTestWorkflow" should "generate results of expected size" in {
@@ -68,7 +66,7 @@ class TestPerformanceTestWorkflow
       nfft
     )
 
-    val results = perfTestWorkflow.apply(
+    val results = perfTestWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -77,7 +75,6 @@ class TestPerformanceTestWorkflow
     )
 
     val expectedRecordNumber = (soundDurationInSecs / recordSizeInSec).toInt
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / windowSize
     val expectedFFTSize = nfft + 2 // nfft is even
 
 
@@ -87,16 +84,16 @@ class TestPerformanceTestWorkflow
     sparkWelchs should have size expectedRecordNumber
     sparkSPL should have size expectedRecordNumber
 
-    sparkWelchs.map{channels =>
+    sparkWelchs.foreach{channels =>
       channels should have size 1
       val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
-      chans.map(channel => channel should have length (expectedFFTSize / 2))
+      chans.foreach(channel => channel should have length (expectedFFTSize / 2))
     }
 
-    sparkSPL.map{channels =>
+    sparkSPL.foreach{channels =>
       channels should have size 1
       val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
-      chans.map(channel => channel should have length 1 )
+      chans.foreach(channel => channel should have length 1 )
     }
   }
 
@@ -116,7 +113,6 @@ class TestPerformanceTestWorkflow
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundChannels = 1
     val soundSampleSizeInBits = 16
-    val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
@@ -129,7 +125,7 @@ class TestPerformanceTestWorkflow
       nfft
     )
 
-    val sparkResults = perfTestWorkflow.apply(
+    val sparkResults = perfTestWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -176,7 +172,7 @@ class TestPerformanceTestWorkflow
       highFreq
     )
 
-    val resultsScala = scalaWorkflow.apply(
+    val resultsScala = scalaWorkflow(
       soundUri,
       soundSamplingRate,
       soundChannels,
@@ -187,8 +183,8 @@ class TestPerformanceTestWorkflow
     val scalaWelchs = resultsScala("welchs").right.get
     val scalaSPLs = resultsScala("spls").right.get
 
-    ErrorMetrics.rmse(scalaWelchs, welchs) should be < maxRMSE
-    ErrorMetrics.rmse(scalaSPLs, spls) should be < maxRMSE
+    welchs should rmseMatch(scalaWelchs)
+    spls should rmseMatch(scalaSPLs)
   }
 
   it should "generate the results with the right timestamps" in {
@@ -207,7 +203,6 @@ class TestPerformanceTestWorkflow
     val soundSampleSizeInBits = 16
 
     // Usefull for testing
-    val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
@@ -220,7 +215,7 @@ class TestPerformanceTestWorkflow
       nfft
     )
 
-    val results = perfTestWorkflow.apply(
+    val results = perfTestWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -246,8 +241,6 @@ class TestPerformanceTestWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
@@ -255,7 +248,7 @@ class TestPerformanceTestWorkflow
     val perfTestworkflow = new PerformanceTestWorkflow(spark, 0.1f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
-      perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      perfTestworkflow(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
     } should have message "Computed record size (0.1) should not have a decimal part."
   }
 
@@ -263,8 +256,6 @@ class TestPerformanceTestWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
@@ -276,7 +267,7 @@ class TestPerformanceTestWorkflow
     spark.sparkContext.setLogLevel("OFF")
 
     val thrown = the[SparkException] thrownBy {
-      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      val df = perfTestworkflow(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
       df.take(1)
     }
 
@@ -289,8 +280,6 @@ class TestPerformanceTestWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(
@@ -301,7 +290,7 @@ class TestPerformanceTestWorkflow
     val perfTestworkflow = new PerformanceTestWorkflow(spark, 1.0f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
-      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
+      val df = perfTestworkflow(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
       df.take(1)
     } should have message "Sounds list contains duplicate filename entries"
   }
@@ -310,8 +299,6 @@ class TestPerformanceTestWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
@@ -322,7 +309,7 @@ class TestPerformanceTestWorkflow
     spark.sparkContext.setLogLevel("OFF")
 
     val thrown = the[SparkException] thrownBy {
-      val df = perfTestworkflow.apply(soundUri.toString, soundsNameAndStartDate, 16000.0f, 1, 16)
+      val df = perfTestworkflow(soundUri.toString, soundsNameAndStartDate, 16000.0f, 1, 16)
       df.take(1)
     }
 

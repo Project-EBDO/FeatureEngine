@@ -16,58 +16,32 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 
-/**
- * 2-sided-FTT Wrapper to compare with the 1-sided we use
- *
- * @param nfft the fft-computation window size
- *
- * @author Alexandre Degurse
- */
-class FFTTwoSided(nfft: Int) {
 
-  import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D
-
-  private val lowLevelFtt: DoubleFFT_1D = new DoubleFFT_1D(nfft)
-
-  /**
-   * Computes FFT over a signal portion
-   * @param signal the signal portion (should be of smaller length then nfft)
-   * @return the 2-sided-FFT computed over the signal portion
-   */
-  def compute(signal: Array[Double]) : Array[Double] = {
-    if (signal.length > nfft) {
-      throw new IllegalArgumentException(s"Incorrect signal length (${signal.length}) for FFT ($nfft)")
-    }
-
-    // new value that contains the signal and padded with nfft zeros
-    // because the size doubles due to complex values
-    val fft: Array[Double] = signal ++ Array.fill(2 * nfft - signal.length)(0.0)
-
-    // // In place computation
-    lowLevelFtt.realForwardFull(fft)
-
-    fft
-  }
-}
 
 /**
  * Tests for FFT wrap class
  *
- * @author Alexandre Degurse
+ * @author Alexandre Degurse, Joseph Allemandou
  */
-class TestFFT extends FlatSpec with Matchers {
+class TestFFT extends FlatSpec with Matchers with OdeCustomMatchers {
 
-  private val maxRMSE = 1E-13
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1E-13
+
+
+
   private val eventNfft: Int = 4
 
   "FFT" should "Return an expected layout (with 0 values in right places) for nfft even" in {
 
     val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft, 1.0f)
+    val fftClass: FFT = FFT(eventNfft, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     fft.length should equal(eventNfft + 2)
@@ -80,7 +54,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return an expected layout (with 0 values in right places) for nfft odd" in {
 
     val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft + 1, 1.0f)
+    val fftClass: FFT = FFT(eventNfft + 1, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     fft should have length eventNfft + 2
@@ -92,7 +66,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft even" in {
 
     val signal: Array[Double] = (0.0 until eventNfft by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft, 1.0f)
+    val fftClass: FFT = FFT(eventNfft, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft)
@@ -125,7 +99,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "Return the same value as a 2-sided fft (using conjugate complex symetry) for nfft odd" in {
 
     val signal: Array[Double] = (0.0 until (eventNfft + 1) by 1.0).toArray
-    val fftClass: FFT = new FFT(eventNfft + 1, 1.0f)
+    val fftClass: FFT = FFT(eventNfft + 1, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val fft2Class: FFTTwoSided = new FFTTwoSided(eventNfft + 1)
@@ -160,7 +134,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "compute the same fft as numpy on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(math.cos).toArray
-    val fftClass: FFT = new FFT(signal.length, 1.0f)
+    val fftClass: FFT = FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val expectedFFT: Array[Double] = Array(
@@ -267,7 +241,7 @@ class TestFFT extends FlatSpec with Matchers {
       -9.3015054823533401e+00, -1.8079330752013401e+01
     )
 
-    ErrorMetrics.rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
+    fft should rmseMatch(expectedFFT.take(fft.length))
 
   }
 
@@ -275,7 +249,7 @@ class TestFFT extends FlatSpec with Matchers {
   it should "compute the same fft as Matlab on a fake signal" in {
 
     val signal: Array[Double] = (0.0 to 10.0 by 0.1).map(math.cos).toArray
-    val fftClass: FFT = new FFT(signal.length, 1.0f)
+    val fftClass: FFT = FFT(signal.length, 1.0f)
     val fft: Array[Double] = fftClass.compute(signal)
 
     val expectedFFT: Array[Double] = Array(
@@ -349,12 +323,12 @@ class TestFFT extends FlatSpec with Matchers {
       -18.079330752013444084
     )
 
-    ErrorMetrics.rmse(fft, expectedFFT.take(fft.length)) should be < maxRMSE
+    fft should rmseMatch(expectedFFT.take(fft.length))
 
   }
 
   it should "produce the right frequency vector for FFT when nfft is even" in {
-    val fftClass: FFT = new FFT(10, 1.0f)
+    val fftClass: FFT = FFT(10, 1.0f)
 
     // numpy.fft.fftfreq(10)
     val expectedFrequencyVector = Array(
@@ -363,11 +337,11 @@ class TestFFT extends FlatSpec with Matchers {
 
     val frequencyVector = fftClass.frequencyVector
 
-    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
   it should "produce the right frequency vector for FFT when nfft is odd" in {
-    val fftClass: FFT = new FFT(11, 1.0f)
+    val fftClass: FFT = FFT(11, 1.0f)
 
     // numpy.fft.fftfreq(11)
     val expectedFrequencyVector = Array(
@@ -379,11 +353,11 @@ class TestFFT extends FlatSpec with Matchers {
 
     val frequencyVector = fftClass.frequencyVector
 
-    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
   it should "produce the index when given a frequency" in {
-    val fftClass: FFT = new FFT(11, 1.0f)
+    val fftClass: FFT = FFT(11, 1.0f)
 
     fftClass.frequencyToIndex(0.183) shouldEqual 4
     fftClass.frequencyToIndex(0.5) shouldEqual 10
@@ -391,7 +365,7 @@ class TestFFT extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](100)
-    val fftClass: FFT = new FFT(10, 1.0f)
+    val fftClass: FFT = FFT(10, 1.0f)
 
     the[IllegalArgumentException] thrownBy {
       fftClass.compute(signal)

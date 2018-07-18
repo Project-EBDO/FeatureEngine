@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics.rmse
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 
@@ -25,9 +25,12 @@ import org.scalatest.{FlatSpec, Matchers}
  *
  * @author Alexandre Degurse
  */
-class TestWelchSpectralDensity extends FlatSpec with Matchers {
+class TestWelchSpectralDensity extends FlatSpec with Matchers with OdeCustomMatchers {
 
-  private val maxRMSE = 1.0E-16
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1.0E-16
 
   private val periodograms = Array(
     Array(
@@ -214,7 +217,7 @@ class TestWelchSpectralDensity extends FlatSpec with Matchers {
 
   /**
   These values have been generated with this python code:
-      numpy.set_printoptions(precision=24, linewidth=100)
+      numpy.set_printoptions(precision=24, liidth=100)
 
    *************************************************************
 
@@ -288,7 +291,7 @@ class TestWelchSpectralDensity extends FlatSpec with Matchers {
   )
 
   it should "compute the right frequency vector for Welch PSD" in {
-    val welchClass = new WelchSpectralDensity(100, 1.0f)
+    val welchClass = WelchSpectralDensity(100, 1.0f)
 
     val expectedFrequencyVector = Array(
       0.0 , 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1 ,
@@ -300,29 +303,30 @@ class TestWelchSpectralDensity extends FlatSpec with Matchers {
 
     val frequencyVector = welchClass.frequencyVector
 
-    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
   it should "compute the same Welch aggregation as scipy when given " +
     "normalized periodograms without overlap, windows and winSize equals nfft" in {
     val nfft = 256
-    val welchClass = new WelchSpectralDensity(nfft, 1.0f)
+    val welchClass = WelchSpectralDensity(nfft, 1.0f)
     val welchAgg = welchClass.compute(periodograms)
-    rmse(expectedWelch, welchAgg) should be < maxRMSE
+
+    welchAgg should rmseMatch(expectedWelch)
   }
 
   it should "raise IllegalArgumentException when given PSDs with inconsistent shape" in {
-    val welchClass = new WelchSpectralDensity(1, 1.0f)
+    val welchClass = WelchSpectralDensity(1, 1.0f)
     val wrongWelchs = Array(Array(1.0), Array(2.0, 3.0))
 
-    an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)
+    an[IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)
   }
 
   it should "raise IllegalArgumentException when given PSDs with incorrect shape" in {
-    val welchClass = new WelchSpectralDensity(100, 1.0f)
+    val welchClass = WelchSpectralDensity(100, 1.0f)
     val wrongWelchs = Array(Array(1.0), Array(2.0))
 
-    an [IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)
+    an[IllegalArgumentException] should be thrownBy welchClass.compute(wrongWelchs)
   }
 
 }

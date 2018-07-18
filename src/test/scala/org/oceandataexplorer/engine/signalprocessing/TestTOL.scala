@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -24,9 +24,12 @@ import org.scalatest.{FlatSpec, Matchers}
   *
   * @author Alexandre Degurse
   */
-class TestTOL extends FlatSpec with Matchers {
+class TestTOL extends FlatSpec with Matchers with OdeCustomMatchers {
 
-  private val maxRMSE = 3.0E-14
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 3.0E-14
 
   private val psd128 = Array(
     4.1602500000000000e+03, 8.3018982314637901e+02, 2.0767253111595070e+02,
@@ -57,7 +60,7 @@ class TestTOL extends FlatSpec with Matchers {
     val nfft = 128
     val samplingRate = 128.0f
 
-    val tolClass = new TOL(nfft, samplingRate)
+    val tolClass =  TOL(nfft, samplingRate)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
       (0.8912509381337456,1.1220184543019633),
@@ -82,20 +85,15 @@ class TestTOL extends FlatSpec with Matchers {
 
     tolClass.thirdOctaveBandBounds should have length expectedBoudaries.length
 
-    ErrorMetrics.rmse(
-      tolClass.thirdOctaveBandBounds.map(_._1), expectedBoudaries.map(_._1)
-    ) should be < maxRMSE
-
-    ErrorMetrics.rmse(
-      tolClass.thirdOctaveBandBounds.map(_._2), expectedBoudaries.map(_._2)
-    ) should be < maxRMSE
+    tolClass.thirdOctaveBandBounds.map(_._1) should rmseMatch(expectedBoudaries.map(_._1))
+    tolClass.thirdOctaveBandBounds.map(_._2) should rmseMatch(expectedBoudaries.map(_._2))
   }
 
   it should "compute Third Octabe Levels when studying default frequency range" in {
     val nfft = 128
     val samplingRate = 32.0f
 
-    val tolClass = new TOL(nfft, samplingRate)
+    val tolClass =  TOL(nfft, samplingRate)
 
     // little re-normalization since psd128 was normalized in density with samplingRate of 128.0
     val tols = tolClass.compute(psd128.map(_ * 4.0))
@@ -106,7 +104,7 @@ class TestTOL extends FlatSpec with Matchers {
       14.345791328130584, 14.408636676307502
     )
 
-    ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
+    tols should rmseMatch(expectedTols)
   }
 
   it should "compute Third Octave Band Boundaries when studying custom frequency range" in {
@@ -115,7 +113,7 @@ class TestTOL extends FlatSpec with Matchers {
     val lowFreq = Some(35.2)
     val highFreq = Some(50.5)
 
-    val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
+    val tolClass =  TOL(nfft, samplingRate, lowFreq, highFreq)
 
     val expectedBoudaries: Array[(Double, Double)] = Array(
       (28.183829312644537, 35.48133892335754),
@@ -125,13 +123,8 @@ class TestTOL extends FlatSpec with Matchers {
 
     tolClass.thirdOctaveBandBounds should have length expectedBoudaries.length
 
-    ErrorMetrics.rmse(
-      tolClass.thirdOctaveBandBounds.map(_._1), expectedBoudaries.map(_._1)
-    ) should be < maxRMSE
-
-    ErrorMetrics.rmse(
-      tolClass.thirdOctaveBandBounds.map(_._2), expectedBoudaries.map(_._2)
-    ) should be < maxRMSE
+    tolClass.thirdOctaveBandBounds.map(_._1) should rmseMatch(expectedBoudaries.map(_._1))
+    tolClass.thirdOctaveBandBounds.map(_._2) should rmseMatch(expectedBoudaries.map(_._2))
   }
 
   it should "compute Third Octave Levels when studying custom frequency range" in {
@@ -140,7 +133,7 @@ class TestTOL extends FlatSpec with Matchers {
     val lowFreq = Some(35.2)
     val highFreq = Some(50.5)
 
-    val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
+    val tolClass =  TOL(nfft, samplingRate, lowFreq, highFreq)
 
     val tols = tolClass.compute(psd128)
 
@@ -148,7 +141,7 @@ class TestTOL extends FlatSpec with Matchers {
       8.714892243362911, 8.325191414850961, 8.388036763027877
     )
 
-    ErrorMetrics.rmse(tols, expectedTols) should be < maxRMSE
+    tols should rmseMatch(expectedTols)
   }
 
   it should "compute the right frequency vector on a custom range for TOL" in {
@@ -157,7 +150,7 @@ class TestTOL extends FlatSpec with Matchers {
     val lowFreq = Some(35.2)
     val highFreq = Some(50.5)
 
-    val tolClass = new TOL(nfft, samplingRate, lowFreq, highFreq)
+    val tolClass =  TOL(nfft, samplingRate, lowFreq, highFreq)
 
     val expectedFrequencyVector: Array[Double] = Array(
       28.183829312644537, 35.481338923357555, 44.66835921509631 , 56.2341325190349
@@ -165,11 +158,11 @@ class TestTOL extends FlatSpec with Matchers {
 
     val frequencyVector = tolClass.frequencyVector
 
-    ErrorMetrics.rmse(frequencyVector, expectedFrequencyVector)
+    frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
-    val tolClass = new TOL(100, 100.0f)
+    val tolClass =  TOL(100, 100.0f)
 
     the[IllegalArgumentException] thrownBy {
       tolClass.compute(Array(1.0))
@@ -178,42 +171,42 @@ class TestTOL extends FlatSpec with Matchers {
 
   it should "raise IllegalArgumentException when given windows that are smaller than 1 second" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 1000.0f)
+       TOL(100, 1000.0f)
     } should have message "Incorrect window size (100) for TOL (1000.0)"
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than sampling rate / 2" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 100.0f, Some(200.0))
+       TOL(100, 100.0f, Some(200.0))
     } should have message "Incorrect low frequency (200.0) for TOL (smaller than 1.0 or bigger than 50.0)"
   }
 
   it should "raise IllegalArgumentException when given low frequency is smaller than 1.0 Hz" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 100.0f, Some(0.0))
+       TOL(100, 100.0f, Some(0.0))
     } should have message "Incorrect low frequency (0.0) for TOL (smaller than 1.0 or bigger than 50.0)"
   }
 
   it should "raise IllegalArgumentException when given low frequency is higher than high frequency" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 100.0f,  Some(40.0), Some(30.0))
+       TOL(100, 100.0f,  Some(40.0), Some(30.0))
     } should have message "Incorrect low frequency (40.0) for TOL (smaller than 1.0 or bigger than 30.0)"
   }
 
   it should "raise IllegalArgumentException when given high frequency is higher than sampling rate / 2" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 100.0f, Some(10.0), Some(100.0))
+       TOL(100, 100.0f, Some(10.0), Some(100.0))
     } should have message "Incorrect high frequency (100.0) for TOL (higher than 50.0 or smaller than 10.0)"
   }
 
   it should "raise IllegalArgumentException when given high frequency is smaller than 1.0 Hz" in {
     the[IllegalArgumentException] thrownBy {
-      new TOL(100, 100.0f, highFreq=Some(0.0))
+       TOL(100, 100.0f, highFreq=Some(0.0))
     } should have message "Incorrect high frequency (0.0) for TOL (higher than 50.0 or smaller than 1.0)"
   }
 
   it should "raise IllegalArgumentExcpetion when converting an index outside of the frequency range" in {
-    val tolClass = new TOL(100, 100.0f)
+    val tolClass =  TOL(100, 100.0f)
 
     the[IllegalArgumentException] thrownBy {
       tolClass.indexToFrequency(1000)
@@ -221,7 +214,7 @@ class TestTOL extends FlatSpec with Matchers {
   }
 
   it should "raise IllegalArgumentExcpetion when converting a negative index" in {
-    val tolClass = new TOL(100, 100.0f)
+    val tolClass =  TOL(100, 100.0f)
 
     the[IllegalArgumentException] thrownBy {
       tolClass.indexToFrequency(-1)

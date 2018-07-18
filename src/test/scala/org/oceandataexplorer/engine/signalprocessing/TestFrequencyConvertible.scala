@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -24,10 +24,14 @@ import org.scalatest.{FlatSpec, Matchers}
  *
  * @author Alexandre Degurse
  */
+class TestFrequencyConvertible extends FlatSpec with Matchers with OdeCustomMatchers {
 
-case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1.0E-16
 
-class TestFrequencyConvertible extends FlatSpec with Matchers {
+  case class TestClass(nfft: Int, samplingRate: Float) extends FrequencyConvertible
 
   val testClass0 = TestClass(100, 1.0f)
   val testClass1 = TestClass(1024, 44800.0f)
@@ -133,7 +137,7 @@ class TestFrequencyConvertible extends FlatSpec with Matchers {
     )
 
     testClass0.frequencyVector should equal(freqVect0)
-    ErrorMetrics.rmse(testClass1.frequencyVector, freqVect1) should be < 1.0E-16
+    testClass1.frequencyVector should rmseMatch(freqVect1)
   }
 
   it should "raise IllegalArgumentException when given a frequency higher than half of samplingRate" in {

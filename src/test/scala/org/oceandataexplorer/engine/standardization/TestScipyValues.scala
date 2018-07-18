@@ -16,12 +16,7 @@
 
 package org.oceandataexplorer.engine.standardization
 
-import java.io.File
-
-import org.oceandataexplorer.engine.io.WavReader
-import org.oceandataexplorer.engine.signalprocessing.{FFT, Periodogram, Segmentation}
-
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -29,7 +24,13 @@ import org.scalatest.{FlatSpec, Matchers}
  * @author Alexandre Degurse
  */
 
-class TestScipyValues extends FlatSpec with Matchers {
+class TestScipyValues extends FlatSpec with Matchers with OdeCustomMatchers {
+
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1.0E-13
+
   val refValuesLocation = "/standardization/scipy/values"
 
   val soundParams = List(
@@ -37,7 +38,7 @@ class TestScipyValues extends FlatSpec with Matchers {
     SoundHandler("Sound2", 64, 24, 3120, 2000.0f, 1)
   )
 
-  val refFiles = List[ResultsHandler](
+  val refFiles: List[ResultsHandler] = List(
     ResultsHandler(soundParams(0), "vTOL", 3906, 3906, 3906, 64, refValuesLocation),
     ResultsHandler(soundParams(1), "vTOL", 2000, 2000, 2000, 64, refValuesLocation),
     ResultsHandler(soundParams(0), "vTOL", 9000, 9000, 9000, 64, refValuesLocation),
@@ -63,17 +64,15 @@ class TestScipyValues extends FlatSpec with Matchers {
     ResultsHandler(soundParams(1), "vWelch", 130, 120, 100, 64, refValuesLocation)
   )
 
-  val maxRMSE = 1.0E-13
-
   for (resultFileHandler <- refFiles) {
     it should s"should generate the same result as in ${resultFileHandler.fileName}" in {
-      val expectedResult = resultFileHandler.getExpectedValues()
-      val computedValues = resultFileHandler.getComputedValues()
+      val expectedResult = resultFileHandler.getExpectedValues
+      val computedValues = resultFileHandler.getComputedValues
 
       computedValues.length should be(expectedResult.length)
 
-      Range(0, computedValues.length).foreach{i =>
-        ErrorMetrics.rmse(computedValues(i), expectedResult(i)) should be < maxRMSE
+      computedValues.indices.foreach{i =>
+        computedValues(i) should rmseMatch(expectedResult(i))
       }
     }
   }

@@ -41,8 +41,6 @@ case class ResultsHandler (
   location: String
 ) {
 
-  private val maxRMSE = 1.0E-16
-
   val paramsString = (sound.soundParametersString
     + "_" + algo + "_" + nfft.toString + "_" + winSize.toString
     + "_" + offset.toString + "_" + vSysBits.toString
@@ -55,34 +53,34 @@ case class ResultsHandler (
   private val overlap = winSize - offset
 
   // instanciate the signalprocessing classes
-  private val segmentation = new Segmentation(winSize, overlap)
+  private val segmentation = Segmentation(winSize, overlap)
 
-  private val hammingSymmetric = new HammingWindowFunction(winSize, Symmetric)
+  private val hammingSymmetric = HammingWindowFunction(winSize, Symmetric)
 
-  private val hammingPeriodic = new HammingWindowFunction(winSize, Periodic)
-  private val hammingDensityPeriodicNormFactor = hammingPeriodic.densityNormalizationFactor(1.0)
-  private val hammingSpectrumPeriodicNormFactor = hammingPeriodic.spectrumNormalizationFactor(1.0)
+  private val hammingPeriodic = HammingWindowFunction(winSize, Periodic)
+  private val hammingDensityPeriodicNormFactor = hammingPeriodic.densityNormalizationFactor()
+  private val hammingSpectrumPeriodicNormFactor = hammingPeriodic.spectrumNormalizationFactor()
 
-  private val fftClass = new FFT(nfft, sound.samplingRate)
-  private val periodogramClassNormInDensity = new Periodogram(
+  private val fftClass = FFT(nfft, sound.samplingRate)
+  private val periodogramClassNormInDensity = Periodogram(
     nfft,
     1 / (sound.samplingRate.toDouble * hammingDensityPeriodicNormFactor),
     sound.samplingRate
   )
-  private val welchClass = new WelchSpectralDensity(nfft, sound.samplingRate)
+  private val welchClass = WelchSpectralDensity(nfft, sound.samplingRate)
 
   /**
-   * We're using a convention for TOL, the study frequency range is conventionnaly [0.2 * samplingRate, 0.4 * samplingRate]
+   * We're using a convention for TOL, the study frequency range is conventionally [0.2 * samplingRate, 0.4 * samplingRate]
    */
   private val tolClass = if (winSize >= sound.samplingRate) {
-    new TOL(nfft, sound.samplingRate, Some(0.2 * sound.samplingRate.toDouble), Some(0.4 * sound.samplingRate.toDouble))
+    TOL(nfft, sound.samplingRate, Some(0.2 * sound.samplingRate.toDouble), Some(0.4 * sound.samplingRate.toDouble))
   } else null
 
   /**
-   * Function computing results given the class paramters
+   * Function computing results given the class parameters
    * @return The results of the computation defined by the class parameters as a Array of Array[Double]
    */
-  def getComputedValues(): Array[Array[Double]] = {
+  def getComputedValues: Array[Array[Double]] = {
     val signal = sound.readSound()
 
     val ffts = segmentation.compute(signal)
@@ -90,32 +88,28 @@ case class ResultsHandler (
       .map(win => fftClass.compute(win))
 
     algo match {
-      case "vFFT" => {
+      case "vFFT" =>
         // Scipy Short Time Fourier Transform normalizes the ffts using the
         // sqrt of the spectrum normalization factor
 
         ffts.map(fft => fft.map(_ / math.sqrt(hammingSpectrumPeriodicNormFactor)))
-      }
 
-      case "vPSD" => {
+      case "vPSD" =>
         ffts
           .map(fft => periodogramClassNormInDensity.compute(fft))
-      }
 
-      case "vWelch" => {
+      case "vWelch" =>
         val periodograms = ffts
           .map(fft => periodogramClassNormInDensity.compute(fft))
 
         Array(welchClass.compute(periodograms))
-      }
 
-      case "vTOL" =>  {
+      case "vTOL" =>
         val welch = welchClass.compute(
           ffts.map(fft => periodogramClassNormInDensity.compute(fft))
         )
 
         Array(tolClass.compute(welch))
-      }
 
       case "fWelch" => Array(welchClass.frequencyVector)
     }
@@ -125,7 +119,7 @@ case class ResultsHandler (
    * Function used to read the result file described by the class parameters
    * @return The expected values for the class parameters as a Array of Array[Double]
    */
-  def getExpectedValues(): Array[Array[Double]] = ResultsHandler.readResultFile(file)
+  def getExpectedValues: Array[Array[Double]] = ResultsHandler.readResultFile(file)
 }
 
 object ResultsHandler {
@@ -135,7 +129,7 @@ object ResultsHandler {
    * The second dimension corresponds the content of a line.
    *
    * @param resultFile The file to be read as a java.io.File
-   * @return The values contained in the file as a Array[Array[Double]] order as described above.
+   * @return The values contained in the file as a Array of Array[Double] order as described above.
    */
   def readResultFile(resultFile: File): Array[Array[Double]] = {
     val resultFileInputStream: InputStream = new FileInputStream(resultFile)
@@ -147,6 +141,5 @@ object ResultsHandler {
           .split(" ")
           .map(x => x.toDouble)
       }
-      .toArray
   }
 }

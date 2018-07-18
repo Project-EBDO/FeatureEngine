@@ -39,7 +39,7 @@ class TestResultsHandler extends FlatSpec with Matchers {
     rp.fileName should equal(expectedName)
     rp.paramsString should equal(expectedParametersString)
 
-    val results = rp.getExpectedValues()
+    val results = rp.getExpectedValues
 
     val expectedNumberOfFeature = 1
     val expectedFeatureLength = 4

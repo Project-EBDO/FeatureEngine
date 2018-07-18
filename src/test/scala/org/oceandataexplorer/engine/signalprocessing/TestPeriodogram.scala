@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing
 
-import org.oceandataexplorer.utils.test.ErrorMetrics.rmse
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import org.scalatest.{FlatSpec, Matchers}
 
 
@@ -25,9 +25,12 @@ import org.scalatest.{FlatSpec, Matchers}
  *
  * @author Alexandre Degurse
  */
-class TestPeriodogram extends FlatSpec with Matchers {
+class TestPeriodogram extends FlatSpec with Matchers with OdeCustomMatchers {
 
-  private val maxRMSE = 1.1E-15
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1.1E-15
 
 
   /** fft values are generated with Matlab
@@ -90,7 +93,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
 
     val normalizationFactor = 1 / (nfft * fs)
 
-    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor, 1.0f)
+    val periodogramClass: Periodogram = Periodogram(nfft, normalizationFactor, 1.0f)
     val periodograms: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPeriodograms: Array[Double] = Array(
@@ -113,7 +116,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
       0.000136321457271676,0.000135790616778697,0.000135526233395330
     )
 
-    rmse(periodograms, expectedPeriodograms) should be < maxRMSE
+    periodograms should rmseMatch(expectedPeriodograms)
   }
 
   it should "compute the same periodograms as scipy periodogram on a fake signal" in {
@@ -126,7 +129,7 @@ class TestPeriodogram extends FlatSpec with Matchers {
     // normalizationFactor is specific to scipy
     val normalizationFactor = 1 / (fs * nfft)
 
-    val periodogramClass: Periodogram = new Periodogram(nfft, normalizationFactor, 1.0f)
+    val periodogramClass: Periodogram = Periodogram(nfft, normalizationFactor, 1.0f)
     val periodograms: Array[Double] = periodogramClass.compute(fft)
 
     val expectedPeriodograms: Array[Double] = Array(
@@ -158,11 +161,11 @@ class TestPeriodogram extends FlatSpec with Matchers {
       1.3552623339531348e-04
     )
 
-    rmse(periodograms, expectedPeriodograms) should be < maxRMSE
+    periodograms should rmseMatch(expectedPeriodograms)
   }
 
   it should "compute the right frequency vector for Welch PSD" in {
-    val periodogramClass = new Periodogram(100, 1.0, 1.0f)
+    val periodogramClass = Periodogram(100, 1.0, 1.0f)
 
     val expectedFrequencyVector = Array(
       0.0 , 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1 ,
@@ -174,12 +177,12 @@ class TestPeriodogram extends FlatSpec with Matchers {
 
     val frequencyVector = periodogramClass.frequencyVector
 
-    rmse(frequencyVector, expectedFrequencyVector) should be < maxRMSE
+    frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
   it should "raise IllegalArgumentException when given a signal of the wrong length" in {
     val signal: Array[Double] = new Array[Double](42)
-    val periodogramClass: Periodogram = new Periodogram(50, 1.0, 1.0f)
+    val periodogramClass: Periodogram = Periodogram(50, 1.0, 1.0f)
 
     an [IllegalArgumentException] should be thrownBy periodogramClass.compute(signal)
   }

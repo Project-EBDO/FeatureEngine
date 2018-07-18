@@ -16,15 +16,13 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
 
-import org.joda.time.Days
 import com.github.nscala_time.time.Imports._
 
 import org.apache.spark.SparkException
 import org.scalatest.{FlatSpec, Matchers}
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import com.holdenkarau.spark.testing.SharedSparkContext
 
 /**
@@ -33,13 +31,15 @@ import com.holdenkarau.spark.testing.SharedSparkContext
  * @author Alexandre Degurse, Joseph Allemandou
  */
 
-class TestSampleWorkflow
-  extends FlatSpec
-  with Matchers
-  with SharedSparkContext
+class TestSampleWorkflow extends FlatSpec
+  with Matchers with SharedSparkContext with OdeCustomMatchers
 {
 
-  val maxRMSE = 1.0E-16
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   * Test for TOL matches at 6e-12, all other test at 1e-16
+   */
+  val maxRMSE = 1.0E-11
 
   "SampleWorkflow" should "generate results of expected size" in {
 
@@ -93,29 +93,29 @@ class TestSampleWorkflow
     resultMap.size should equal(5)
 
     sparkFFT.count shouldEqual expectedRecordNumber
-    sparkFFT.take(1).map{case (idx, channels) =>
+    sparkFFT.take(1).foreach{case (idx, channels) =>
       channels(0) should have length expectedWindowsPerRecord.toLong
       channels(0)(0) should have length expectedFFTSize
     }
 
     sparkPeriodograms.count shouldEqual expectedRecordNumber
-    sparkPeriodograms.take(1).map{case (idx, channels) =>
+    sparkPeriodograms.take(1).foreach{case (idx, channels) =>
       channels(0) should have length expectedWindowsPerRecord.toLong
       channels(0)(0) should have length expectedFFTSize / 2
     }
 
     sparkWelchs.count should equal(expectedRecordNumber)
-    sparkWelchs.take(1).map{case (idx, channels) =>
+    sparkWelchs.take(1).foreach{case (idx, channels) =>
       channels(0) should have length expectedFFTSize / 2
     }
 
     sparkTOLs.count shouldEqual expectedRecordNumber
-    sparkTOLs.take(1).map{case (idx, channels) =>
+    sparkTOLs.take(1).foreach{case (idx, channels) =>
       channels(0) should have length 4
     }
 
     sparkSPL.count should equal(expectedRecordNumber)
-    sparkSPL.take(1).map{case (idx, channels) =>
+    sparkSPL.take(1).foreach{case (idx, channels) =>
       channels(0) should have length 1
     }
   }
@@ -136,7 +136,6 @@ class TestSampleWorkflow
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
     val soundChannels = 1
     val soundSampleSizeInBits = 16
-    val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
@@ -188,11 +187,11 @@ class TestSampleWorkflow
     val scalaTOLs = resultMapScala("tols").right.get
     val scalaSPLs = resultMapScala("spls").right.get
 
-    ErrorMetrics.rmse(scalaFFT, sparkFFT) should be < maxRMSE
-    ErrorMetrics.rmse(scalaPeriodograms, sparkPeriodograms) should be < maxRMSE
-    ErrorMetrics.rmse(scalaWelchs, sparkWelchs) should be < maxRMSE
-    ErrorMetrics.rmse(scalaTOLs, sparkTOLs) should be < maxRMSE
-    ErrorMetrics.rmse(scalaSPLs, sparkSPLs) should be < maxRMSE
+    sparkFFT should rmseMatch(scalaFFT)
+    sparkPeriodograms should rmseMatch(scalaPeriodograms)
+    sparkWelchs should rmseMatch(scalaWelchs)
+    sparkSPLs should rmseMatch(scalaSPLs)
+    sparkTOLs should rmseMatch(scalaTOLs)
   }
 
   it should "generate the results with the right timestamps" in {
@@ -213,7 +212,6 @@ class TestSampleWorkflow
     val soundSampleSizeInBits = 16
 
     // Usefull for testing
-    val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
@@ -268,7 +266,6 @@ class TestSampleWorkflow
     val soundSampleSizeInBits = 16
 
     // Usefull for testing
-    val soundDurationInSecs= 2.5f
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
 
@@ -309,7 +306,7 @@ class TestSampleWorkflow
 
     val tols: Array[Double] = sparkTOL(0)._2(0)
 
-    ErrorMetrics.rmse(tols, expectedTOL) should be < 1.0E-11
+    tols should rmseMatch(expectedTOL)
   }
 
   it should "read a single wav file" in {
@@ -345,15 +342,13 @@ class TestSampleWorkflow
       -9.15527343750000e-05, -3.82629394531250e-01
     )
 
-    ErrorMetrics.rmse(readRecords(0)._2(0).take(10), firstWavValues) should be < maxRMSE
+    readRecords(0)._2(0).take(10) should rmseMatch(firstWavValues)
   }
 
   it should "raise an IllegalArgumentException when record size is not round" in {
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
@@ -369,8 +364,6 @@ class TestSampleWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
@@ -395,8 +388,6 @@ class TestSampleWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(
@@ -416,8 +407,6 @@ class TestSampleWorkflow
     val spark = SparkSession.builder.getOrCreate
 
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
 
     val soundStartDate = "1978-04-11T13:14:20.200Z"
     val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))

@@ -17,7 +17,7 @@
 package org.oceandataexplorer.perf
 
 import org.oceandataexplorer.engine.signalprocessing.{FFT, FFTTwoSided}
-import org.oceandataexplorer.utils.test.ErrorMetrics
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
 
 
 /**
@@ -26,11 +26,17 @@ import org.oceandataexplorer.utils.test.ErrorMetrics
  */
 class PerfTestFFTOneSidedVsTwoSided
   extends PerfSpec[Array[Double], Array[Double], Array[Double]]
-  with ArraySizeSpec {
+  with ArraySizeSpec
+  with OdeCustomMatchers
+{
+  /**
+   * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
+   */
+  val maxRMSE = 1.0E-13
 
   val d1 = (dataStart to dataEnd by dataStep).toArray
   val d2 = (dataStart to dataEnd by dataStep).toArray
-  val f1 = (array: Array[Double]) => new FFT(array.length, 1.0f).compute(array)
+  val f1 = (array: Array[Double]) => FFT(array.length, 1.0f).compute(array)
   val f2 = (array: Array[Double]) => new FFTTwoSided(array.length).compute(array)
   val f1Desc = "fft-1-sided"
   val f2Desc = "fft-2-sided"
@@ -38,7 +44,7 @@ class PerfTestFFTOneSidedVsTwoSided
   // Results are not equal, need to override equalCheck
   override val equalCheck = (r1: Array[Double], r2: Array[Double]) => {
     r1.length should equal(r2.length / 2 + 1) // nfft odd
-    ErrorMetrics.rmse(r1.toSeq, r2.splitAt(r2.length / 2 + 1)._1.toSeq) should be < 1.0e-13
+    r1 should rmseMatch(r2.splitAt(r2.length / 2 + 1)._1)
   }
 
 }

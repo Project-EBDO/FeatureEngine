@@ -16,7 +16,7 @@
 
 package org.oceandataexplorer.engine.signalprocessing.windowfunctions
 
-import WindowFunctionTypes.{WindowFunctionType, Periodic, Symmetric}
+import WindowFunctionTypes.{WindowFunctionType, Periodic}
 
 /**
  * HammingWindowFunction, extending the [[WindowFunction]] trait
@@ -32,49 +32,17 @@ import WindowFunctionTypes.{WindowFunctionType, Periodic, Symmetric}
  * @author Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
  * @param windowSize The size of the window to be computed
- * @param hammingType The type of hamming window to compute (periodic or symmetric),
+ * @param windowType The type of hamming window to compute (periodic or symmetric),
  * default is periodic for spectral analysis
  */
 case class HammingWindowFunction
 (
   windowSize: Int,
-  hammingType: WindowFunctionType =Periodic
-) extends WindowFunction {
+  windowType: WindowFunctionType = Periodic
+) extends CosineWindowFunction {
 
   /**
-   * Eagerly instantiated array of coefficients
+   * The cosine coefficients that defines the Hamming window function
    */
-  val windowCoefficients: Array[Double] = hammingType match {
-    case Periodic => (0 until windowSize).map(idx => {
-      HammingWindowFunction.coefficientPeriodic(idx, windowSize)
-    }).toArray
-    case Symmetric => (0 until windowSize).map(idx => {
-      HammingWindowFunction.coefficientSymmetric(idx, windowSize)
-    }).toArray
-  }
-}
-
-/**
- * Companion object of the HammingWindowFunction class
- */
-object HammingWindowFunction {
-  /**
-   * Generate the i-th coefficient of a N-point periodic Hamming window
-   *
-   * @param idx Index of the coefficient to generate
-   * @param windowSize Size of the window for which coefficient is generated
-   * @return The idx-th coefficient for a windowSize window
-   */
-  def coefficientPeriodic(idx: Int, windowSize: Int): Double =
-    0.54 + 0.46 * math.cos(math.Pi * (2 * idx - windowSize) / windowSize)
-
-  /**
-   * Generate the i-th coefficient of a N-point symmetric Hamming window
-   *
-   * @param idx Index of the coefficient to generate
-   * @param windowSize Size of the window for which coefficient is generated
-   * @return The idx-th coefficient for a windowSize window
-   */
-  def coefficientSymmetric(idx: Int, windowSize: Int): Double =
-    0.54 - 0.46 * math.cos(2 * math.Pi * idx / (windowSize - 1))
+  val cosineCoefficients: Array[Double] = Array.apply(0.54, 0.46)
 }

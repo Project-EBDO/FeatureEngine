@@ -21,7 +21,7 @@ import WindowFunctionTypes.{WindowFunctionType, Periodic}
 /**
  * BlackmanWindowFunction, extending the [[CosineWindowFunction]] abstract class
  *
- * @author Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
+ * @author Alexandre Degurse
  *
  * @param windowSize The size of the window to be computed
  * @param windowType The type of window to compute (periodic or symmetric),

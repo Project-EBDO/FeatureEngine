@@ -22,7 +22,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 /**
- * Tests for Spectrogram Windows Functions
+ * Tests for Hamming Window Function
  *
  * @author Alexandre Degurse
  */

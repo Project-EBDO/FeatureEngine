@@ -22,7 +22,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 
 /**
- * Tests for Spectrogram Windows Functions
+ * Tests for Blackman Window Function
  *
  * @author Alexandre Degurse
  */

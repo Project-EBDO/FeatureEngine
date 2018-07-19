@@ -123,7 +123,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers with OdeCustomMat
   }
 
   it should "compute the right density normalization factor for a Periodic hamming window" in {
-    val hammingClass = new HammingWindowFunction(32, Periodic)
+    val hammingClass = HammingWindowFunction(32, Periodic)
     val normalizationFactor = hammingClass.densityNormalizationFactor(1.75)
 
     /**
@@ -136,11 +136,11 @@ class TestHammingWindowFunction extends FlatSpec with Matchers with OdeCustomMat
   }
 
   it should "compute the right spectrum normalization factor for a Periodic hamming window" in {
-    val hammingClass = new HammingWindowFunction(32, Periodic)
+    val hammingClass = HammingWindowFunction(32, Periodic)
     val normalizationFactor = hammingClass.spectrumNormalizationFactor(1.75)
 
     /**
-     * h = scipy.signal.hamming(32, True)
+     * h = scipy.signal.hamming(32, False)
      * (numpy.sum(h) / 1.75) ** 2
      */
     val expectedNormFactor = 97.50151836734696
@@ -154,7 +154,7 @@ class TestHammingWindowFunction extends FlatSpec with Matchers with OdeCustomMat
     val normalizationFactor = hammingClass.spectrumNormalizationFactor(1.75)
 
     /**
-     * h = scipy.signal.hamming(32, False)
+     * h = scipy.signal.hamming(32, True)
      * (numpy.sum(h) / 1.75) ** 2
      */
     val expectedNormFactor = 92.37955918367348

@@ -19,12 +19,7 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
 import WindowFunctionTypes.{WindowFunctionType, Periodic}
 
 /**
- * HammingWindowFunction, extending the [[CosineWindowFunction]] abstract class
- * A hamming window can be compute in two ways:
- *  - symmetric used for filter design,
- *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where 0 <= n <= N and N = windowLength - 1
- *  - periodic used for spectral analysis (extends discrete Fourier transform periodicity)
- *   w(n) = 0.54 - 0.46 * cos(2* Pi * n / N) where N/2 <= n <= N/2 - 1 and N = windowLength
+ * BlackmanWindowFunction, extending the [[CosineWindowFunction]] abstract class
  *
  * @author Joseph Allemandou, Paul NGuyenhongduc, Alexandre Degurse
  *
@@ -32,14 +27,14 @@ import WindowFunctionTypes.{WindowFunctionType, Periodic}
  * @param windowType The type of window to compute (periodic or symmetric),
  * default is periodic for spectral analysis
  */
-case class HammingWindowFunction
+case class BlackmanWindowFunction
 (
   windowSize: Int,
   windowType: WindowFunctionType = Periodic
 ) extends CosineWindowFunction {
 
   /**
-   * The cosine coefficients that defines the Hamming window function
+   * The cosine coefficients that defines the Blackman window function
    */
-  val cosineCoefficients: Array[Double] = Array.apply(0.54, 0.46)
+  val cosineCoefficients: Array[Double] = Array.apply(0.42, 0.5, 0.08)
 }

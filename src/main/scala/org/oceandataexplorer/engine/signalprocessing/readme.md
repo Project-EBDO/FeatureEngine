@@ -1,62 +1,66 @@
 # Signal Processing package documentation
 
-List of implemented acoustic features:
-
-- Windowing functions (Hamming)
-- Fast Fourier Transform
+This programenr-oriented documentation describes our scala implementation of the following signal processing tools and features
+- Windowing functions (e.g., Hamming)
+- Spectrum (using Fast Fourier Transform)
 - Power Spectral Density and Power spectrum (using periodogram and Welch estimations)
-- Energy (rms measure and log-scaling rms (Sound Pressure Level))
+- Energy (e.g., root mean square (rms) measure or Sound Pressure Level, i.e., log-scaling rms)
 
-This document explains how to compute these basic acoustic features.
+and provides a step-by-setp tutorial code example to compute them. Note that these functions are basic tools and features in acoustic signal processing, and more widely in Fourier-based spectral analysis.
 
 ## Glossary
 
-### Data Representation
+### Two-level segmentation
 
-We have defined some names to designate certain objects.
+When given an input signal, two successive levels of temporal segmentation can be applied, corresponding to two different time scales of analysis.
 
-When given a input signal, it may be segmented a first time. The input signal
-being a `Array[Double]` becomes a `Array[Array[Double]]`, an array of `segments`.
-This first segmentation enforces the granularity of the results for `Welch`, `SPL` and `TOL`
-(eg if the input signal is segmented into `segments` of 1s, we'll have one `SPL` each second).
+- `first level` - this first segmentation divides the input signal into shorter `segments` of `segmentSize`. The input signal being a `Array[Double]` becomes a `Array[Array[Double]]`, i.e., an array of `segments`. It enforces the granularity of "integrating features" like `Welch`, `SPL` and `TOL` (e.g., if the input signal is segmented into `segments` of 1s, we will have one `SPL` each second)
 
-A second level of segmentation may be applyied as well, each segment will be segmented into `windows`
-of `windowSize`. If the signal is segmented only once, the produced objects are called `windows` nonetheless.
+- `second level` - this second level divides each segment into shorter `windows` of `windowSize`, which corresponds to the standard segmentation for short-term Fourier analysis, enforcing the granularity of the `spectrum` feature
+
+If the signal is segmented only once, the produced objects are called `windows` nonetheless. Note that only the second level has the specific segmentation properties of windowing and overlap.
 
 ### Signal processing definitions
 
-- `WindowFunction` - windowing function for short-term analysis (eg `HammingWindowFunction`)
-- `spectrum` - Fourier spectrum computed with a Short-Term Fast Fourier Transform
-- `powerSpectrum`
-- `powerSpectralDensity`
-- `tols` - the third-octave levels over a segment
+- `WindowFunction` - windowing function for short-term analysis (e.g., `HammingFunction`)
+- `spectrum` - spectral estimate of an input signal based on the Fast Fourier Transform
+- `powerSpectrum` - power spectral estimate based on the squared amplitude of `spectrum`. The power spectrum of a time series describes the distribution of power into frequency components composing that signal
+- `powerSpectralDensity` - spectral density estimate based on a normalization by the sample frequency of `powerSpectrum` so it refers to the spectral energy distribution that would be found per unit of time. See
+[here](https://en.wikipedia.org/wiki/Spectral_density) for more details
+- `tols` - power spectral estimate integrated over a third-octave filter, based on `powerSpectrum`
+- `energy` - energy measure of the input signal, i.e., root mean square (rms) measure or Sound Pressure Level (log-scaling rms)
 
 ### Variables
 
+#### General
+
 - `fs` - sampling frequency (in Hz)
-- `segmentSize` - the size of a segment for the first level of segmentation (in seconds)
-- `windowSize` - size of the segmention window for analysis (second level of segmentation, in units)
-- `windowOverlap` - the number of samples two consecutive windows have in common (in units)
-- `nfft` - the size of the fft-computation window
-- `spectrumSize` - the size of the one-sided spectrum
-- `lowFreqTOL` - the lower bound of the study range for TOL
-- `highFreqTOL` - the upper bound of the study range for TOL
-- `frequencyVector` - the frequency vector associated with either a `spectrum`, a `powerSpectrum` or a `powerSpectralDensity`
+
+#### Segmentation
+
+- `segmentSize` - size of a segment, i.e., time scale of the first segmentation level (in seconds)
+- `windowSize` - size of a window, i.e., time scale of the second segmentation level (in samples)
+- `windowOverlap` - number of samples that two consecutive windows have in common (in samples)
+- `windowOffset` - distance in samples between two consecutive windows (in samples)
+
+#### Feature
+
+- `nfft` - number of points in the FFT. Must be a multiple of 128 (in samples)
+- `spectrumSize` - size of the one-sided spectarum (in samples)
+- `lowFreqTOL` - lower bound of the study range for TOL (in Hz)
+- `highFreqTOL` - upper bound of the study range for TOL (in Hz)
+- `frequencyVector` - frequency vector associated with either a `spectrum`, a `powerSpectrum` or a `powerSpectralDensity` (in Hz)
 
 ## Package classes
 
 ### Segmentation
 
-The Segmentation class is used to segment a signal into smaller chunks of signal of
-user-defined size with or without using overlap/**windowOffset**. These smaller chunks of signal
-are called **windows**.
+First, note that the first segmentation level described earlier is automatically processed by our Hadoop framework.
+This Segmentation class corresponds to our second level of segmentation, i.e., dividing each Hadoop-based segment into short-term **windows**.
 
-An `windowOverlap: Int` can be given to the class, it specifies the number of samples
-that two consecutive segments have in common.
-
+Segmentation parameters, `windowSize` and `windowOverlap`, are passed upon instantiation.
 
 Here is a simple representation of how a signal is segmented without overlap.
-To do so, `windowOverlap` must be equal to `0`.
 
 ```raw
           segmented signal without overlap
@@ -65,7 +69,7 @@ To do so, `windowOverlap` must be equal to `0`.
 --------------------------------------------------------------
 ```
 
-Here is a representation of how the signal is segmented when `windowOverlap > 0`.
+Here is a representation of how the signal is segmented when `windowOveralp != 0`.
 
 ```raw
           segmented signal with overlap
@@ -75,12 +79,10 @@ Here is a representation of how the signal is segmented when `windowOverlap > 0`
                 |         window2          |
 --------------------------------------------------------------
 |       |       |                 |
-  windowOffset  |<-windowOverlap->|
+                |<-windowOverlap->|
 ```
 
-_All variables are defined in units, it can't be specified in seconds for instance_
-
-Segmentation parameters, `windowSize` and `windowOverlap`, are passed upon instantiation.
+_All variables are defined in samples, it can't be specified in seconds for instance_
 
 Here is an example of how to use this class:
 
@@ -92,44 +94,43 @@ val windows: Array[Double] = segmentationClass.compute(signal)
 ### WindowFunction
 
 WindowFunction is an abstraction of window functions. A window function is used to make
-sure that the data at the edges are zero, so there is no discontinuity, see
+sure that the data at the edges are zero, so there is no discontinuity. See
 [here](https://dsp.stackexchange.com/questions/11312/why-should-one-use-windowing-functions-for-fft)
 for more details.
 
-The windows must implement the computation of `windowCoefficients`.
+To each window function is associated a set of pre-defined `windowCoefficients`, used to compute them.
+The WindowFunction class also provides methods to compute normalization factors:
 
-The WindowFunction class provides methods to compute normalization factors for it:
+- for power spectrum, called `powerSpectumNormFactor`, and defined as (`sum(windowCoefficients / alpha) ^ 2`), given alpha
+- for power spectral density, called `powerSpectralDensityNormFactor`, and defined as (`sum((windowCoefficients / alpha) ^ 2)`), given alpha
 
-- `densityNormFactor` computes the window function normalization factor for power spectral density
-  given alpha (`sum((windowCoefficients / alpha) ^ 2)`)
-- `spectumNormFactor` computes the window function normalization factor for spectrum
+Also, there are two types of hamming windows, symmetric and periodic, and both are implemented and can be passed upon instantiation.
+HammingWindow also takes **signalSize** and **windowType** as parameters.
 
-HammingWindow is the only SpectralWindow implemented, there are two types of
-hamming windows, symmetric and periodic, both are implemented.
-HammingWindow takes **signalSize** and **hammingType** as parameters.
+So far, HammingWindow is the only SpectralWindow implemented.
 
 Here is an example of how to use it:
 
 ```scala
-val hammingClass = new HammingWindow(signalSize, Symmetric)
+val hammingClass = new HammingWindow(signalSize, Periodic)
 val windowedSignal: Array[Double] = hammingClass.applyToSignal(signal)
-val hammingDensityNormalizationFactor: Double = hammingClass.densityNormalizationFactor(alpha)
+val hammingNormalizationFactor: Double = hammingClass.normalizationFactor(alpha)
 ```
 
 ### FFT
 
 The FFT class is used to compute **Fast Fourier Transform** over a signal.
-The size of the computed spectrum can be specified by the user as **nfft**.
+The size of the computed spectrum can be specified by the user with **nfft**.
 
-The FFT class computes only one-sided spectrums, complex values are two consecutive
+The FFT class computes only one-sided spectrum, where complex values are two consecutive
 Double (`fft(2*k)` is the real value and `fft(2*k + 1)` is the imaginary value
 of the k'th complex value of the spectrum).
 A one-sided spectrum contains `nfft/2 + 1` values if nfft is even and `(nfft + 1) / 2`
 values if nfft is odd.
-Thus the size of the computed spectrum is either `nfft + 2` if nfft is even or
+Thus, the size of the computed spectrum is either `nfft + 2` if nfft is even or
 `nfft + 1` if nfft is odd.
 
-_nfft must be equal or higher than the signal length, when higher the signal is zero-padded_
+_nfft must be equal or higher than the signal length. When higher, the signal is zero-padded_
 
 Here is an example of how to use this class:
 
@@ -140,14 +141,14 @@ val fft: Array[Double] = fftClass.compute(signal)
 
 ### Periodogram
 
-The Periodogram class is used to compute **Power Spectral Density** over a spectrum.
-The periodogram estimate of the Power Spectrum is `abs(fft) ^ 2`.
+The periodogram estimates the **Power Spectrum** based on **spectrum**, i.e., `abs(spectrum) ^ 2`.
 
-This class takes **nfft** and **normalizationFactor** as parameters, thus
-an instance of Periodogram computes power spectrum over one-sided spectrum of size nfft+2/nfft+1.
-The computed Power Spectrums are normalized with normalizationFactor which is user defined
-but is usually `1.0 / (fs * windowNormalizationFactor)` to get a
-density and `1.0 / windowNormalizationFactor` to get a power spectrum.
+This class takes **nfft** and **normalizationFactor** as parameters. Thus,
+an instance of Periodogram computes power spectrum over one-sided spectrum of size `nfft+2/nfft+1`.
+
+Depending on the `normalizationFactor` value, we can then compute the normalized **Power Spectrum**
+(simply called power spectrum), with `normalizationFactor = 1.0 / windowNormalizationFactor`,
+and/or the **Power Spectral Density**, with `normalizationFactor = 1.0 / (fs * windowNormalizationFactor)`
 
 Here is an example of how to use this class:
 
@@ -160,10 +161,10 @@ val periodogram: Array[Double] = periodogramClass.compute(fft)
 
 The Welch class is used to compute Welch power spectrum estimate. This estimate consists in
 averaging Periodograms over time for each frequency bin. The given periodograms should be
-normalized before being given to this class (i.e. Periodogram class should have
+normalized before being given to this class (i.e., Periodogram class should have
 been given the right `normalizationFactor`).
 
-This class takes **nfft** as parameter and expects periodograms of size nfft+2/nfft+1.
+This class takes **nfft** as parameter and expects periodograms of size `nfft+2/nfft+1`.
 
 Here is an example of how to use this class:
 
@@ -174,15 +175,15 @@ val welch: Array[Double] = welchClass.compute(fft)
 
 ### Energy
 
-The Energy class provides functions to compute the energy or Sound Pressure
+The Energy class provides functions to compute the root-mean-square (rms) energy or Sound Pressure
 Level of a signal by using either the raw signal, the one-sided spectrum or the PSD
 (welch or periodogram) over it.
 
 This class takes **nfft** as parameter and expects spectrum and PSD of length
 nfft+2/nfft+1
 
-The energy can either be returned raw (in linear scale) or as a Sound Pressure
-Level (in log scale).
+The energy can either be returned as a raw measure in linear scale or as a decibel measure in log scale, called Sound Pressure
+Level.
 
 Here is an example of how to use this class:
 

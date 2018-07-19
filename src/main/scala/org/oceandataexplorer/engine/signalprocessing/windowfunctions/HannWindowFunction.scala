@@ -19,7 +19,7 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
 import WindowFunctionTypes.{Periodic, WindowFunctionType}
 
 /**
- * HannWindowFunction, extending the [[CosineWindowFunction]] trait
+ * HannWindowFunction, extending the [[CosineWindowFunction]] abstract class
  *
  * @author Alexandre Degurse
  *

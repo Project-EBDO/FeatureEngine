@@ -19,7 +19,7 @@ package org.oceandataexplorer.engine.signalprocessing.windowfunctions
 import WindowFunctionTypes.{WindowFunctionType, Periodic, Symmetric}
 
 /**
- * Abstract class representing cosine window functions such as Hamming
+ * Abstract cosine-window-function class to facilitate creation of other window functions
  * This approach is based on Scipy implementation of cosine window functions
  *
  * @author Alexandre Degurse
@@ -43,19 +43,19 @@ abstract class CosineWindowFunction extends WindowFunction {
     // using Range of indices instead of Range.Double to avoid rounding issues
     val window = windowType match {
       case Symmetric =>
-        Range.apply(0, windowSize).map(idx =>
+        Range(0, windowSize).map(idx =>
           -math.Pi + idx * 2.0 * math.Pi / (windowSize - 1.0)
         ).toArray
 
       case Periodic =>
-        Range.apply(0, windowSize).map(idx =>
+        Range(0, windowSize).map(idx =>
           -math.Pi + idx * 2.0 * math.Pi / windowSize
         ).toArray
     }
 
     window.map(x =>
       cosineCoefficients.indices.foldLeft(0.0)((res, idx) =>
-        res + cosineCoefficients.apply(idx) * math.cos(idx * x)
+        res + cosineCoefficients(idx) * math.cos(idx * x)
       )
     )
   }

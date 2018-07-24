@@ -67,3 +67,5 @@ libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
 libraryDependencies += "org.oceandataexplorer" % "hadoop-io-extensions" % "0.4"
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.20.0"
+
+libraryDependencies += "edu.ucar" % "cdm" % "4.5.5"

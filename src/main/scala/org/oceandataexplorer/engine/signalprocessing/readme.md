@@ -1,12 +1,12 @@
 # Signal Processing package documentation
 
-This programenr-oriented documentation describes our scala implementation of the following signal processing tools and features
+This programmer-oriented documentation describes our scala implementation of the following signal processing tools and features
 - Windowing functions (e.g., Hamming)
 - Spectrum (using Fast Fourier Transform)
 - Power Spectral Density and Power spectrum (using periodogram and Welch estimations)
 - Energy (e.g., root mean square (rms) measure or Sound Pressure Level, i.e., log-scaling rms)
 
-and provides a step-by-setp tutorial code example to compute them. Note that these functions are basic tools and features in acoustic signal processing, and more widely in Fourier-based spectral analysis.
+and provides a step-by-step tutorial code example to compute them. Note that these functions are basic tools and features in acoustic signal processing, and more widely in Fourier-based spectral analysis.
 
 ## Glossary
 

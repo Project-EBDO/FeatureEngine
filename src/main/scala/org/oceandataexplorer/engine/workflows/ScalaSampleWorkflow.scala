@@ -97,6 +97,7 @@ class ScalaSampleWorkflow
    * @param soundSamplingRate Sound's soundSamplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundCalibrationFactor The calibration factor for raw sound calibration
    * @param soundStartDate The starting date of the sound file
    * @return A map that contains all basic features as RDDs
    */
@@ -105,7 +106,8 @@ class ScalaSampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundStartDate: String = "1970-01-01T00:00:00.000Z"
+    soundStartDate: String = "1970-01-01T00:00:00.000Z",
+    soundCalibrationFactor: Double = 1.0
   ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
     val records = readRecords(
@@ -115,6 +117,7 @@ class ScalaSampleWorkflow
       soundSampleSizeInBits,
       soundStartDate)
 
+    val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
     val segmentationClass = new Segmentation(windowSize, windowOverlap)
     val hammingClass = new HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
@@ -128,7 +131,8 @@ class ScalaSampleWorkflow
     val energyClass = new Energy(nfft)
 
     val ffts = records
-      .map{case (idx, channels) =>(idx, channels.map(segmentationClass.compute))}
+      .map{case (idx, channels) => (idx, channels.map(soundCalibrationClass.compute))}
+      .map{case (idx, channels) => (idx, channels.map(segmentationClass.compute))}
       .map{case (idx, channels) => (idx, channels.map(_.map(hammingClass.applyToSignal)))}
       .map{case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
 
@@ -144,11 +148,8 @@ class ScalaSampleWorkflow
     val spls = welchs.map{
       case (idx, channels) => (idx, Array(channels.map(energyClass.computeSPLFromPSD)))}
 
-    Map(
-      "ffts" -> Left(ffts),
-      "periodograms" -> Left(periodograms),
-      "welchs" -> Right(welchs),
-      "tols" -> Right(tols),
+    Map("ffts" -> Left(ffts), "periodograms" -> Left(periodograms),
+      "welchs" -> Right(welchs), "tols" -> Right(tols),
       "spls" -> Right(spls))
   }
 }

@@ -193,6 +193,7 @@ class SampleWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundCalibrationFactor The calibration factor for raw sound calibration
    * @return A map that contains all basic features as RDDs
    */
   def apply(
@@ -200,7 +201,8 @@ class SampleWorkflow
     soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundCalibrationFactor: Double = 1.0
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
     val records = readWavRecords(soundsUri,
@@ -209,6 +211,7 @@ class SampleWorkflow
       soundChannels,
       soundSampleSizeInBits)
 
+    val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
     val segmentationClass = new Segmentation(windowSize, windowOverlap)
     val fftClass = new FFT(nfft, 1.0f)
     val hammingClass = new HammingWindowFunction(windowSize, Periodic)
@@ -219,7 +222,7 @@ class SampleWorkflow
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)
 
-    val ffts = records
+    val ffts = records.mapValues(chans =>chans.map(soundCalibrationClass.compute))
       .mapValues(chans => chans.map(segmentationClass.compute))
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
@@ -235,8 +238,7 @@ class SampleWorkflow
     val spls = welchs.mapValues(welchChans => welchChans.map(welchChan =>
       Array(energyClass.computeSPLFromPSD(welchChan))))
 
-    val resultMap = Map("ffts" -> Left(ffts),
-      "periodograms" -> Left(periodograms),
+    val resultMap = Map("ffts" -> Left(ffts), "periodograms" -> Left(periodograms),
       "welchs" -> Right(welchs), "spls" -> Right(spls))
 
     if (nfft >= soundSamplingRate.toInt) {

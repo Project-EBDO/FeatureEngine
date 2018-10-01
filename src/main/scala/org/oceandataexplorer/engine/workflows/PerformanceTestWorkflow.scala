@@ -148,6 +148,7 @@ class PerformanceTestWorkflow
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
+   * @param soundCalibrationFactor The calibration factor for raw sound calibration
    * @return The computed features (SPL and Welch) over the wav files given in soundsUri
    * as a DataFrame of Row(timestamp, spl, welch).
    * The channels are kept inside the tuple value to have multiple dataframe columns
@@ -158,7 +159,8 @@ class PerformanceTestWorkflow
     soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
-    soundSampleSizeInBits: Int
+    soundSampleSizeInBits: Int,
+    soundCalibrationFactor: Double = 1.0
   ): DataFrame = {
 
     val records = readWavRecords(soundsUri,
@@ -167,6 +169,7 @@ class PerformanceTestWorkflow
       soundChannels,
       soundSampleSizeInBits)
 
+    val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
     val segmentationClass = new Segmentation(windowSize, windowOverlap)
     val fftClass = new FFT(nfft, 1.0f)
     val hammingClass = new HammingWindowFunction(windowSize, Periodic)
@@ -182,7 +185,7 @@ class PerformanceTestWorkflow
     val energyClass = new Energy(nfft)
 
     val results = records
-      .mapValues(chans => chans.map(segmentationClass.compute))
+      .mapValues(chans => chans.map(soundCalibrationClass.compute).map(segmentationClass.compute))
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
       .mapValues(windowedChans => windowedChans.map(windowedChan =>
@@ -196,8 +199,7 @@ class PerformanceTestWorkflow
           Array(energyClass.computeSPLFromPSD(welchChan))))
     }
 
-    spark.createDataFrame(
-      results
+    spark.createDataFrame(results
       .sortBy(t => t._1, true, numPartitions.getOrElse(results.getNumPartitions))
       .map{ case (ts, welch, spls) => Row(new Timestamp(ts), welch, spls)},
       schema

@@ -130,4 +130,30 @@ class TestWavReader extends FlatSpec with Matchers with OdeCustomMatchers {
       new WavReader(file)
     } should have message "Input file length doesn't match computed one - probably corrupted"
   }
+
+  it should "raise an IllegalArgumentException when given chuckSize is larger than authorized" in {
+    val file: File = new File(getClass.getResource(soundFilePath1).toURI)
+    val wavReader = new WavReader(file)
+
+    val chunkSize = Int.MaxValue
+    val offset = 1024
+    val nbChunks = 10
+
+    the[IllegalArgumentException] thrownBy {
+      wavReader.readChunks(chunkSize, offset, nbChunks)
+    } should have message "chunkSize larger than authorized"
+  }
+
+  it should "raise an IllegalArgumentException when given offsetFrame is larger than file's number of frames" in {
+    val file: File = new File(getClass.getResource(soundFilePath1).toURI)
+    val wavReader = new WavReader(file)
+
+    val chunkSize = 16
+    val offset = 10000000
+    val nbChunks = 10
+
+    the[IllegalArgumentException] thrownBy {
+      wavReader.readChunks(chunkSize, offset, nbChunks)
+    } should have message "offsetFrame larger than file's number of frames"
+  }
 }

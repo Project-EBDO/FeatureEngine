@@ -161,10 +161,71 @@ class TestTOL extends FlatSpec with Matchers with OdeCustomMatchers {
     frequencyVector should rmseMatch(expectedFrequencyVector)
   }
 
+  it should "compute the right index when given a frequency and a custom study range" in {
+    val nfft = 128
+    val samplingRate = 128.0f
+    val lowFreq = Some(35.2)
+    val highFreq = Some(50.5)
+
+    val tolClass =  TOL(nfft, samplingRate, lowFreq, highFreq)
+
+    tolClass.frequencyToIndex(35.2) shouldEqual 0
+    tolClass.frequencyToIndex(36.0) shouldEqual 1
+    tolClass.frequencyToIndex(44.668359215097) shouldEqual 2
+  }
+
+  it should "compute the right index when given a frequency and the default study range" in {
+    val nfft = 128
+    val samplingRate = 128.0f
+
+    val tolClass =  TOL(nfft, samplingRate)
+
+    tolClass.frequencyToIndex(1.0) shouldEqual 0
+    tolClass.frequencyToIndex(1.123) shouldEqual 1
+    tolClass.frequencyToIndex(35.2) shouldEqual 15
+    tolClass.frequencyToIndex(50.0) shouldEqual 17
+  }
+
+  it should "raise IllegalArgumentException when given a frequency to convert" +
+    "that is outside of the custom study range" in {
+
+    val nfft = 128
+    val samplingRate = 128.0f
+    val lowFreq = Some(35.2)
+    val highFreq = Some(50.5)
+
+    val tolClass =  TOL(nfft, samplingRate, lowFreq, highFreq)
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.frequencyToIndex(1.0)
+    } should have message "Incorrect frequency (1.0) for conversion (35.2,50.5)"
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.frequencyToIndex(100.0)
+    } should have message "Incorrect frequency (100.0) for conversion (35.2,50.5)"
+  }
+
+  it should "raise IllegalArgumentException when given a frequency to convert" +
+    "that is outside of the default study range" in {
+
+    val nfft = 128
+    val samplingRate = 128.0f
+
+    val tolClass =  TOL(nfft, samplingRate)
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.frequencyToIndex(0.99)
+    } should have message "Incorrect frequency (0.99) for conversion (1.0,64.0)"
+
+    the[IllegalArgumentException] thrownBy {
+      tolClass.frequencyToIndex(100.0)
+    } should have message "Incorrect frequency (100.0) for conversion (1.0,64.0)"
+  }
+
   it should "raise IllegalArgumentException when given a mishaped PSD" in {
     val tolClass =  TOL(100, 100.0f)
 
-    the[IllegalArgumentException] thrownBy {
+    the [IllegalArgumentException] thrownBy {
       tolClass.compute(Array(1.0))
     } should have message "Incorrect PSD size (1) for TOL (51)"
   }

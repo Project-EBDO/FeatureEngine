@@ -16,8 +16,10 @@
 
 package org.oceandataexplorer.engine.workflows
 
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.SparkSession
 
+import java.sql.Timestamp
 import com.github.nscala_time.time.Imports._
 
 import org.apache.spark.SparkException
@@ -343,6 +345,26 @@ class TestSampleWorkflow extends FlatSpec
     )
 
     readRecords(0)._2(0).take(10) should rmseMatch(firstWavValues)
+  }
+
+  it should "create a DataFrame when given a RDD of AggregatedRecord" in {
+    val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
+    val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
+
+    val expectedSchema = StructType(Seq(
+      StructField("timestamp", TimestampType, nullable = true),
+      StructField("spls", MultiChannelsFeatureType, nullable = false)
+    ))
+
+    val spark = SparkSession.builder.getOrCreate
+    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
+
+    val rdd = spark.sparkContext.parallelize(Seq((10L, Array(Array(1.0)))))
+    val df = sampleWorkflow.aggRecordRDDToDF(rdd, "spls")
+
+    df.schema shouldEqual expectedSchema
+
+    df.take(1)(0).getAs[Timestamp](0).toInstant.toEpochMilli shouldEqual 10L
   }
 
   it should "raise an IllegalArgumentException when record size is not round" in {

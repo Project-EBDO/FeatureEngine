@@ -47,9 +47,6 @@ class WavReader(audioFile: File) {
   if (audioFileFormat.getType != AudioFileFormat.Type.WAVE) {
     throw new IllegalArgumentException("Input file is not wav")
   }
-  if (audioFormat.isBigEndian) {
-    throw new IllegalArgumentException("Input file is not little-endian formatted")
-  }
   if (! acceptedEncodings.contains(audioFormat.getEncoding)) {
     throw new IllegalArgumentException("Input file is not integer-PCM formatted")
   }

@@ -123,6 +123,30 @@ class TestWavReader extends FlatSpec with Matchers with OdeCustomMatchers {
     })
   }
 
+  it should "raise an IllegalArgumentException when given an unsupported file format" in {
+    val file: File = new File(getClass.getResource("/wav/aiffFormated.wav").toURI)
+
+    the[IllegalArgumentException] thrownBy {
+      new WavReader(file)
+    } should have message "Input file is not wav"
+  }
+
+  it should "raise an IllegalArgumentException when the given wav file has big endianness" in {
+    val file: File = new File(getClass.getResource("/wav/bigEndian.wav").toURI)
+
+    an[javax.sound.sampled.UnsupportedAudioFileException] should be thrownBy {
+      new WavReader(file)
+    }
+  }
+
+  it should "raise an IllegalArgumentException when the given wav file encoding is not supported" in {
+    val file: File = new File(getClass.getResource("/wav/floatEncoding.wav").toURI)
+
+    the[IllegalArgumentException] thrownBy {
+      new WavReader(file)
+    } should have message "Input file is not integer-PCM formatted"
+  }
+
   it should "raise an IllegalArgumentException when the given wav file is corrupted" in {
     val file: File = new File(getClass.getResource("/wav/sin_16kHz_2.5s_corrupted.wav").toURI)
 

@@ -43,7 +43,10 @@ class WavReader(audioFile: File) {
       (-1.0, 0.5 * ((1 << audioFormat.getSampleSizeInBits) - 1))
     }
 
-  // Check file format and length correctness
+  /** Check file format and length correctness
+   * big-endian formatted sound file are not supported, an exception will be thrown
+   * by AudioFileFormat when such sound file is encountered
+   */
   if (audioFileFormat.getType != AudioFileFormat.Type.WAVE) {
     throw new IllegalArgumentException("Input file is not wav")
   }

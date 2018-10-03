@@ -224,8 +224,8 @@ class SampleWorkflow
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
       .mapValues(windowedChans => {
-        windowedChans.map(windowedChan => windowedChan.map(fftClass.compute)))
-      }
+        windowedChans.map(windowedChan => windowedChan.map(fftClass.compute))
+      })
 
     val periodograms = ffts.mapValues(fftChans =>
       fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))

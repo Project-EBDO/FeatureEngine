@@ -117,18 +117,18 @@ class ScalaSampleWorkflow
       soundSampleSizeInBits,
       soundStartDate)
 
-    val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
-    val segmentationClass = new Segmentation(windowSize, windowOverlap)
-    val hammingClass = new HammingWindowFunction(windowSize, Periodic)
+    val soundCalibrationClass = SoundCalibration(soundCalibrationFactor)
+    val segmentationClass = Segmentation(windowSize, windowOverlap)
+    val hammingClass = HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
-    val fftClass = new FFT(nfft, soundSamplingRate)
-    val periodogramClass = new Periodogram(
+    val fftClass = FFT(nfft, soundSamplingRate)
+    val periodogramClass = Periodogram(
       nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), 1.0f
     )
-    val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
-    val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
-    val energyClass = new Energy(nfft)
+    val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
+    val tolClass = TOL(nfft, soundSamplingRate, lowFreq, highFreq)
+    val energyClass = Energy(nfft)
 
     val ffts = records
       .map{case (idx, channels) => (idx, channels.map(soundCalibrationClass.compute))}

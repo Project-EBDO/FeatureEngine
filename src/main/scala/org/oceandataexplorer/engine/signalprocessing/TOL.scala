@@ -55,18 +55,18 @@ case class TOL
   private val lowerLimit = 1.0
   // and the highest is the minimum of samplingRate / 2 and the 60th band.
   private val upperLimit = math.min(
-    samplingRate / (2.0),
+    samplingRate / 2.0,
     math.pow(10, 0.1 * 60)
   )
 
-  if (lowFreq.filter(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit)).isDefined) {
+  if (lowFreq.exists(lf => lf < lowerLimit || lf > highFreq.getOrElse(upperLimit))) {
     throw new IllegalArgumentException(
       s"Incorrect low frequency (${lowFreq.get}) for TOL "
       + s"(smaller than $lowerLimit or bigger than ${highFreq.getOrElse(upperLimit)})"
     )
   }
 
-  if (highFreq.filter(hf => hf > upperLimit || hf < lowFreq.getOrElse(lowerLimit)).isDefined) {
+  if (highFreq.exists(hf => hf > upperLimit || hf < lowFreq.getOrElse(lowerLimit))) {
     throw new IllegalArgumentException(
       s"Incorrect high frequency (${highFreq.get}) for TOL "
       + s"(higher than $upperLimit or smaller than ${lowFreq.getOrElse(lowerLimit)})"
@@ -83,7 +83,7 @@ case class TOL
     // See https://en.wikipedia.org/wiki/Octave_band#Base_10_calculation
     (0 to 60)
       // convert third octaves indicies to the frequency of the center of their band
-      .map(toIndex => math.pow(10, (0.1 * toIndex)))
+      .map(toIndex => math.pow(10, 0.1 * toIndex))
       // scalastyle:on magic.number
       // convert center frequency to a tuple of (lowerBoundFrequency, upperBoundFrequency)
       .map(toCenter => (toCenter / tocScalingFactor, toCenter * tocScalingFactor))
@@ -149,7 +149,7 @@ case class TOL
   override lazy val frequencyVector: Array[Double] = {
     val frequencyVector = new Array[Double](thirdOctaveBandBounds.length + 1)
 
-    (0 until thirdOctaveBandBounds.length).foreach(i =>
+    thirdOctaveBandBounds.indices.foreach(i =>
       frequencyVector(i) = indexToFrequency(i)
     )
 

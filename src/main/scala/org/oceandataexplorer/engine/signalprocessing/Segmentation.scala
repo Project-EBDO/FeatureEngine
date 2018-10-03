@@ -43,7 +43,7 @@ case class Segmentation(windowSize: Int, windowOverlap: Int = 0) extends Seriali
   /**
    * The window offset, derived from windowSize and overlap
    */
-  val offset = windowSize - windowOverlap
+  val offset: Int = windowSize - windowOverlap
 
   /**
    * Funtion segmenting a signal and droping incomplete windows
@@ -61,12 +61,12 @@ case class Segmentation(windowSize: Int, windowOverlap: Int = 0) extends Seriali
     }
     // nWindows is the number of complete windows that will be generated
     val nWindows: Int = 1 + (signal.length - windowSize) / offset
-    val segmentedSignal: Array[Array[Double]] = Array.ofDim[Double](nWindows, windowSize)
+    val windows: Array[Array[Double]] = Array.ofDim[Double](nWindows, windowSize)
 
     Range(0, nWindows).foreach(i => {
-      Array.copy(signal, i * offset, segmentedSignal(i), 0, windowSize)
+      Array.copy(signal, i * offset, windows(i), 0, windowSize)
     })
 
-    segmentedSignal
+    windows
   }
 }

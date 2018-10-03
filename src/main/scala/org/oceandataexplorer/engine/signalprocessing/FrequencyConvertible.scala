@@ -30,7 +30,7 @@ trait FrequencyConvertible extends Serializable {
   /**
    * Parity of the fft-computation window
    */
-  val nfftEven = nfft % 2 == 0
+  val nfftEven: Boolean = nfft % 2 == 0
 
   /**
    * The number of points in a spectrum. An array used to store a spectrum is

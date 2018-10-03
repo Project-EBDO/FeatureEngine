@@ -205,29 +205,26 @@ class SampleWorkflow
     soundCalibrationFactor: Double = 1.0
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
-    val records = readWavRecords(soundsUri,
-      soundsNameAndStartDate,
-      soundSamplingRate,
-      soundChannels,
-      soundSampleSizeInBits)
+    val records = readWavRecords(soundsUri, soundsNameAndStartDate,
+      soundSamplingRate, soundChannels, soundSampleSizeInBits
+    )
 
-    val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
-    val segmentationClass = new Segmentation(windowSize, windowOverlap)
-    val fftClass = new FFT(nfft, soundSamplingRate)
-    val hammingClass = new HammingWindowFunction(windowSize, Periodic)
+    val soundCalibrationClass = SoundCalibration(soundCalibrationFactor)
+    val segmentationClass = Segmentation(windowSize, windowOverlap)
+    val fftClass = FFT(nfft, soundSamplingRate)
+    val hammingClass = HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
-
     val psdNormalizationFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
-    val periodogramClass = new Periodogram(nfft, psdNormalizationFactor, soundSamplingRate)
-    val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
-    val energyClass = new Energy(nfft)
+    val periodogramClass = Periodogram(nfft, psdNormalizationFactor, soundSamplingRate)
+    val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
+    val energyClass = Energy(nfft)
 
-    val ffts = records.mapValues(chans =>chans.map(soundCalibrationClass.compute))
+    val ffts = records.mapValues(chans => chans.map(soundCalibrationClass.compute))
       .mapValues(chans => chans.map(segmentationClass.compute))
       .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
         signalSegment.map(hammingClass.applyToSignal)))
-      .mapValues(windowedChans => windowedChans.map(windowedChan =>
-        windowedChan.map(fftClass.compute)))
+      .mapValues(windowedChans =>
+        windowedChans.map(windowedChan => windowedChan.map(fftClass.compute)))
 
     val periodograms = ffts.mapValues(fftChans =>
       fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
@@ -242,9 +239,11 @@ class SampleWorkflow
       "welchs" -> Right(welchs), "spls" -> Right(spls))
 
     if (nfft >= soundSamplingRate.toInt) {
-      val tolClass = new TOL(nfft, soundSamplingRate, lowFreq, highFreq)
+      val tolClass = TOL(nfft, soundSamplingRate, lowFreq, highFreq)
       val tols = welchs.mapValues(welchChans => welchChans.map(tolClass.compute))
       resultMap ++ Map("tols" -> Right(tols))
-    } else {resultMap}
+    } else {
+      resultMap
+    }
   }
 }

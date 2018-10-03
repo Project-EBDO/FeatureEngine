@@ -18,7 +18,8 @@ package org.oceandataexplorer.engine.tmp
 
 import org.apache.spark.sql.SparkSession
 
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
+import scala.reflect.runtime.universe._
 import ucar.nc2.NetcdfFile
 import ucar.ma2.Section
 
@@ -83,17 +84,17 @@ class TestReadingNetcdf extends FlatSpec
         actual shouldEqual expected
       }
 
-    val expectedWind = (0 until 20 by 1).toArray.map(t =>
+    val expectedWind = (0 until 20 by 1).toArray.flatMap(t =>
       (-10.0f to -1.0f by 1.0f).toArray.map(lon =>
         (1.0f to 10.0f by 1.0f).toArray.map(lat =>
           math.cos(t) * math.sin(lat * lon)
         )
       )
-    ).flatten.flatten
+    ).flatten
 
     val wind = windIntensity
-      .map(timeSlice => timeSlice.map(lonSlice => lonSlice.map(_.toDouble)))
-      .flatten.flatten
+      .flatMap(timeSlice => timeSlice.map(lonSlice => lonSlice.map(_.toDouble)))
+      .flatten
 
     // high rmse because values were saved as Float
     wind should rmseMatch(expectedWind)
@@ -124,26 +125,32 @@ class TestReadingNetcdf extends FlatSpec
         range}
       )
 
+      // define the TypeTag of the read object at compile time
+      // next step is to find a way to instantiate it dynamically
+      val typetag = typeTag[Array[Array[Array[Float]]]]
+      def cast[A](a: Any, tt: TypeTag[A]): A = a.asInstanceOf[A]
+
       // Netcdf-java lib classes' are not serializable ...
-      NetcdfFile.open(testNcFilePath)
+      val windObject = NetcdfFile.open(testNcFilePath)
         .getRootGroup.getVariables.asScala
         .find(v => v.getName == "wind_intensity").get
         .read(s)
         .copyToNDJavaArray
         // type information with .getClass.getTypeName
-        .asInstanceOf[Array[Array[Array[Float]]]]
+
+      cast(windObject, typetag)
     }
     .collect()
-    .map(timeSlice => timeSlice.map(lonSlice => lonSlice.map(_.toDouble)))
-    .flatten.flatten
+    .flatMap(timeSlice => timeSlice.map(lonSlice => lonSlice.map(_.toDouble)))
+    .flatten
 
-    val expectedWind = (0 until 20 by 1).toArray.map(t =>
+    val expectedWind = (0 until 20 by 1).toArray.flatMap(t =>
       (-10.0f to -1.0f by 1.0f).toArray.map(lon =>
         (1.0f to 10.0f by 1.0f).toArray.map(lat =>
           math.cos(t) * math.sin(lat * lon)
         )
       )
-    ).flatten.flatten
+    ).flatten
 
     wind should rmseMatch(expectedWind)
   }

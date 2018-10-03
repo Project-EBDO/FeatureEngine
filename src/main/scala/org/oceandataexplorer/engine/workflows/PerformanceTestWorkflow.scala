@@ -171,15 +171,12 @@ class PerformanceTestWorkflow
 
     val soundCalibrationClass = new SoundCalibration(soundCalibrationFactor)
     val segmentationClass = new Segmentation(windowSize, windowOverlap)
-    val fftClass = new FFT(nfft, 1.0f)
+    val fftClass = new FFT(nfft, soundSamplingRate)
     val hammingClass = new HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
 
-    val periodogramClass = new Periodogram(
-      nfft,
-      1.0/(soundSamplingRate*hammingNormalizationFactor),
-      soundSamplingRate
-    )
+    val psdNormalizationFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
+    val periodogramClass = new Periodogram(nfft, psdNormalizationFactor, soundSamplingRate)
 
     val welchClass = new WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = new Energy(nfft)

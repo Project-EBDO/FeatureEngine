@@ -110,7 +110,8 @@ class TestReadingNetcdf extends FlatSpec
     val vars = ncf.getRootGroup.getVariables.asScala
     val windIntensity = vars.find(v => v.getName == "wind_intensity").get
 
-    val dims = windIntensity.getShape.toArray
+    // in this example, dims = Array(20, 10, 10)
+    val dims = windIntensity.getShape
 
     val numPartitions = 5
 
@@ -125,11 +126,6 @@ class TestReadingNetcdf extends FlatSpec
         range}
       )
 
-      // define the TypeTag of the read object at compile time
-      // next step is to find a way to instantiate it dynamically
-      val typetag = typeTag[Array[Array[Array[Float]]]]
-      def cast[A](a: Any, tt: TypeTag[A]): A = a.asInstanceOf[A]
-
       // Netcdf-java lib classes' are not serializable ...
       val windObject = NetcdfFile.open(testNcFilePath)
         .getRootGroup.getVariables.asScala
@@ -137,6 +133,11 @@ class TestReadingNetcdf extends FlatSpec
         .read(s)
         .copyToNDJavaArray
         // type information with .getClass.getTypeName
+
+      // define the TypeTag of the read object at compile time
+      // next step is to find a way to instantiate it dynamically
+      val typetag = typeTag[Array[Array[Array[Float]]]]
+      def cast[A](a: Any, tt: TypeTag[A]): A = a.asInstanceOf[A]
 
       cast(windObject, typetag)
     }

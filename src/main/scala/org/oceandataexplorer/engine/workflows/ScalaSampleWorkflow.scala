@@ -77,7 +77,7 @@ class ScalaSampleWorkflow
     val recordSize = (recordDurationInSec * soundSamplingRate).toInt
     val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
 
-    // drop last record if imcomplete
+    // drop last record if incomplete
     val completeChunks = if (chunks.head.head.length != chunks.last.last.length) {
       chunks.dropRight(1)
     } else {
@@ -86,7 +86,7 @@ class ScalaSampleWorkflow
 
     completeChunks.zipWithIndex
       .map{case (record, idx) =>
-        (startTime + ((1000.0f * idx * recordSize).toFloat / soundSamplingRate).toLong, record)
+        (startTime + (1000.0f * idx * recordSize / soundSamplingRate).toLong, record)
       }.toArray
   }
 

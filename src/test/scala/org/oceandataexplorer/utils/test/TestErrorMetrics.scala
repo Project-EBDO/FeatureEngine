@@ -165,6 +165,15 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     } should have message "The given records' number of channels don't match"
   }
 
+  it should "raise an IllegalArgumentException when the given SegmentedRecord number of records don't match" in {
+    val segRecA: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
+    val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))), (100L, Array(Array(Array(1.0)))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(segRecA, segRecB)
+    } should have message "The given sequences' sizes don't match"
+  }
+
   it should "raise an IllegalArgumentException when the given SegmentedRecord number of segments don't match" in {
     val segRecA: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0)))))
     val segRecB: Array[SegmentedRecord] = Array((100L, Array(Array(Array(1.0), Array(2.0)))))
@@ -174,8 +183,6 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     } should have message "The given records' number of segment don't match"
   }
 
-
-
   it should "raise an IllegalArgumentException when the given AggregatedRecord keys don't match" in {
     val aggRecA: Array[AggregatedRecord] = Array((101L, Array(Array(1.0))))
     val aggRecB: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))))
@@ -183,6 +190,15 @@ class TestErrorMetrics extends FlatSpec with Matchers {
     the[IllegalArgumentException] thrownBy {
       ErrorMetrics.rmse(aggRecA, aggRecB)
     } should have message "The given records' keys don't match"
+  }
+
+  it should "raise an IllegalArgumentException when the given AggregatedRecord number of records don't match" in {
+    val aggRecA: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))))
+    val aggRecB: Array[AggregatedRecord] = Array((100L, Array(Array(1.0))), (100L, Array(Array(1.0))))
+
+    the[IllegalArgumentException] thrownBy {
+      ErrorMetrics.rmse(aggRecA, aggRecB)
+    } should have message "The given sequences' sizes don't match"
   }
 
   it should "raise an IllegalArgumentException when the given AggregatedRecord number of channels don't match" in {

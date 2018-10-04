@@ -53,7 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.module" % "jackson-module-scala_2.
 
 // Test dependencies
 // https://mvnrepository.com/artifact/org.scalatest/scalatest_2.11
-libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.5" % "test"
+libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.5"
 // https://mvnrepository.com/artifact/com.holdenkarau/spark-testing-base_2.11
 libraryDependencies += "com.holdenkarau" % "spark-testing-base_2.11" % "2.3.1_0.10.0" % "test"
 

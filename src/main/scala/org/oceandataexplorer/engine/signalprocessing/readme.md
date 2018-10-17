@@ -40,19 +40,21 @@ properties of windowing and overlap.
 
 #### General
 
-- `fs` - sampling frequency (in Hz)
+- `fs` - raw signal sampling frequency (in Hz)
+
+_Note: in the later, one sample acconts for 1/fs second_
 
 #### Segmentation
 
 - `segmentSize` - size of a segment, i.e., time scale of the first segmentation level (in seconds)
 - `windowSize` - size of a window, i.e., time scale of the second segmentation level (in samples)
 - `windowOverlap` - number of samples that two consecutive windows have in common (in samples)
-- `windowOffset` - distance in samples between two consecutive windows (in samples)
+- `windowOffset` - distance in samples between two consecutive windows (in samples, relates to windowOverlap: windowOffset = windowSize -windowOverlap)
 
 #### Feature
 
-- `nfft` - number of points in the FFT. Must be a multiple of 128 (in samples)
-- `spectrumSize` - size of the one-sided spectarum (in samples)
+- `nfft` - number of points in the FFT (in samples). `nfft` being a power of 2 speeds up the computation
+- `spectrumSize` - size of the one-sided spectrum (in samples)
 - `lowFreqTOL` - lower bound of the study range for TOL (in Hz)
 - `highFreqTOL` - upper bound of the study range for TOL (in Hz)
 - `frequencyVector` - frequency vector associated with either a `spectrum`, a `powerSpectrum` or a `powerSpectralDensity` (in Hz)
@@ -96,7 +98,8 @@ _All variables are defined in samples, it can't be specified in seconds for inst
 Here is an example of how to use this class:
 
 ```scala
-val segmentationClass = new Segmentation(windowSize, windowOverlap)
+// 75% overlap here
+val segmentationClass = new Segmentation(windowSize=400, windowOverlap=300)
 val windows: Array[Double] = segmentationClass.compute(signal)
 ```
 
@@ -123,9 +126,9 @@ So far, HammingWindow is the only SpectralWindow implemented.
 Here is an example of how to use it:
 
 ```scala
-val hammingClass = new HammingWindow(signalSize, Periodic)
+val hammingClass = new HammingWindow(signalSize=400, Periodic)
 val windowedSignal: Array[Double] = hammingClass.applyToSignal(signal)
-val hammingNormalizationFactor: Double = hammingClass.normalizationFactor(alpha)
+val hammingNormalizationFactor: Double = hammingClass.normalizationFactor(alpha=1.0)
 ```
 
 ### FFT
@@ -146,7 +149,7 @@ Here is an example of how to use this class:
 
 ```scala
 // signal is an Array[Double] containing real values
-val fftClass = new FFT(nfft, fs)
+val fftClass = new FFT(nfft=256, fs=32768.0f)
 val fft: Array[Double] = fftClass.compute(signal)
 ```
 
@@ -155,9 +158,9 @@ val fft: Array[Double] = fftClass.compute(signal)
  The periodogram estimates the **Power Spectrum** based on **spectrum**, i.e.,
 `abs(spectrum) ^ 2`.
 
-This class takes **nfft** and **normalizationFactor** as parameters. Thus, an
-instance of Periodogram computes power spectrum over one-sided spectrum of size
-`nfft+2/nfft+1`.
+This class takes **nfft** and **normalizationFactor** as parameters.
+Periodogram computes power spectrum over one-sided spectrum of size
+`nfft+2` or `nfft+1`.
 
 Depending on the `normalizationFactor` value, we can then compute the normalized
 **Power Spectrum** (simply called power spectrum), with `normalizationFactor =
@@ -167,7 +170,8 @@ Depending on the `normalizationFactor` value, we can then compute the normalized
 Here is an example of how to use this class:
 
 ```scala
-val periodogramClass = new Periodogram(nfft, normalizationFactor, fs)
+val periodogramClass = new Periodogram(nfft=256,
+  normalizationFactor=1.0/(fs * hammingNormalizationFactor), fs=32768.0f)
 val periodogram: Array[Double] = periodogramClass.compute(fft)
 ```
 
@@ -179,12 +183,12 @@ periodograms should be normalized before being given to this class (i.e.,
 Periodogram class should have been given the right `normalizationFactor`).
 
 This class takes **nfft** as parameter and expects periodograms of size
-`nfft+2/nfft+1`.
+`nfft+2` or `nfft+1`.
 
 Here is an example of how to use this class:
 
 ```scala
-val welchClass = new WelchSpectralDensity(nfft, fs)
+val welchClass = new WelchSpectralDensity(nfft=256, fs=32768.0f)
 val welch: Array[Double] = welchClass.compute(fft)
 ```
 
@@ -203,13 +207,16 @@ decibel measure in log scale, called Sound Pressure Level.
 Here is an example of how to use this class:
 
 ```scala
-val energyClass = new Energy(nfft)
+val energyClass = new Energy(nfft=256)
 val energyRawFromSignal: Array[Double] =
   energyClass.computeRawFromRawSignal(signal)
 val energySPLFromFFT: Array[Double] = energyClass.computeSPLFromFFT(fft)
 ```
 
 ## Full example
+
+_This example demonstrates a use of the signal processing package using a single
+level of segmentation_
 
 ```scala
 import org.oceandataexplorer.engine.signalprocessing._

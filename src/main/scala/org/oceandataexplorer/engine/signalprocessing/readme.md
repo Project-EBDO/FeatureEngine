@@ -30,6 +30,7 @@ properties of windowing and overlap.
 - `spectrum` - spectral estimate of an input signal based on the Fast Fourier Transform
 - `powerSpectrum` - power spectral estimate based on the squared amplitude of `spectrum`. The power spectrum of a timeserie describes the distribution of power into frequency components composing that signal
 - `powerSpectralDensity` - spectral density estimate based on a normalization by the sample frequency of `powerSpectrum`, so it refers to the spectral energy distribution that would be found per unit of time. See [here](https://en.wikipedia.org/wiki/Spectral_density) for more details
+- `tols` - power spectral estimate integrated over a third-octave filter, based on `powerSpectrum`
 - `energy` - energy measure of the input signal, i.e., root mean square (rms) measure or Sound Pressure Level (log-scaling rms)
 
 ### Variables

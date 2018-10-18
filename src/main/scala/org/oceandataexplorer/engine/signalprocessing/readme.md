@@ -209,6 +209,10 @@ val welchClass = new WelchSpectralDensity(nfft=256, fs=32768.0f)
 val welch: Array[Double] = welchClass.compute(fft)
 ```
 
+### TOL
+
+_Will be documented soon._
+
 ### Energy
 
  The Energy class provides functions to compute the root-mean-square (rms)

@@ -8,18 +8,15 @@ following signal processing tools and features:
 - Power Spectral Density and Power spectrum (using periodogram and Welch estimations)
 - Energy (e.g., root mean square (rms) measure or Sound Pressure Level, i.e., log-scaling rms)
 
-It also provides a step-by-step code tutorial to use them. Note that
-these functions are basic tools and features in acoustic signal processing, and
-more widely in Fourier-based spectral analysis.
+It also provides a step-by-step code tutorial to use them.
 
 ## Glossary
 
 ### Two-level segmentation
 
-When given an input signal, two successive levels of temporal segmentation can
-be applied, corresponding to two different time scales of analysis.
+When given an input signal, two successive levels of temporal segmentation are applied, corresponding to two different time scales of analysis.
 
-- `first level` - this first segmentation divides the input signal into shorter `segments` of `segmentSize`, defined in seconds. The input signal being a `Array[Double]` becomes a `Array[Array[Double]]`, i.e., an array of `segments`. It enforces the granularity of "integrating features" like `Welch`, `SPL` and `TOL` (e.g., if the input signal is segmented into `segments` of 1s, we will have one `SPL` each second)
+- `first level` - this first segmentation divides the input signal into shorter `segments` of `segmentSize`, defined in seconds or in number of samples. The input signal being a `Array[Double]` becomes a `Array[Array[Double]]`, i.e., an array of `segments`. It enforces the granularity of "integrating features" like `Welch`, `SPL` and `TOL` (e.g., if the input signal is segmented into `segments` of 1s, we will have one `SPL` each second)
 
 - `second level` - this second level divides each segment into shorter `windows` of `windowSize`, defined in signal-samples. Windows correspond to the standard segmentation for short-term Fourier analysis, enforcing the granularity of the `spectrum` feature
 
@@ -41,7 +38,7 @@ properties of windowing and overlap.
 
 - `fs` - raw signal sampling frequency (in Hz)
 
-_Note: in the later, one sample acconts for 1/fs second_
+_Note: in the later, one signal sample accounts for 1/fs second_
 
 #### Segmentation
 

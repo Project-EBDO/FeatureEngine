@@ -221,7 +221,7 @@ energy or Sound Pressure Level of a signal by using either the raw signal, the
 one-sided spectrum or the PSD (welch or periodogram) over it.
 
 This class takes **nfft** as parameter and expects spectrum and PSD of length
-nfft+2/nfft+1
+nfft+2 or nfft+1
 
 The energy can either be returned as a raw measure in linear scale or as a
 decibel measure in log scale, called Sound Pressure Level.

@@ -55,7 +55,7 @@ class SoundHandler:
     def read(self):
         sig, fs = soundfile.read("../../sounds/" + self.fileName)
 
-        assert(self.sampleRate)
+        assert(self.sampleRate == fs)
         assert(len(sig) == self.sampleNumber)
 
         return sig, fs

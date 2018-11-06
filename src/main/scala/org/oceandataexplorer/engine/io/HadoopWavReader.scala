@@ -19,12 +19,12 @@ package org.oceandataexplorer.engine.io
 
 import java.net.URI
 
-import com.github.nscala_time.time.Imports
+import LastRecordAction.{Fail, Fill, LastRecordAction, Skip}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.rdd.{NewHadoopRDD, RDD}
 import org.apache.hadoop.mapreduce.lib.input.FileSplit
 import org.apache.hadoop.io.{DoubleWritable, LongWritable}
 import org.oceandataexplorer.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
-import org.apache.spark.sql.SparkSession
 import org.oceandataexplorer.engine.workflows.Record
 import com.github.nscala_time.time.Imports._
 
@@ -40,7 +40,7 @@ class HadoopWavReader
 (
   val spark: SparkSession,
   val recordDurationInSec: Float,
-  val lastRecordAction: String = "skip"
+  val lastRecordAction: LastRecordAction = Skip
 ) {
 
   /**
@@ -69,9 +69,9 @@ class HadoopWavReader
 
     val recordSizeInFrame = soundSamplingRate * recordDurationInSec
 
-    sanitizeInput(soundsNameAndStartDate, recordSizeInFrame)
+    validateInput(soundsNameAndStartDate, recordSizeInFrame)
 
-    val hadoopConf = hadoopSetup(
+    val hadoopConf = setupConf(
       soundSamplingRate, soundChannels, soundSampleSizeInBits, recordSizeInFrame.toInt
     )
 
@@ -130,9 +130,9 @@ class HadoopWavReader
   }
 
   /**
-   * Method configuring hadoop for [[readWavRecords]]
+   * Method configuring the [[WavPcmInputFormat]] through hadoop configuration parameters
    */
-  private def hadoopSetup(
+  private def setupConf(
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
@@ -144,7 +144,14 @@ class HadoopWavReader
     WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
     WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
     WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame)
-    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
+
+    val lastRecordActionString = lastRecordAction match {
+      case Skip => "skip"
+      case Fail => "fail"
+      case Fill => "fill"
+    }
+
+    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordActionString)
 
     hadoopConf
   }
@@ -153,8 +160,8 @@ class HadoopWavReader
   /**
    * Method checking on [[readWavRecords]] arguments
    */
-  private def sanitizeInput(
-    soundsNameAndStartDate: List[(String, Imports.DateTime)],
+  private def validateInput(
+    soundsNameAndStartDate: List[(String, DateTime)],
     recordSizeInFrame: Float
   ){
     if (recordSizeInFrame % 1 != 0.0f) {

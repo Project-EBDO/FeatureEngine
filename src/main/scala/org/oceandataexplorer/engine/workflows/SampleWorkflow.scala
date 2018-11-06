@@ -16,18 +16,15 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import java.net.URI
 
-import org.apache.hadoop.io.{DoubleWritable, LongWritable}
-import org.oceandataexplorer.hadoop.io.{TwoDDoubleArrayWritable, WavPcmInputFormat}
-import org.apache.hadoop.mapreduce.lib.input.FileSplit
+import org.oceandataexplorer.engine.io.HadoopWavReader
+import org.oceandataexplorer.engine.io.LastRecordAction._
 
-import org.apache.spark.rdd.{RDD, HadoopRDD, NewHadoopRDD}
-import org.apache.spark.sql.{SparkSession, DataFrame, Row}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{SparkSession, DataFrame, Row}
 
 import com.github.nscala_time.time.Imports._
-import org.joda.time.Days
 import java.sql.Timestamp
 
 import org.oceandataexplorer.engine.signalprocessing._
@@ -61,101 +58,11 @@ class SampleWorkflow
   val nfft: Int,
   val lowFreq: Option[Double] = None,
   val highFreq: Option[Double] = None,
-  val lastRecordAction: String = "skip"
+  val lastRecordAction: LastRecordAction = Skip
 ) {
 
-  /**
-   * Function used to read wav files inside a Spark workflow
-   *
-   * @todo pass sounds path instead of names in soundsNameAndStartDate to avoid duplicate when
-   * files have the same name but different path
-   * @todo read only the files of the list
-   *
-   * @param soundsUri URI-like string pointing to the wav files
-   * (Unix globbing is allowed, file:///tmp/{sound0,sound1}.wav is a valid soundsUri)
-   * @param soundsNameAndStartDate A list containing all files names
-   * and their start date as a DateTime
-   * @param soundSamplingRate Sound's sampling rate
-   * @param soundChannels Sound's number of channels
-   * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @return The records that contains wav's data
-   */
-  def readWavRecords(
-    soundsUri: String,
-    soundsNameAndStartDate: List[(String, DateTime)],
-    soundSamplingRate: Float,
-    soundChannels: Int,
-    soundSampleSizeInBits: Int
-  ): RDD[Record] = {
+  private val hadoopWavReader = new HadoopWavReader(spark, recordDurationInSec, lastRecordAction)
 
-    val recordSizeInFrame = soundSamplingRate * recordDurationInSec
-
-    if (recordSizeInFrame % 1 != 0.0f) {
-      throw new IllegalArgumentException(
-        s"Computed record size ($recordSizeInFrame) should not have a decimal part.")}
-
-    val soundNames = soundsNameAndStartDate.map(_._1)
-    if (soundNames.length != soundNames.distinct.length) {
-      throw new IllegalArgumentException(
-        "Sounds list contains duplicate filename entries")}
-
-    val hadoopConf = spark.sparkContext.hadoopConfiguration
-    WavPcmInputFormat.setSampleRate(hadoopConf, soundSamplingRate)
-    WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
-    WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
-    WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame.toInt)
-    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction)
-
-    spark.sparkContext.newAPIHadoopFile[LongWritable, TwoDDoubleArrayWritable, WavPcmInputFormat](
-      soundsUri,
-      classOf[WavPcmInputFormat],
-      classOf[LongWritable],
-      classOf[TwoDDoubleArrayWritable],
-      hadoopConf)
-    .asInstanceOf[NewHadoopRDD[LongWritable, TwoDDoubleArrayWritable]]
-    .mapPartitionsWithInputSplit{ (inputSplit, iterator) =>
-      val fileName: String = inputSplit.asInstanceOf[FileSplit].getPath.getName
-      val startDate = soundsNameAndStartDate.find{case (name, date) => name == fileName}.map(_._2)
-
-      if (startDate.isEmpty) {
-        throw new IllegalArgumentException(
-          s"Read file $fileName has no startDate in given list")}
-
-      iterator.map{ case (writableOffset, writableSignal) =>
-        val offsetInMillis = (startDate.get.instant.millis
-          + (1000.0f * writableOffset.get.toFloat / soundSamplingRate).toLong)
-        val signal = writableSignal.get.map(_.map(_.asInstanceOf[DoubleWritable].get))
-        (offsetInMillis, signal)
-      }
-    }
-    .asInstanceOf[RDD[Record]]
-  }
-
-  /**
-   * Wrapper function used to read a single file
-   *
-   * @param soundUri URI pointing to a wav file as a String
-   * @param soundStartDate The start date of the recording
-   * @param soundSamplingRate Sound's samplingRate
-   * @param soundChannels Sound's number of channels
-   * @param soundSampleSizeInBits The number of bits used to encode a sample
-   * @return The records that contains wav's data
-   */
-  def readWavRecords(
-    soundUri: String,
-    soundStartDate: DateTime,
-    soundSamplingRate: Float,
-    soundChannels: Int,
-    soundSampleSizeInBits: Int
-  ): RDD[Record] = {
-    readWavRecords(
-      soundUri,
-      List(((new URI(soundUri)).getPath.split("/").last, soundStartDate)),
-      soundSamplingRate,
-      soundChannels,
-      soundSampleSizeInBits
-    )
-  }
 
   /**
    * Function converting a RDD of Aggregated Records to a DataFrame
@@ -205,7 +112,7 @@ class SampleWorkflow
     soundCalibrationFactor: Double = 1.0
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
-    val records = readWavRecords(soundsUri, soundsNameAndStartDate,
+    val records = hadoopWavReader.readWavRecords(soundsUri, soundsNameAndStartDate,
       soundSamplingRate, soundChannels, soundSampleSizeInBits
     )
 

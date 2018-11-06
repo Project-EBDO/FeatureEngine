@@ -311,42 +311,6 @@ class TestSampleWorkflow extends FlatSpec
     tols should rmseMatch(expectedTOL)
   }
 
-  it should "read a single wav file" in {
-    val spark = SparkSession.builder.getOrCreate
-
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI.toString
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
-    val soundSamplingRate = 16000.0f
-
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsStartTime = new DateTime(soundStartDate)
-
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
-    val readRecords = sampleWorkflow.readWavRecords(
-      soundUri,
-      soundsStartTime,
-      soundSamplingRate,
-      soundChannels,
-      soundSampleSizeInBits
-    ).collect()
-
-    readRecords should have length 2
-    readRecords.foreach(segment =>
-      segment._2 should have length 1
-    )
-
-    val firstWavValues = Array(
-      0.00000000000000e+00,  3.82690429687500e-01,
-      7.07122802734375e-01,  9.23858642578125e-01,
-      9.99969482421875e-01,  9.23889160156250e-01,
-      7.07061767578125e-01,  3.82781982421875e-01,
-      -9.15527343750000e-05, -3.82629394531250e-01
-    )
-
-    readRecords(0)._2(0).take(10) should rmseMatch(firstWavValues)
-  }
-
   it should "create a DataFrame when given a RDD of AggregatedRecord" in {
     val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
     val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)

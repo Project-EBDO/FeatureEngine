@@ -144,14 +144,7 @@ class HadoopWavReader
     WavPcmInputFormat.setChannels(hadoopConf, soundChannels)
     WavPcmInputFormat.setSampleSizeInBits(hadoopConf, soundSampleSizeInBits)
     WavPcmInputFormat.setRecordSizeInFrames(hadoopConf, recordSizeInFrame)
-
-    val lastRecordActionString = lastRecordAction match {
-      case Skip => "skip"
-      case Fail => "fail"
-      case Fill => "fill"
-    }
-
-    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordActionString)
+    WavPcmInputFormat.setPartialLastRecordAction(hadoopConf, lastRecordAction.toString)
 
     hadoopConf
   }

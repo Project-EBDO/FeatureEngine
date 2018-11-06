@@ -35,17 +35,38 @@ package object io {
     /**
      * - Skip: any incomplete record will be dropped
      */
-    case object Skip extends LastRecordAction
+    case object Skip extends LastRecordAction {
+      /**
+       * Method allowing to get the string that corresponds to the
+       * LastRecordAction for hadoop-io-extensions
+       * @return The corresponding LastRecordAction as a String
+       */
+      override def toString: String = "skip"
+    }
 
     /**
      * - Fail: if a incomplete record is encountered, the record reader fails
      */
-    case object Fail extends LastRecordAction
+    case object Fail extends LastRecordAction {
+      /**
+       * Method allowing to get the string that corresponds to the
+       * LastRecordAction for hadoop-io-extensions
+       * @return The corresponding LastRecordAction as a String
+       */
+      override def toString: String = "fail"
+    }
 
     /**
      * - Fill: any incomplete record will be filled with zeros
      */
-    case object Fill extends LastRecordAction
+    case object Fill extends LastRecordAction {
+      /**
+       * Method allowing to get the string that corresponds to the
+       * LastRecordAction for hadoop-io-extensions
+       * @return The corresponding LastRecordAction as a String
+       */
+      override def toString: String = "fill"
+    }
   }
 }
 

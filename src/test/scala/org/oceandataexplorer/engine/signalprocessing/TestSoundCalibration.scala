@@ -31,10 +31,10 @@ class TestSoundCalibration extends FlatSpec with Matchers with OdeCustomMatchers
 
   it should "calibrate a raw sound" in {
     val signal = Array(-1.1, 1.2, 1.3)
-    val expectedCalibratedSignal = Array(-2.2, 2.4, 2.6)
+    val expectedCalibratedSignal = Array(-1.384817952973584, 1.5107104941530005, 1.6366030353324175)
 
-    val calibrationFactor = 2.0
-    val calibrationClass = new SoundCalibration(calibrationFactor)
+    val calibrationFactor = -2.0
+    val calibrationClass = SoundCalibration(calibrationFactor)
 
     val calibratedSignal = calibrationClass.compute(signal)
 
@@ -43,11 +43,7 @@ class TestSoundCalibration extends FlatSpec with Matchers with OdeCustomMatchers
 
   it should "raise an IllegalArgumentException when given a wrong calibrationFactor" in {
     the[IllegalArgumentException] thrownBy {
-      new SoundCalibration(0.0)
-    } should have message "Incorrect calibration factor (0.0) for SoundCalibration"
-
-    the[IllegalArgumentException] thrownBy {
-      new SoundCalibration(-1.0)
-    } should have message "Incorrect calibration factor (-1.0) for SoundCalibration"
+      SoundCalibration(1.0)
+    } should have message "Incorrect calibration factor (1.0) for SoundCalibration"
   }
 }

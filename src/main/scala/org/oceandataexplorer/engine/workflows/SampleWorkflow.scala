@@ -202,7 +202,7 @@ class SampleWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundCalibrationFactor: Double = 1.0
+    soundCalibrationFactor: Double = 0.0
   ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
 
     val records = readWavRecords(soundsUri, soundsNameAndStartDate,

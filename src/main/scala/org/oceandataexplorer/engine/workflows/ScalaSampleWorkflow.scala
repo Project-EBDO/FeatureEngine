@@ -107,7 +107,7 @@ class ScalaSampleWorkflow
     soundChannels: Int,
     soundSampleSizeInBits: Int,
     soundStartDate: String = "1970-01-01T00:00:00.000Z",
-    soundCalibrationFactor: Double = 1.0
+    soundCalibrationFactor: Double = 0.0
   ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
 
     val records = readRecords(

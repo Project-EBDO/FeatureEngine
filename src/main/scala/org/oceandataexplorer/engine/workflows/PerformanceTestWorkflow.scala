@@ -160,7 +160,7 @@ class PerformanceTestWorkflow
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
-    soundCalibrationFactor: Double = 1.0
+    soundCalibrationFactor: Double = 0.0
   ): DataFrame = {
 
     val records = readWavRecords(soundsUri,

@@ -22,10 +22,12 @@ package org.oceandataexplorer.engine.signalprocessing
  *
  * @author Alexandre Degurse
  *
- * @param calibrationFactor The calibration factor for raw sound calibration
+ * @param calibrationFactor The calibration factor corresponding to the hydrophone
+ * sensitivity (typically in dB ref 1 V/ μ Pa, with negative values for underwater
+ * measurements).
  */
 case class SoundCalibration(calibrationFactor: Double) extends Serializable {
-  if (calibrationFactor <= 0.0) {
+  if (calibrationFactor > 0.0) {
     throw new IllegalArgumentException(
       s"Incorrect calibration factor ($calibrationFactor) for SoundCalibration"
     )
@@ -37,5 +39,6 @@ case class SoundCalibration(calibrationFactor: Double) extends Serializable {
    * @param rawSignal The signal to be calibrated as a Array[Double]
    * @return The calibrated signal as a Array[Double]
    */
-  def compute(rawSignal: Array[Double]) : Array[Double] = rawSignal.map(_ * calibrationFactor)
+  def compute(rawSignal: Array[Double]) : Array[Double] = rawSignal
+    .map(_ / math.pow(10, calibrationFactor / 20))
 }

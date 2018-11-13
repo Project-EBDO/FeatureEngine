@@ -41,10 +41,10 @@ libraryDependencies += "org.scala-lang" % "scala-library" % "2.11.12"
 
 // Spark provided dependencies
 // https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.11
-libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.3.2" % "provided"
+libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.4.0" % "provided"
 // https://mvnrepository.com/artifact/org.apache.spark/spark-sql_2.11
-libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.3.2" % "provided"
-libraryDependencies += "org.apache.spark" % "spark-mllib_2.11" % "2.3.2" % "provided"
+libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % "2.4.0" % "provided"
+libraryDependencies += "org.apache.spark" % "spark-mllib_2.11" % "2.4.0" % "provided"
 
 // solving spark-jackson dependency issue
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7"
@@ -62,7 +62,7 @@ libraryDependencies += "com.holdenkarau" % "spark-testing-base_2.11" % "2.3.1_0.
 // https://mvnrepository.com/artifact/com.github.scopt/scopt_2.11
 libraryDependencies += "com.github.scopt" % "scopt_2.11" % "3.7.0"
 // https://mvnrepository.com/artifact/org.json4s/json4s-jackson_2.11
-libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.5.4"
+libraryDependencies += "org.json4s" % "json4s-jackson_2.11" % "3.6.2"
 // https://mvnrepository.com/artifact/edu.emory.mathcs/JTransforms
 libraryDependencies += "edu.emory.mathcs" % "JTransforms" % "2.4"
 // https://github.com/Project-ODE/hadoop-io-extensions

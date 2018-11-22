@@ -32,13 +32,13 @@ class TestScalaSampleWorkflow extends FlatSpec
 {
   val maxRMSE = 1.0E-16
 
-  it should "generate the same results as the pure scala workflow" in {
+  it should "read wav records" in {
     // Signal processing parameters
     val recordSizeInSec = 0.5f
     val soundSamplingRate = 16000.0f
-    val windowSize = 16000
+    val windowSize = 256
     val windowOverlap = 0
-    val nfft = 16000
+    val nfft = 256
 
     // Sound parameters
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI

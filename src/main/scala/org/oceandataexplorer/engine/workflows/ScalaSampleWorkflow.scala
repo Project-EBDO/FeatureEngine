@@ -37,8 +37,8 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
- * @param lowFreq The low boundary of the frequency range to study for TOL computation
- * @param highFreq The high boundary of the frequency range to study for TOL computation
+ * @param lowFreqTOL The low boundary of the frequency range to study for TOL computation
+ * @param highFreqTOL The high boundary of the frequency range to study for TOL computation
  */
 
 
@@ -48,9 +48,14 @@ class ScalaSampleWorkflow
   val windowSize: Int,
   val windowOverlap: Int,
   val nfft: Int,
-  val lowFreq: Option[Double] = None,
-  val highFreq: Option[Double] = None
+  val lowFreqTOL: Option[Double] = None,
+  val highFreqTOL: Option[Double] = None
 ) {
+
+  private val segmentationClass = Segmentation(windowSize, windowOverlap)
+  private val hammingClass = HammingWindowFunction(windowSize, Periodic)
+  private val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
+  private val energyClass = Energy(nfft)
 
   /**
    * Function used to read wav files inside a scala workflow
@@ -91,6 +96,41 @@ class ScalaSampleWorkflow
   }
 
   /**
+   * Method computing TOLs over the calibrated records
+   *
+   * @param calibratedRecords The calibration records used to compute TOL
+   * @param soundSamplingRate Sound's sample rate
+   * @return A Map containing the tols
+   */
+  def computeTol(
+    calibratedRecords: Array[AggregatedRecord],
+    soundSamplingRate: Float
+  ): Map[String, Either[Array[SegmentedRecord], Array[AggregatedRecord]]] = {
+    val tolNfft = soundSamplingRate.toInt
+    val tolWindowSize = soundSamplingRate.toInt
+    val tolWindowOverlap = 0
+
+    val tolSegmentationClass = Segmentation(tolWindowSize, tolWindowOverlap)
+    val tolHammingClass = HammingWindowFunction(tolWindowSize, Periodic)
+    val tolNormFactor = tolHammingClass.densityNormalizationFactor()
+    val tolFftClass = FFT(tolNfft, soundSamplingRate)
+    val tolPeriodogramClass = Periodogram(
+      tolNfft, 1.0 / (soundSamplingRate * tolNormFactor), soundSamplingRate)
+    val tolClass = TOL(tolNfft, soundSamplingRate, lowFreqTOL, highFreqTOL)
+
+    val tols = calibratedRecords
+      .map{case (idx, channels) => (idx, channels.map(tolSegmentationClass.compute))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(tolHammingClass.applyToSignal)))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(tolFftClass.compute)))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(tolPeriodogramClass.compute)))}
+      .map{case (idx, channels) => (idx, channels.map(_.map(tolClass.compute)))}
+      // average TOL by frequency bin
+      .map{case (idx, channels) => (idx, channels.map(_.transpose.map(_.sum)))}
+
+    Map("tol" -> Right(tols))
+  }
+
+  /**
    * Apply method for the workflow
    *
    * @param soundUri The URI to find the sound
@@ -118,20 +158,15 @@ class ScalaSampleWorkflow
       soundStartDate)
 
     val soundCalibrationClass = SoundCalibration(soundCalibrationFactor)
-    val segmentationClass = Segmentation(windowSize, windowOverlap)
-    val hammingClass = HammingWindowFunction(windowSize, Periodic)
-    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
-
     val fftClass = FFT(nfft, soundSamplingRate)
     val periodogramClass = Periodogram(
-      nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), 1.0f
-    )
+      nfft, 1.0/(soundSamplingRate*hammingNormalizationFactor), 1.0f)
     val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
-    val tolClass = TOL(nfft, soundSamplingRate, lowFreq, highFreq)
-    val energyClass = Energy(nfft)
 
-    val ffts = records
+    val calibratedRecords = records
       .map{case (idx, channels) => (idx, channels.map(soundCalibrationClass.compute))}
+
+    val ffts = calibratedRecords
       .map{case (idx, channels) => (idx, channels.map(segmentationClass.compute))}
       .map{case (idx, channels) => (idx, channels.map(_.map(hammingClass.applyToSignal)))}
       .map{case (idx, channels) => (idx, channels.map(_.map(fftClass.compute)))}
@@ -142,14 +177,16 @@ class ScalaSampleWorkflow
     val welchs = periodograms.map{
       case (idx, channels) => (idx, channels.map(welchClass.compute))}
 
-    val tols = welchs.map{
-      case (idx, channels) => (idx, channels.map(tolClass.compute))}
-
     val spls = welchs.map{
       case (idx, channels) => (idx, Array(channels.map(energyClass.computeSPLFromPSD)))}
 
-    Map("ffts" -> Left(ffts), "periodograms" -> Left(periodograms),
-      "welchs" -> Right(welchs), "tols" -> Right(tols),
-      "spls" -> Right(spls))
+    val results = Map("fft" -> Left(ffts), "periodogram" -> Left(periodograms),
+      "welch" -> Right(welchs), "spl" -> Right(spls))
+
+    if (recordDurationInSec >= 1.0f) {
+      results ++ computeTol(calibratedRecords, soundSamplingRate)
+    } else {
+      results
+    }
   }
 }

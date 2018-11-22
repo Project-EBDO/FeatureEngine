@@ -17,19 +17,22 @@
 package org.oceandataexplorer.engine.workflows
 
 
-import org.oceandataexplorer.engine.io.HadoopWavReader
-import org.oceandataexplorer.engine.io.LastRecordAction._
+import java.sql.Timestamp
+
+import com.github.nscala_time.time.Imports._
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{SparkSession, DataFrame, Row}
+import org.apache.spark.sql.functions._
+import org.oceandataexplorer.engine.io.HadoopWavReader
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
-import com.github.nscala_time.time.Imports._
-import java.sql.Timestamp
+import org.oceandataexplorer.engine.io.LastRecordAction._
 
 import org.oceandataexplorer.engine.signalprocessing._
 import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
-import WindowFunctionTypes.{Symmetric, Periodic}
+import org.oceandataexplorer.engine.signalprocessing.windowfunctions.WindowFunctionTypes._
+
 
 /**
  * Simple signal processing workflow in Spark.
@@ -44,8 +47,8 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
- * @param lowFreq The low boundary of the frequency range to study for TOL computation
- * @param highFreq The high boundary of the frequency range to study for TOL computation
+ * @param lowFreqTOL The lower boundary of the frequency range to study for TOL computation
+ * @param highFreqTOL The upper boundary of the frequency range to study for TOL computation
  * @param lastRecordAction The action to perform when a partial record is encountered
  *
  */
@@ -56,102 +59,179 @@ class SampleWorkflow
   val windowSize: Int,
   val windowOverlap: Int,
   val nfft: Int,
-  val lowFreq: Option[Double] = None,
-  val highFreq: Option[Double] = None,
+  val lowFreqTOL: Option[Double] = None,
+  val highFreqTOL: Option[Double] = None,
   val lastRecordAction: LastRecordAction = Skip
 ) {
 
   private val hadoopWavReader = new HadoopWavReader(spark, recordDurationInSec, lastRecordAction)
 
+  private val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
+  private val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
+
+  private val schemaWelchSpl = StructType(Seq(
+    StructField("timestamp", TimestampType, nullable = true),
+    StructField("welch", MultiChannelsFeatureType, nullable = false),
+    StructField("spl", MultiChannelsFeatureType, nullable = false)
+  ))
+
+  private val schemaTol = StructType(Seq(
+    StructField("timestamp", TimestampType, nullable = true),
+    StructField("tol", MultiChannelsFeatureType, nullable = false)
+  ))
 
   /**
-   * Function converting a RDD of Aggregated Records to a DataFrame
+   * Function computing Welch and SPL over calibrated records.
    *
-   * @param aggRDD RDD of AggregatedRecord to be converted
-   * @param featureName Name of the feature in the RDD
-   * @return The feature of the RDD as a DataFrame
+   * @param calibratedRecords The input calibrated sound signal as a RDD[Record]
+   * @param soundSamplingRate Sound's samplingRate
+   * @return The computed features (SPL and Welch) over the input calibrated
+   * sound signal given in calibratedRecords as a DataFrame of Row(timestamp, spl, welch).
+   * The channels are kept inside the tuple value to have multiple dataframe columns
+   * instead of a single one with complex content.
    */
-  def aggRecordRDDToDF(
-    aggRDD: RDD[AggregatedRecord],
-    featureName: String
+  def computeWelchAndSpl(
+    calibratedRecords: RDD[Record],
+    soundSamplingRate: Float
+  ): DataFrame = {
+    val segmentationClass = Segmentation(windowSize, windowOverlap)
+    val fftClass = FFT(nfft, soundSamplingRate)
+    val hammingClass = HammingWindowFunction(windowSize, Periodic)
+    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
+    val psdNormFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
+    val periodogramClass = Periodogram(nfft, psdNormFactor, soundSamplingRate)
+
+    val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
+    val energyClass = Energy(nfft)
+
+    val welchAndSpl = calibratedRecords
+      .mapValues(chans => chans.map(segmentationClass.compute))
+      .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
+        signalSegment.map(hammingClass.applyToSignal)))
+      .mapValues(windowedChans => windowedChans.map(windowedChan =>
+        windowedChan.map(fftClass.compute)))
+      .mapValues(fftChans =>
+        fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
+      .mapValues(periodogramChans =>
+        periodogramChans.map(welchClass.compute))
+      .map{ case (ts, welchChans) =>
+        (ts, welchChans, welchChans.map(welchChan =>
+          Array(energyClass.computeSPLFromPSD(welchChan))))
+    }
+
+    spark.createDataFrame(welchAndSpl
+      .map{ case (ts, welch, spls) => Row(new Timestamp(ts), welch, spls)},
+      schemaWelchSpl
+    )
+  }
+
+  /**
+   * Function computing TOL over calibrated records.
+   *
+   * @param calibratedRecords The input calibrated sound signal as a RDD[Record]
+   * @param soundSamplingRate Sound's samplingRate
+   * @return The computed feature (TOL) over the input calibrated
+   * sound signal given in calibratedRecords as a DataFrame of Row(timestamp, tol).
+   * The channels are kept inside the tuple value to have multiple dataframe columns
+   * instead of a single one with complex content.
+   */
+  def computeTol(
+    calibratedRecords: RDD[Record],
+    soundSamplingRate: Float
   ): DataFrame = {
 
-    val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
-    val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
+    if (recordDurationInSec < 1.0f) {
+      throw new IllegalArgumentException(
+        s"Incorrect recordDurationInSec ($recordDurationInSec) for TOL computation"
+      )
+    }
 
-    val schema = StructType(Seq(
-      StructField("timestamp", TimestampType, nullable = true),
-      StructField(featureName, MultiChannelsFeatureType, nullable = false)
-    ))
+    // ensure that nfft is higher than recordDurationInFrame
+    val tolSegmentSize = soundSamplingRate.toInt
+    val tolNfft = tolSegmentSize
 
-    spark.createDataFrame(
-      aggRDD.map{ case (k, v) => Row(new Timestamp(k), v)},
-      schema
+    /**
+     * Second segmentation is not needed here, TOLs are computed over the
+     * whole record using Periodogram to avoid unnecessary computation.
+     */
+    val segmentationClass = Segmentation(tolSegmentSize, 0)
+    val hammingClass = HammingWindowFunction(tolSegmentSize, Periodic)
+    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
+    val psdNormFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
+    val fftClass = FFT(tolNfft, soundSamplingRate)
+    val periodogramClass = Periodogram(tolNfft, psdNormFactor, soundSamplingRate)
+    val tolClass = TOL(tolNfft, soundSamplingRate, lowFreqTOL, highFreqTOL)
+
+    val tol = calibratedRecords
+      .mapValues(calibratedChans => calibratedChans.map(segmentationClass.compute))
+      .mapValues(segmentedChans =>
+        segmentedChans.map(segments => segments.map(hammingClass.applyToSignal)))
+      .mapValues(windowedChans =>
+        windowedChans.map(windowedSegments => windowedSegments.map(fftClass.compute)))
+      .mapValues(spectrumChans =>
+        spectrumChans.map(spectrumSegments => spectrumSegments.map(periodogramClass.compute)))
+      .mapValues(periodogramChans =>
+        periodogramChans.map(periodogramSegments => periodogramSegments.map(tolClass.compute)))
+      .mapValues(tolChans => tolChans.map(tolSegments => tolSegments.view.transpose.map(_.sum / tolSegments.length)))
+
+
+    spark.createDataFrame(tol
+      map{ case (ts, tols) => Row(new Timestamp(ts), tols) },
+      schemaTol
     )
   }
 
   /**
    * Apply method for the workflow
    *
-   * @param soundsUri URI-like string pointing to the wav files
-   * (Unix globbing is allowed, file:///tmp/{sound0,sound1}.wav is a valid soundsUri)
+   * @param soundUri URI-like string pointing to the wav files
+   * (Unix globbing is allowed, file:///tmp/{sound0,sound1}.wav is a valid soundUri)
    * @param soundsNameAndStartDate A list containing all files
    * names and their start date as a DateTime
    * @param soundSamplingRate Sound's samplingRate
    * @param soundChannels Sound's number of channels
    * @param soundSampleSizeInBits The number of bits used to encode a sample
    * @param soundCalibrationFactor The calibration factor for raw sound calibration
-   * @return A map that contains all basic features as RDDs
+   * @return The computed features (SPL, Welch and TOL if defined) over the wav
+   * files given in soundUri as a DataFrame of Row(timestamp, spl, welch) or
+   * Row(timestamp, spl, welch, tol).
+   * The channels are kept inside the tuple value to have multiple dataframe columns
+   * instead of a single one with complex content
    */
   def apply(
-    soundsUri: String,
+    soundUri: String,
     soundsNameAndStartDate: List[(String, DateTime)],
     soundSamplingRate: Float,
     soundChannels: Int,
     soundSampleSizeInBits: Int,
     soundCalibrationFactor: Double = 0.0
-  ): Map[String, Either[RDD[SegmentedRecord], RDD[AggregatedRecord]]] = {
+  ): DataFrame = {
 
-    val records = hadoopWavReader.readWavRecords(soundsUri, soundsNameAndStartDate,
-      soundSamplingRate, soundChannels, soundSampleSizeInBits
-    )
+
+    val records = hadoopWavReader.readWavRecords(soundUri,
+      soundsNameAndStartDate,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits)
 
     val soundCalibrationClass = SoundCalibration(soundCalibrationFactor)
-    val segmentationClass = Segmentation(windowSize, windowOverlap)
-    val fftClass = FFT(nfft, soundSamplingRate)
-    val hammingClass = HammingWindowFunction(windowSize, Periodic)
-    val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
-    val psdNormalizationFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
-    val periodogramClass = Periodogram(nfft, psdNormalizationFactor, soundSamplingRate)
-    val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
-    val energyClass = Energy(nfft)
 
-    val ffts = records.mapValues(chans => chans.map(soundCalibrationClass.compute))
-      .mapValues(chans => chans.map(segmentationClass.compute))
-      .mapValues(segmentedChans => segmentedChans.map(signalSegment =>
-        signalSegment.map(hammingClass.applyToSignal)))
-      .mapValues(windowedChans => {
-        windowedChans.map(windowedChan => windowedChan.map(fftClass.compute))
-      })
+    val calibratedRecords = records
+      .mapValues(chans => chans.map(soundCalibrationClass.compute))
 
-    val periodograms = ffts.mapValues(fftChans =>
-      fftChans.map(fftChan => fftChan.map(periodogramClass.compute)))
+    val welchAndSplDf = computeWelchAndSpl(calibratedRecords, soundSamplingRate)
 
-    val welchs = periodograms.mapValues(periodogramChans =>
-      periodogramChans.map(welchClass.compute))
+    import spark.implicits._
 
-    val spls = welchs.mapValues(welchChans => welchChans.map(welchChan =>
-      Array(energyClass.computeSPLFromPSD(welchChan))))
+    val result = if (recordDurationInSec >= 1.0f) {
+      val tolDf = computeTol(calibratedRecords, soundSamplingRate)
 
-    val resultMap = Map("ffts" -> Left(ffts), "periodograms" -> Left(periodograms),
-      "welchs" -> Right(welchs), "spls" -> Right(spls))
+      welchAndSplDf
+        .join(tolDf, tolDf("timestamp") === welchAndSplDf("timestamp"))
+        .drop(tolDf("timestamp"))
+    } else welchAndSplDf
 
-    if (nfft >= soundSamplingRate.toInt) {
-      val tolClass = TOL(nfft, soundSamplingRate, lowFreq, highFreq)
-      val tols = welchs.mapValues(welchChans => welchChans.map(tolClass.compute))
-      resultMap ++ Map("tols" -> Right(tols))
-    } else {
-      resultMap
-    }
+    result
+      .sort($"timestamp")
   }
 }

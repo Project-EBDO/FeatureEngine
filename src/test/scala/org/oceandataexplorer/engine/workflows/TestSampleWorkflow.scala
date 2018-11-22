@@ -16,32 +16,31 @@
 
 package org.oceandataexplorer.engine.workflows
 
-import org.apache.spark.sql.types._
+
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
-import java.sql.Timestamp
 import com.github.nscala_time.time.Imports._
 
-import org.apache.spark.SparkException
 import org.scalatest.{FlatSpec, Matchers}
-import org.oceandataexplorer.utils.test.OdeCustomMatchers
 import com.holdenkarau.spark.testing.SharedSparkContext
+import org.oceandataexplorer.utils.test.OdeCustomMatchers
+
 
 /**
- * Tests for SampleWorkflow that compares its computations with ScalaSampleWorkflow
+ * Tests for [[SampleWorkflow]] class
+ * It uses [[ScalaSampleWorkflow]] as reference to test [[SampleWorkflow]] results.
  *
  * @author Alexandre Degurse, Joseph Allemandou
  */
 
 class TestSampleWorkflow extends FlatSpec
-  with Matchers with SharedSparkContext with OdeCustomMatchers
-{
+  with Matchers with SharedSparkContext with OdeCustomMatchers {
 
   /**
    * Maximum error allowed for [[OdeCustomMatchers.RmseMatcher]]
-   * Test for TOL matches at 6e-12, all other test at 1e-16
    */
-  val maxRMSE = 1.0E-11
+  val maxRMSE = 1.0E-16
 
   "SampleWorkflow" should "generate results of expected size" in {
 
@@ -53,8 +52,6 @@ class TestSampleWorkflow extends FlatSpec
     val windowSize = 16000
     val windowOverlap = 0
     val nfft = 16000
-    val lowFreq = Some(3000.0)
-    val highFreq = Some(7000.0)
 
     // Sound parameters
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -69,12 +66,10 @@ class TestSampleWorkflow extends FlatSpec
       recordSizeInSec,
       windowSize,
       windowOverlap,
-      nfft,
-      lowFreq,
-      highFreq
+      nfft
     )
 
-    val resultMap = sampleWorkflow.apply(
+    val results = sampleWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -82,57 +77,123 @@ class TestSampleWorkflow extends FlatSpec
       soundSampleSizeInBits
     )
 
-    val sparkFFT = resultMap("ffts").left.get.cache()
-    val sparkPeriodograms = resultMap("periodograms").left.get.cache()
-    val sparkWelchs = resultMap("welchs").right.get.cache()
-    val sparkTOLs = resultMap("tols").right.get.cache()
-    val sparkSPL = resultMap("spls").right.get.cache()
-
     val expectedRecordNumber = (soundDurationInSecs / recordSizeInSec).toInt
-    val expectedWindowsPerRecord = soundSamplingRate * recordSizeInSec / windowSize
     val expectedFFTSize = nfft + 2 // nfft is even
 
-    resultMap.size should equal(5)
 
-    sparkFFT.count shouldEqual expectedRecordNumber
-    sparkFFT.take(1).foreach{case (idx, channels) =>
-      channels(0) should have length expectedWindowsPerRecord.toLong
-      channels(0)(0) should have length expectedFFTSize
+    val sparkWelchs = results.select("welch").collect()
+    val sparkSPL = results.select("spl").collect()
+
+    sparkWelchs should have size expectedRecordNumber
+    sparkSPL should have size expectedRecordNumber
+
+    sparkWelchs.foreach{channels =>
+      channels should have size 1
+      val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+      chans.foreach(channel => channel should have length (expectedFFTSize / 2))
     }
 
-    sparkPeriodograms.count shouldEqual expectedRecordNumber
-    sparkPeriodograms.take(1).foreach{case (idx, channels) =>
-      channels(0) should have length expectedWindowsPerRecord.toLong
-      channels(0)(0) should have length expectedFFTSize / 2
-    }
-
-    sparkWelchs.count should equal(expectedRecordNumber)
-    sparkWelchs.take(1).foreach{case (idx, channels) =>
-      channels(0) should have length expectedFFTSize / 2
-    }
-
-    sparkTOLs.count shouldEqual expectedRecordNumber
-    sparkTOLs.take(1).foreach{case (idx, channels) =>
-      channels(0) should have length 4
-    }
-
-    sparkSPL.count should equal(expectedRecordNumber)
-    sparkSPL.take(1).foreach{case (idx, channels) =>
-      channels(0) should have length 1
+    sparkSPL.foreach{channels =>
+      channels should have size 1
+      val chans = channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+      chans.foreach(channel => channel should have length 1 )
     }
   }
 
-  it should "generate the same results as the pure scala workflow" in {
+  it should "generate the same results as the pure scala workflow without tol" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val recordSizeInSec = 0.5f
+    val soundSamplingRate = 16000.0f
+    val windowSize = 6000
+    val windowOverlap = 3000
+    val nfft = 7000
+
+    // Sound parameters
+    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
+    val soundChannels = 1
+    val soundSampleSizeInBits = 16
+    val soundStartDate = "1978-04-11T13:14:20.200Z"
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+
+
+    val sampleWorkflow = new SampleWorkflow(
+      spark,
+      recordSizeInSec,
+      windowSize,
+      windowOverlap,
+      nfft
+    )
+
+    val sparkResults = sampleWorkflow(
+      soundUri.toString,
+      soundsNameAndStartDate,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits
+    )
+
+    val sparkTs: Array[Long] = sparkResults
+      .select("timestamp")
+      .collect()
+      .map{channels =>
+        val javaTs = channels.getTimestamp(0)
+        new DateTime(javaTs).instant.millis
+      }
+
+    val sparkWelchs: Array[Array[Array[Double]]] = sparkResults
+      .select("welch")
+      .collect()
+      .map{channels =>
+        channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+          .map(_.toArray).toArray
+      }
+
+    val sparkSPLs: Array[Array[Array[Double]]] = sparkResults
+      .select("spl")
+      .collect()
+      .map{channels =>
+        channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+          .map(_.toArray).toArray
+      }
+
+    val welchs = sparkTs.zip(sparkWelchs)
+    val spls = sparkTs.zip(sparkSPLs)
+
+    val scalaWorkflow = new ScalaSampleWorkflow(
+      recordSizeInSec,
+      windowSize,
+      windowOverlap,
+      nfft
+    )
+
+    val resultsScala = scalaWorkflow(
+      soundUri,
+      soundSamplingRate,
+      soundChannels,
+      soundSampleSizeInBits,
+      soundStartDate
+    )
+
+    val scalaWelchs = resultsScala("welch").right.get
+    val scalaSPLs = resultsScala("spl").right.get
+
+    welchs should rmseMatch(scalaWelchs)
+    spls should rmseMatch(scalaSPLs)
+  }
+
+  it should "generate the same results as the pure scala workflow with TOL" in {
     val spark = SparkSession.builder.getOrCreate
 
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val windowSize = 16000
-    val windowOverlap = 0
-    val nfft = 16000
-    val lowFreq = Some(3000.0)
-    val highFreq = Some(7000.0)
+    val windowSize = 512
+    val windowOverlap = 128
+    val nfft = 512
+    val lowFreqTOL = Some(3000.0)
+    val highFreqTOL = Some(7000.0)
 
     // Sound parameters
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -148,11 +209,11 @@ class TestSampleWorkflow extends FlatSpec
       windowSize,
       windowOverlap,
       nfft,
-      lowFreq,
-      highFreq
+      lowFreqTOL,
+      highFreqTOL
     )
 
-    val resultMap = sampleWorkflow.apply(
+    val sparkResults = sampleWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -160,22 +221,52 @@ class TestSampleWorkflow extends FlatSpec
       soundSampleSizeInBits
     )
 
-    val sparkFFT = resultMap("ffts").left.get.cache().collect()
-    val sparkPeriodograms = resultMap("periodograms").left.get.cache().collect()
-    val sparkWelchs = resultMap("welchs").right.get.cache().collect()
-    val sparkTOLs = resultMap("tols").right.get.cache().collect()
-    val sparkSPLs = resultMap("spls").right.get.cache().collect()
+    val sparkTs: Array[Long] = sparkResults
+      .select("timestamp")
+      .collect()
+      .map{channels =>
+        val javaTs = channels.getTimestamp(0)
+        new DateTime(javaTs).instant.millis
+      }
+
+    val sparkWelchs: Array[Array[Array[Double]]] = sparkResults
+      .select("welch")
+      .collect()
+      .map{channels =>
+        channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+          .map(_.toArray).toArray
+      }
+
+    val sparkSPLs: Array[Array[Array[Double]]] = sparkResults
+      .select("spl")
+      .collect()
+      .map{channels =>
+        channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+          .map(_.toArray).toArray
+      }
+
+    val sparkTOLs: Array[Array[Array[Double]]] = sparkResults
+      .select("tol")
+      .collect()
+      .map{channels =>
+        channels.getSeq(0).asInstanceOf[Seq[Seq[Double]]]
+          .map(_.toArray).toArray
+      }
+
+    val welchs = sparkTs.zip(sparkWelchs)
+    val spls = sparkTs.zip(sparkSPLs)
+    val tols = sparkTs.zip(sparkTOLs)
 
     val scalaWorkflow = new ScalaSampleWorkflow(
       recordSizeInSec,
       windowSize,
       windowOverlap,
       nfft,
-      lowFreq,
-      highFreq
+      lowFreqTOL,
+      highFreqTOL
     )
 
-    val resultMapScala = scalaWorkflow.apply(
+    val resultsScala = scalaWorkflow(
       soundUri,
       soundSamplingRate,
       soundChannels,
@@ -183,17 +274,13 @@ class TestSampleWorkflow extends FlatSpec
       soundStartDate
     )
 
-    val scalaFFT = resultMapScala("ffts").left.get
-    val scalaPeriodograms = resultMapScala("periodograms").left.get
-    val scalaWelchs = resultMapScala("welchs").right.get
-    val scalaTOLs = resultMapScala("tols").right.get
-    val scalaSPLs = resultMapScala("spls").right.get
+    val scalaWelchs = resultsScala("welch").right.get
+    val scalaSPLs = resultsScala("spl").right.get
+    val scalaTOLs = resultsScala("tol").right.get
 
-    sparkFFT should rmseMatch(scalaFFT)
-    sparkPeriodograms should rmseMatch(scalaPeriodograms)
-    sparkWelchs should rmseMatch(scalaWelchs)
-    sparkSPLs should rmseMatch(scalaSPLs)
-    sparkTOLs should rmseMatch(scalaTOLs)
+    welchs should rmseMatch(scalaWelchs)
+    spls should rmseMatch(scalaSPLs)
+    tols should rmseMatch(scalaTOLs)
   }
 
   it should "generate the results with the right timestamps" in {
@@ -205,8 +292,6 @@ class TestSampleWorkflow extends FlatSpec
     val windowSize = 16000
     val windowOverlap = 0
     val nfft = 16000
-    val lowFreq = Some(3000.0)
-    val highFreq = Some(7000.0)
 
     // Sound parameters
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -215,7 +300,7 @@ class TestSampleWorkflow extends FlatSpec
 
     // Usefull for testing
     val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate, DateTimeZone.UTC)))
 
 
     val sampleWorkflow = new SampleWorkflow(
@@ -223,12 +308,10 @@ class TestSampleWorkflow extends FlatSpec
       recordSizeInSec,
       windowSize,
       windowOverlap,
-      nfft,
-      lowFreq,
-      highFreq
+      nfft
     )
 
-    val resultMap = sampleWorkflow.apply(
+    val results = sampleWorkflow(
       soundUri.toString,
       soundsNameAndStartDate,
       soundSamplingRate,
@@ -236,40 +319,31 @@ class TestSampleWorkflow extends FlatSpec
       soundSampleSizeInBits
     )
 
-    val sparkFFT = resultMap("ffts").left.get.cache().collect().sortBy(_._1)
+    val timestampsSpark = results.select("timestamp").collect()
 
-    val lastRecordStartTime = sparkFFT.last._1
-    val lastRecordStartDate = new DateTime(lastRecordStartTime)
+    val lastRecordStartTime = timestampsSpark.toSeq.last.getTimestamp(0)
+    val lastRecordStartDate = new DateTime(lastRecordStartTime, DateTimeZone.UTC)
 
-    val startDate = new DateTime(soundStartDate)
+    val startDate = new DateTime(soundStartDate, DateTimeZone.UTC)
 
-    val duration = lastRecordStartTime - startDate.instant.millis
-    val expectedLastRecordDate = new DateTime("1978-04-11T13:14:21.200Z")
+    val duration = lastRecordStartDate.instant.millis - startDate.instant.millis
+    val expectedLastRecordDate = new DateTime("1978-04-11T13:14:21.200Z", DateTimeZone.UTC)
 
     duration shouldEqual 1000
     lastRecordStartDate shouldEqual expectedLastRecordDate
   }
 
-  it should "compute tols when given parameters compatible with tol computation" in {
+  it should "raise an IllegalArgumentException when trying to compute TOL on with recordDuration < 1.0 sec" in {
     val spark = SparkSession.builder.getOrCreate
 
     // Signal processing parameters
-    val recordSizeInSec = 1.0f
-    val soundSamplingRate = 16000.0f
-    val windowSize = 16000
-    val windowOverlap = 0
-    val nfft = 16000
-    val lowFreq = Some(1000.0)
-    val highFreq = Some(6000.0)
-
-    // Sound parameters
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-    val soundChannels = 1
-    val soundSampleSizeInBits = 16
-
-    // Usefull for testing
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
+    val recordSizeInSec = 0.1f
+    val soundSamplingRate = 100.0f
+    val windowSize = 10
+    val windowOverlap = 5
+    val nfft = 10
+    val lowFreqTOL = Some(20.0)
+    val highFreqTOL = Some(40.0)
 
     val sampleWorkflow = new SampleWorkflow(
       spark,
@@ -277,138 +351,16 @@ class TestSampleWorkflow extends FlatSpec
       windowSize,
       windowOverlap,
       nfft,
-      lowFreq,
-      highFreq
+      lowFreqTOL,
+      highFreqTOL
     )
 
-    val resultMap = sampleWorkflow.apply(
-      soundUri.toString,
-      soundsNameAndStartDate,
-      soundSamplingRate,
-      soundChannels,
-      soundSampleSizeInBits
+    val records: RDD[Record] = spark.sparkContext.parallelize(
+      Seq((0L, Array((1.0 to 100.0 by 1.0).toArray)))
     )
-
-    val sparkTOL = resultMap("tols").right.get.cache().collect()
-
-    // obtained by applying tol.py from standardization on the first
-    // second of the wav file (xin) with:
-    /**
-     * f, psd = scipy.signal.welch(xin, fs=16000.0, noverlap=0,
-     *   window='hamming', nperseg=16000, nfft=16000, detrend=False,
-     *   return_onesided=True, scaling='density')
-     * tols = tol(psd, 16000.0, 16000, 16000, 1000.0, 6000.0)
-     */
-
-    val expectedTOL = Array(
-      -3.01037283204366, -111.24321821043127, -109.45049617502617,
-      -107.59120472415702, -106.35238654048527, -101.20437081472288,
-      -103.64721324107055,  -98.0696920300183 ,  -88.42937775219258
-    )
-
-    val tols: Array[Double] = sparkTOL(0)._2(0)
-
-    tols should rmseMatch(expectedTOL)
-  }
-
-  it should "create a DataFrame when given a RDD of AggregatedRecord" in {
-    val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
-    val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)
-
-    val expectedSchema = StructType(Seq(
-      StructField("timestamp", TimestampType, nullable = true),
-      StructField("spls", MultiChannelsFeatureType, nullable = false)
-    ))
-
-    val spark = SparkSession.builder.getOrCreate
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
-
-    val rdd = spark.sparkContext.parallelize(Seq((10L, Array(Array(1.0)))))
-    val df = sampleWorkflow.aggRecordRDDToDF(rdd, "spls")
-
-    df.schema shouldEqual expectedSchema
-
-    df.take(1)(0).getAs[Timestamp](0).toInstant.toEpochMilli shouldEqual 10L
-  }
-
-  it should "raise an IllegalArgumentException when record size is not round" in {
-    val spark = SparkSession.builder.getOrCreate
-
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)))
-
-    val sampleWorkflow = new SampleWorkflow(spark, 0.1f, 100, 0, 100)
 
     the[IllegalArgumentException] thrownBy {
-      sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
-    } should have message "Computed record size (0.1) should not have a decimal part."
-  }
-
-  it should "raise an IOException/SparkException when given a wrong sample rate" in {
-    val spark = SparkSession.builder.getOrCreate
-
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(("wrongFileName.wav", new DateTime(soundStartDate)))
-
-
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
-
-    // even though test succeeds, a missive amount of log is displayed
-    spark.sparkContext.setLogLevel("OFF")
-
-    val thrown = the[SparkException] thrownBy {
-      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
-      resultMap("ffts").left.get.cache().take(1)
-    }
-
-    spark.sparkContext.setLogLevel("WARN")
-
-    thrown.getMessage should include("sample rate (16000.0) doesn't match configured one (1.0)")
-  }
-
-  it should "raise an IllegalArgumentException when given list of files with duplicates" in {
-    val spark = SparkSession.builder.getOrCreate
-
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(
-      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate)),
-      ("sin_16kHz_2.5s.wav", new DateTime(soundStartDate))
-    )
-
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
-
-    the[IllegalArgumentException] thrownBy {
-      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 1.0f, 1, 16)
-      resultMap("ffts").left.get.cache().take(1)
-    } should have message "Sounds list contains duplicate filename entries"
-  }
-
-  it should "raise an IllegalArgumentException/SparkException when a unexpected wav file is encountered" in {
-    val spark = SparkSession.builder.getOrCreate
-
-    val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
-
-    val soundStartDate = "1978-04-11T13:14:20.200Z"
-    val soundsNameAndStartDate = List(("wrong_name.wav", new DateTime(soundStartDate)))
-
-    val sampleWorkflow = new SampleWorkflow(spark, 1.0f, 100, 0, 100)
-
-    // even though test succeeds, a missive amount of log is displayed
-    spark.sparkContext.setLogLevel("OFF")
-
-    val thrown = the[SparkException] thrownBy {
-      val resultMap = sampleWorkflow.apply(soundUri.toString, soundsNameAndStartDate, 16000.0f, 1, 16)
-      resultMap("ffts").left.get.cache().take(1)
-    }
-
-    spark.sparkContext.setLogLevel("WARN")
-
-    thrown.getMessage should include("Read file sin_16kHz_2.5s.wav has no startDate in given list")
+      sampleWorkflow.computeTol(records, soundSamplingRate)
+    } should have message "Incorrect recordDurationInSec (0.1) for TOL computation"
   }
 }

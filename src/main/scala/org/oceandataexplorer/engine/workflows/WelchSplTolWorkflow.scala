@@ -43,7 +43,7 @@ import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
  * @param lastRecordAction The action to perform when a partial record is encountered
  *
  */
-class WelchSplTolWorkflowB
+class WelchSplTolWorkflow
 (
   val spark: SparkSession,
   val recordDurationInSec: Float,
@@ -65,6 +65,7 @@ class WelchSplTolWorkflowB
     StructField("tol", MultiChannelsFeatureType, nullable = false)
   ))
 
+  // scalastyle:off method.length
 
   /**
    * Apply method for the workflow
@@ -84,46 +85,69 @@ class WelchSplTolWorkflowB
 
     import spark.implicits._
 
+    // classes for Welch & SPL computation
     val segmentationClass = Segmentation(windowSize, windowOverlap)
     val fftClass = FFT(nfft, soundSamplingRate)
     val hammingClass = HammingWindowFunction(windowSize, Periodic)
     val hammingNormalizationFactor = hammingClass.densityNormalizationFactor()
     val psdNormFactor = 1.0 / (soundSamplingRate * hammingNormalizationFactor)
     val periodogramClass = Periodogram(nfft, psdNormFactor, soundSamplingRate)
-
     val welchClass = WelchSpectralDensity(nfft, soundSamplingRate)
     val energyClass = Energy(nfft)
 
-    val segmentSizeTol = soundSamplingRate.toInt
-    val nfftTol = segmentSizeTol
-    val segmentationClassTol = Segmentation(segmentSizeTol)
-    val hammingClassTol = HammingWindowFunction(segmentSizeTol, Periodic)
+    // classes for TOL computation
+    val windowSizeTol = soundSamplingRate.toInt
+    val nfftTol = windowSizeTol
+    val segmentationClassTol = Segmentation(windowSizeTol)
+    val hammingClassTol = HammingWindowFunction(windowSizeTol, Periodic)
     val hammingNormalizationFactorTol = hammingClassTol.densityNormalizationFactor()
     val psdNormFactorTol = 1.0 / (soundSamplingRate * hammingNormalizationFactorTol)
     val fftClassTol = FFT(nfftTol, soundSamplingRate)
     val periodogramClassTol = Periodogram(nfftTol, psdNormFactorTol, soundSamplingRate)
     val tolClass = TOL(nfftTol, soundSamplingRate, lowFreqTOL, highFreqTOL)
 
+    /**
+     * TOLs are computed over the windows of fixed length (1 second)
+     * and then averaged to produce one TOL vector per record.
+     */
     val welchSplTol = calibratedRecords
+      /**
+       * Segment the calibrated record in windows of:
+       * - `windowSize` with `windowOverlap` for Welch & SPL
+       * - `windowSizeTol = samplingRate` with no overlap for TOL
+       */
       .mapValues(calibratedChans => (calibratedChans.map(segmentationClass.compute),
         calibratedChans.map(segmentationClassTol.compute)))
+      // apply hamming window function
       .mapValues{ case (segmentedChans, segmentedTolChans) =>
         (segmentedChans.map(signalSegment =>
           signalSegment.map(hammingClass.applyToSignal)),
         segmentedTolChans.map(segments => segments.map(hammingClassTol.applyToSignal)))}
+      // compute FFTs over the windows
       .mapValues{ case (windowedChans, windowedTolChans) =>
         (windowedChans.map(windowedChan => windowedChan.map(fftClass.compute)),
         windowedTolChans.map(windowedSegments => windowedSegments.map(fftClassTol.compute)))}
+      // compute Periodogram over windows
       .mapValues{ case (fftChans, fftTolChans) =>
         (fftChans.map(fftChan => fftChan.map(periodogramClass.compute)),
         fftTolChans.map(spectrumSegments => spectrumSegments.map(periodogramClassTol.compute)))}
+      /**
+       * - Welch which produces one power spectral density vector per channel
+       *   (i.e. it aggregates the window using Welch method)
+       * - TOL which produces one TOL vector per window
+       */
       .mapValues{ case (periodogramChans, periodogramTolChans) =>
         (periodogramChans.map(welchClass.compute),
         periodogramTolChans.map(periodogramSegments => periodogramSegments.map(tolClass.compute)))}
+      /**
+       * - compute SPL from Welch
+       * - aggregate (average) TOLs per channel to produce a single TOL vector per channel
+       */
       .mapValues{ case (welchChans, tolChans) =>
         (welchChans, welchChans.map(welchChan => Array(energyClass.computeSPLFromPSD(welchChan))),
           tolChans.map(tolSegments =>
             tolSegments.view.transpose.map(_.sum / tolSegments.length).toArray))}
+      // format results for convertion to DataFrame
       .map{ case (ts, features) => Row(new Timestamp(ts), features._1, features._2, features._3)}
 
     spark.createDataFrame(welchSplTol, schema).sort($"timestamp")

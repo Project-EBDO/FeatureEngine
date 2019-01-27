@@ -51,7 +51,8 @@ class TestTolWorkflow extends FlatSpec
     // Signal processing parameters
     val recordSizeInSec = 1.0f
     val soundSamplingRate = 16000.0f
-    val nfft = 16000
+    val lowFreqTOL = Some(3000.0)
+    val highFreqTOL = Some(7000.0)
 
     // Sound parameters
     val soundUri = getClass.getResource("/wav/sin_16kHz_2.5s.wav").toURI
@@ -79,7 +80,9 @@ class TestTolWorkflow extends FlatSpec
 
     val tolWorkflow = new TolWorkflow(
       spark,
-      recordSizeInSec
+      recordSizeInSec,
+      lowFreqTOL,
+      highFreqTOL
     )
 
     val results = tolWorkflow(
@@ -88,7 +91,7 @@ class TestTolWorkflow extends FlatSpec
     )
 
     val expectedRecordNumber = (soundDurationInSecs / recordSizeInSec).toInt
-    val expectedNumTob = 39
+    val expectedNumTob = 4
 
 
     val sparkTOL = results.select("tol").collect()

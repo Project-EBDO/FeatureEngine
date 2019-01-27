@@ -89,8 +89,8 @@ class TolWorkflow
     val nfft = segmentSize
 
     /**
-     * Second segmentation is not needed here, TOLs are computed over the
-     * whole record using Periodogram to avoid unnecessary computation.
+     * TOLs are computed over the windows of fixed length (1 second)
+     * and then averaged to produce one TOL vector per record.
      */
     val segmentationClass = Segmentation(segmentSize)
     val hammingClass = HammingWindowFunction(segmentSize, Periodic)

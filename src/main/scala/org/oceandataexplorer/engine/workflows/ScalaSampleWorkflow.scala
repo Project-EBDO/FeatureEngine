@@ -33,7 +33,7 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  *
  * @author Alexandre Degurse, Joseph Allemandou
  *
- * @param segmentDuration The duration of a record in the workflow in seconds
+ * @param segmentDuration The duration of a segment in the workflow in seconds
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window

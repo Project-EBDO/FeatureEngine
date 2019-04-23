@@ -80,6 +80,7 @@ class TestWelchSplTolWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplTolWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft,
@@ -162,6 +163,7 @@ class TestWelchSplTolWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplTolWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft,
@@ -274,6 +276,7 @@ class TestWelchSplTolWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplTolWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft
@@ -296,5 +299,29 @@ class TestWelchSplTolWorkflow extends FlatSpec
 
     duration shouldEqual 1000
     lastRecordStartDate shouldEqual expectedLastRecordDate
+  }
+
+  it should "raise an IllegalArgumentException when trying to compute TOL on with recordDuration < 1.0 sec" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val segmentDuration = 0.1f
+    val windowSize = 256
+    val windowOverlap = 0
+    val nfft = 256
+    val lowFreqTOL = Some(20.0)
+    val highFreqTOL = Some(40.0)
+
+    the[IllegalArgumentException] thrownBy {
+       new WelchSplTolWorkflow(
+        spark,
+        segmentDuration,
+        windowSize,
+        windowOverlap,
+        nfft,
+        lowFreqTOL,
+        highFreqTOL
+      )
+    } should have message "Incorrect segmentDuration (0.1) for TOL computation"
   }
 }

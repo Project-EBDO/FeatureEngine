@@ -34,6 +34,7 @@ import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
  * @author Alexandre Degurse, Joseph Allemandou
  *
  * @param spark The SparkSession to use to build resulting RDDs
+ * @param segmentDuration The duration of a segment in the workflow in seconds
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
@@ -45,6 +46,7 @@ import org.oceandataexplorer.engine.signalprocessing.windowfunctions._
 class WelchSplTolWorkflow
 (
   val spark: SparkSession,
+  val segmentDuration: Float,
   val windowSize: Int,
   val windowOverlap: Int,
   val nfft: Int,
@@ -52,6 +54,12 @@ class WelchSplTolWorkflow
   val highFreqTOL: Option[Double] = None,
   val lastRecordAction: LastRecordAction = Skip
 ) {
+
+  if (segmentDuration < 1.0f) {
+    throw new IllegalArgumentException(
+      s"Incorrect segmentDuration ($segmentDuration) for TOL computation"
+    )
+  }
 
   private val SingleChannelFeatureType = DataTypes.createArrayType(DoubleType, false)
   private val MultiChannelsFeatureType = DataTypes.createArrayType(SingleChannelFeatureType, false)

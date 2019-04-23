@@ -80,6 +80,7 @@ class TestTolWorkflow extends FlatSpec
 
     val tolWorkflow = new TolWorkflow(
       spark,
+      segmentDuration,
       lowFreqTOL,
       highFreqTOL
     )
@@ -142,6 +143,7 @@ class TestTolWorkflow extends FlatSpec
 
     val tolWorkflow = new TolWorkflow(
       spark,
+      segmentDuration,
       lowFreqTOL,
       highFreqTOL
     )
@@ -189,5 +191,23 @@ class TestTolWorkflow extends FlatSpec
     val scalaTOLs = resultsScala("tol").right.get
 
     tols should rmseMatch(scalaTOLs)
+  }
+
+  it should "raise an IllegalArgumentException when trying to compute TOL on with recordDuration < 1.0 sec" in {
+    val spark = SparkSession.builder.getOrCreate
+
+    // Signal processing parameters
+    val segmentDuration = 0.1f
+    val lowFreqTOL = Some(20.0)
+    val highFreqTOL = Some(40.0)
+
+    the[IllegalArgumentException] thrownBy {
+       new TolWorkflow(
+        spark,
+        segmentDuration,
+        lowFreqTOL,
+        highFreqTOL
+      )
+    } should have message "Incorrect segmentDuration (0.1) for TOL computation"
   }
 }

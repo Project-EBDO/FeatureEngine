@@ -81,6 +81,7 @@ class TestWelchSplWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft
@@ -150,6 +151,7 @@ class TestWelchSplWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft
@@ -247,6 +249,7 @@ class TestWelchSplWorkflow extends FlatSpec
 
     val sampleWorkflow = new WelchSplWorkflow(
       spark,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft

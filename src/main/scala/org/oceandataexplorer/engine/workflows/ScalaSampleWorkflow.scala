@@ -33,7 +33,7 @@ import WindowFunctionTypes.{Symmetric, Periodic}
  *
  * @author Alexandre Degurse, Joseph Allemandou
  *
- * @param recordDurationInSec The duration of a record in the workflow in seconds
+ * @param segmentDuration The duration of a record in the workflow in seconds
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
@@ -44,7 +44,7 @@ import WindowFunctionTypes.{Symmetric, Periodic}
 
 class ScalaSampleWorkflow
 (
-  val recordDurationInSec: Float,
+  val segmentDuration: Float,
   val windowSize: Int,
   val windowOverlap: Int,
   val nfft: Int,
@@ -79,8 +79,8 @@ class ScalaSampleWorkflow
 
     val startTime: Long = new DateTime(soundStartDate).instant.millis
 
-    val recordSize = (recordDurationInSec * soundSamplingRate).toInt
-    val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(recordSize)
+    val segmentSize = (segmentDuration * soundSamplingRate).toInt
+    val chunks: Seq[Array[Array[Double]]] = wavReader.readChunks(segmentSize)
 
     // drop last record if incomplete
     val completeChunks = if (chunks.head.head.length != chunks.last.last.length) {
@@ -91,7 +91,7 @@ class ScalaSampleWorkflow
 
     completeChunks.zipWithIndex
       .map{case (record, idx) =>
-        (startTime + (1000.0f * idx * recordSize / soundSamplingRate).toLong, record)
+        (startTime + (1000.0f * idx * segmentSize / soundSamplingRate).toLong, record)
       }.toArray
   }
 
@@ -183,7 +183,7 @@ class ScalaSampleWorkflow
     val results = Map("fft" -> Left(ffts), "periodogram" -> Left(periodograms),
       "welch" -> Right(welchs), "spl" -> Right(spls))
 
-    if (recordDurationInSec >= 1.0f) {
+    if (segmentDuration >= 1.0f) {
       results ++ computeTol(calibratedRecords, soundSamplingRate)
     } else {
       results

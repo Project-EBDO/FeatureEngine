@@ -37,7 +37,6 @@ import org.oceandataexplorer.engine.signalprocessing.windowfunctions.WindowFunct
  * @author Alexandre Degurse, Joseph Allemandou
  *
  * @param spark The SparkSession to use to build resulting RDDs
- * @param recordDurationInSec The duration of a record in the workflow in seconds
  * @param windowSize The size of the segments to be generated
  * @param windowOverlap The generated segments overlap
  * @param nfft The size of the fft-computation window
@@ -47,7 +46,6 @@ import org.oceandataexplorer.engine.signalprocessing.windowfunctions.WindowFunct
 class WelchSplWorkflow
 (
   val spark: SparkSession,
-  val recordDurationInSec: Float,
   val windowSize: Int,
   val windowOverlap: Int,
   val nfft: Int,

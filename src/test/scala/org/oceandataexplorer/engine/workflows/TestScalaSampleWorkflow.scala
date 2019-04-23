@@ -34,7 +34,7 @@ class TestScalaSampleWorkflow extends FlatSpec
 
   it should "read wav records" in {
     // Signal processing parameters
-    val recordSizeInSec = 0.5f
+    val segmentDuration = 0.5f
     val soundSamplingRate = 16000.0f
     val windowSize = 256
     val windowOverlap = 0
@@ -48,7 +48,7 @@ class TestScalaSampleWorkflow extends FlatSpec
 
 
     val scalaWorkflow = new ScalaSampleWorkflow(
-      recordSizeInSec,
+      segmentDuration,
       windowSize,
       windowOverlap,
       nfft

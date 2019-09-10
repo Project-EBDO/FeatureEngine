@@ -9,6 +9,9 @@ cache:
 # Now the actual core of the script
 language: scala
 
+jdk: 
+  - oraclejdk8
+
 scala:
   - 2.11.12
 
